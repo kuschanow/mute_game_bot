@@ -12,34 +12,62 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 
+import environ
+
+env = environ.Env()
+environ.Env.read_env('./.env')
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Default primary key field type
+# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-t#@jkdq*ksn5g-uz*s&811^z)aid1r!0=u+9$v*)lymoxde&6u'
+SECRET_KEY = env.str('DJANGO_SECRET_KEY', default="")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env.bool('DEBUG', default=True)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['127.0.0.1', 'localhost'])
 
+INTERNAL_IPS = env.list(
+    'INTERNAL_IPS',
+    default=[
+        '127.0.0.1',
+    ],
+)
 
 # Application definition
 
 INSTALLED_APPS = [
+    'admin_interface',
+    'colorfield',
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+
+    'livereload',
+
     'django.contrib.staticfiles',
+
+    'corsheaders',
+    'debug_toolbar',
+
+    "games.apps.GamesConfig",
+    "bot.apps.BotConfig"
 ]
 
 MIDDLEWARE = [
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -47,7 +75,32 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    'corsheaders.middleware.CorsMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
+    'livereload.middleware.LiveReloadScript',
 ]
+
+if not DEBUG:
+    MIDDLEWARE.remove('debug_toolbar.middleware.DebugToolbarMiddleware')
+    MIDDLEWARE.remove('livereload.middleware.LiveReloadScript')
+
+X_FRAME_OPTIONS = 'SAMEORIGIN'
+SILENCED_SYSTEM_CHECKS = ['security.W019']
+
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOWED_ORIGINS = env.list(
+    'CORS_ALLOWED_ORIGINS', default=[
+        'http://localhost:8000',
+        'http://127.0.0.1:8000',
+    ]
+)
+CSRF_TRUSTED_ORIGINS = env.list(
+    'CORS_ALLOWED_ORIGINS', default=[
+        'http://localhost:8000',
+        'http://127.0.0.1:8000',
+    ]
+)
 
 ROOT_URLCONF = 'app.urls'
 
@@ -74,12 +127,27 @@ WSGI_APPLICATION = 'app.wsgi.application'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 DATABASES = {
-    'default': {
+    'default': {},
+    'dev': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
+    },
+    'prod': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'HOST': env('DATABASE_HOST', default='postgres'),
+        'PORT': env.int('DATABASE_PORT', default=5432),
+        'CONN_MAX_AGE': env.int('DATABASE_CONN_MAX_AGE', default=30),
+        'NAME': env('DATABASE_NAME', default='postgres'),
+        'USER': env('DATABASE_USER', default='postgres'),
+        'PASSWORD': env('DATABASE_PASSWORD', default='postgres'),
+        'OPTIONS': {
+            'sslmode': env('DATABASE_SSL_MODE', default='prefer'),
+        },
     }
 }
 
+USE_SQLITE = env.bool('USE_SQLITE', default=False)
+DATABASES['default'] = DATABASES['dev'] if USE_SQLITE else DATABASES['prod']
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
@@ -99,25 +167,40 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
 
+LOCALE_PATHS = [Path(BASE_DIR) / 'locale']
+
+MEDIA_URL = 'media/'
+MEDIA_ROOT = Path(BASE_DIR) / 'media'
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = Path(BASE_DIR) / 'static'
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+)
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+BOT_TOKEN = env('BOT_TOKEN', default=None)
+
+ADMINS = env.list('ADMINS', cast=int, default=[])
+
+SEQ_KEY = env('SEQ_KEY', default=None)
+SEQ_URL = env('SEQ_URL', default=None)
+SEQ_BATCH = env.int('SEQ_BATCH', default=10)
+SEQ_TIMEOUT = env.int('SEQ_TIMEOUT', default=10)
+SEQ_LEVEL = env.int('SEQ_LEVEL', default=20)
+
+REDIS_HOST = env('REDIS_HOST', default=None)
+REDIS_PORT = env.int('REDIS_PORT', default=6379)
+REDIS_DB = env.int('REDIS_DB', default=5)
