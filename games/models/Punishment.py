@@ -4,7 +4,8 @@ from uuid import uuid4
 from django.db import models
 
 from bot.models import User
-from shared.Enums import AccessLevel
+from shared.enums import AccessLevel
+from shared.utils import enum_to_choices
 
 
 class Punishment(models.Model):
@@ -15,7 +16,7 @@ class Punishment(models.Model):
     created_by = models.ForeignKey(User, on_delete=User.get_sentinel)
     is_public = models.BooleanField(null=False, default=False)
 
-    access_level = models.TextField(null=False, blank=False, choices=AccessLevel, default=AccessLevel.USER)
+    access_level = models.TextField(null=False, blank=False, choices=enum_to_choices(AccessLevel), default=AccessLevel.USER.value)
 
     @staticmethod
     def get_sentinel():

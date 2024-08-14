@@ -4,9 +4,10 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
 
+from shared.utils import enum_to_choices
 from .Punishment import Punishment
-from bot.models.User import User
-from shared.Enums import AutoStartGame
+from bot.models import User
+from shared.enums import AutoStartGame
 
 
 class RandomChoiceGame(models.Model):
@@ -16,11 +17,11 @@ class RandomChoiceGame(models.Model):
     max_players_count = models.PositiveIntegerField(null=False, default=6)
     losers_count = models.PositiveIntegerField(null=False, default=1)
 
-    creator = models.ForeignKey(User, null=False, blank=False, on_delete=User.get_sentinel)
-    players = models.ManyToManyField(User, blank=False, through="RandomChoiceGamePlayer")
+    creator = models.ForeignKey(User, null=False, blank=False, on_delete=User.get_sentinel, related_name="created_random_choice_games")
+    players = models.ManyToManyField(User, through="RandomChoiceGamePlayer", related_name='participated_random_choice_games')
     is_creator_playing = models.BooleanField(default=True, null=False)
 
-    auto_start_game = models.TextField(null=False, blank=False, choices=AutoStartGame, default=AutoStartGame.AT_MAX_PLAYERS)
+    auto_start_game = models.TextField(null=False, blank=False, choices=enum_to_choices(AutoStartGame), default=AutoStartGame.AT_MAX_PLAYERS.value)
     auto_start_timer = models.DurationField(null=True, default=None)
 
     is_finished = models.BooleanField(null=False, default=False)
