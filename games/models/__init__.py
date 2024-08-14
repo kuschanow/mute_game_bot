@@ -1,3 +1,4 @@
 from .Punishment import Punishment
 from .RandomChoiceGame import RandomChoiceGame
 from .RandomChoiceGamePlayer import RandomChoiceGamePlayer
+from .RandomChoiceGameResult import RandomChoiceGameResult
