@@ -10,7 +10,7 @@ from shared.utils import enum_to_choices
 
 class Punishment(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    name = models.TextField(null=False, blank=False, unique=True)
+    name = models.TextField(null=False, blank=False, default="untitled")
     time = models.DurationField(default=timedelta(hours=5))
 
     created_by = models.ForeignKey(User, on_delete=User.get_sentinel)

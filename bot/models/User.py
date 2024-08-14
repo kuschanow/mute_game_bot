@@ -6,8 +6,6 @@ class User(models.Model):
     first_name = models.TextField(null=False, blank=False)
     last_name = models.TextField(null=True)
 
-    is_admin = models.BooleanField(default=False)
-
     updated_at = models.DateTimeField(auto_now=True)
 
     @staticmethod
