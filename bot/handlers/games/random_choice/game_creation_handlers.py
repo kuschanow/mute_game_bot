@@ -24,7 +24,7 @@ async def start_game_command(message: Message, user: User, chat: Chat, member: C
     data = await state.get_data()
     if "dialogs" not in data:
         data["dialogs"] = {}
-    data["dialogs"][dialog_id] = game
+    data["dialogs"][dialog_id] = {"game": game}
     await state.set_data(data)
 
     # Translators: punishment category selection dialogue
@@ -62,6 +62,10 @@ async def select_punishment(callback: CallbackQuery, state: FSMContext):
     data["dialogs"].pop(dialog_id)
 
     await state.set_data(data)
+
+    game: RandomChoiceGame = data["dialogs"]["game"]
+    game.punishment = punishment
+    await game.asave()
 
     # Translators: random choice game dialogue
     await callback.message.edit_text(text=_("А на этом пока всё"))
