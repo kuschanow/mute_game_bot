@@ -3,9 +3,7 @@ from uuid import uuid4
 
 from django.db import models
 
-from bot.models import User
-from shared.enums import AccessLevel
-from shared.utils import enum_to_choices
+from bot.models import ChatMember
 
 
 class Punishment(models.Model):
@@ -13,14 +11,11 @@ class Punishment(models.Model):
     name = models.TextField(null=False, blank=False, default="untitled")
     time = models.DurationField(default=timedelta(hours=5))
 
-    created_by = models.ForeignKey(User, on_delete=User.get_sentinel)
-    is_public = models.BooleanField(null=False, default=False)
+    created_by = models.ForeignKey(ChatMember, on_delete=models.SET_NULL)
 
-    access_level = models.TextField(null=False, blank=False, choices=enum_to_choices(AccessLevel), default=AccessLevel.USER.value)
+    is_public = models.BooleanField(default=False, null=False)
 
-    @staticmethod
-    def get_sentinel():
-        return Punishment.objects.get_or_create(name="deleted")[0]
+    is_deleted = models.BooleanField(default=False, null=False)
 
     def __str__(self):
-        return f"[name {self.name}] - [time {self.time}] - [access {self.access_level}]"
+        return f"[name {self.name}] - [time {self.time}] - [public {self.is_public}]"

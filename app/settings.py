@@ -195,6 +195,8 @@ BOT_TOKEN = env('BOT_TOKEN', default=None)
 
 ADMINS = env.list('ADMINS', cast=int, default=[])
 
+PAGE_SIZE = env.int("PAGE_SIZE", default=10)
+
 SEQ_KEY = env('SEQ_KEY', default=None)
 SEQ_URL = env('SEQ_URL', default=None)
 SEQ_BATCH = env.int('SEQ_BATCH', default=10)

@@ -6,19 +6,19 @@ from django.db import models
 
 from shared.utils import enum_to_choices
 from .Punishment import Punishment
-from bot.models import User
+from bot.models import User, ChatMember
 from shared.enums import AutoStartGame
 
 
 class RandomChoiceGame(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    punishment = models.ForeignKey(Punishment, on_delete=models.SET(Punishment.get_sentinel))
+    punishment = models.ForeignKey(Punishment, on_delete=models.CASCADE)
     min_players_count = models.PositiveIntegerField(null=False, default=2, validators=[MinValueValidator(2)])
     max_players_count = models.PositiveIntegerField(null=False, default=6)
     losers_count = models.PositiveIntegerField(null=False, default=1)
 
-    creator = models.ForeignKey(User, null=False, blank=False, on_delete=User.get_sentinel, related_name="created_random_choice_games")
-    players = models.ManyToManyField(User, through="RandomChoiceGamePlayer", related_name='participated_random_choice_games')
+    creator = models.ForeignKey(ChatMember, null=False, blank=False, on_delete=models.CASCADE, related_name="created_random_choice_games")
+    players = models.ManyToManyField(ChatMember, through="RandomChoiceGamePlayer", related_name='participated_random_choice_games')
     is_creator_playing = models.BooleanField(default=True, null=False)
 
     auto_start_game = models.TextField(null=False, blank=False, choices=enum_to_choices(AutoStartGame), default=AutoStartGame.AT_MAX_PLAYERS.value)

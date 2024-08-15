@@ -49,11 +49,11 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data/
 
-#  redis:
-#    image: redis:alpine
-#    command: redis-server
-#    environment:
-#      - REDIS_REPLICATION_MODE=master
+  redis:
+    image: redis:alpine
+    command: redis-server
+    environment:
+      - REDIS_REPLICATION_MODE=master
 
 volumes:
   postgres_data:
