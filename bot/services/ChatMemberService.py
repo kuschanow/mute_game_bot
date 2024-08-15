@@ -1,4 +1,4 @@
-from aiogram.types import Chat as TeleChat
+from aiogram.types import Chat as TeleChat, ChatMemberAdministrator
 from aiogram.enums.chat_type import ChatType
 
 from bot.models import User, ChatMember
@@ -15,9 +15,8 @@ class ChatMemberService:
         member = (await ChatMember.objects.aget_or_create(user=user, chat=chat))[0]
 
         if chat.type != ChatType.PRIVATE:
-            admins = await tele_chat.get_administrators()
             tele_member = await tele_chat.get_member(user.id)
-            member.is_admin = tele_member in admins
+            member.is_admin = isinstance(tele_member, ChatMemberAdministrator)
         await member.asave()
 
         return member

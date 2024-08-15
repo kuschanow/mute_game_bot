@@ -209,6 +209,7 @@ REDIS_DB = env.int('REDIS_DB', default=5)
 
 HELP_COMMAND = env('HELP_COMMAND', default="help")
 RANDOM_CHOICE_GAME_COMMAND = env('RANDOM_CHOICE_GAME_COMMAND', default="random_choice_game")
+CREATE_PUNISHMENT_COMMAND= env('CREATE_PUNISHMENT_COMMAND', default="create_punishment")
 SHOW_USER_STATS_COMMAND = env('SHOW_USER_STATS_COMMAND', default="user_stats")
 SHOW_CHAT_STATS_COMMAND = env('SHOW_CHAT_STATS_COMMAND', default="chat_stats")
 CHAT_SETTINGS_COMMAND = env('CHAT_SETTINGS_COMMAND', default="chat_settings")

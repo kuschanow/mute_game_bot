@@ -11,7 +11,7 @@ class Punishment(models.Model):
     name = models.TextField(null=False, blank=False, default="untitled")
     time = models.DurationField(default=timedelta(hours=5))
 
-    created_by = models.ForeignKey(ChatMember, on_delete=models.SET_NULL)
+    created_by = models.ForeignKey(ChatMember, null=True, on_delete=models.SET_NULL)
 
     is_public = models.BooleanField(default=False, null=False)
 

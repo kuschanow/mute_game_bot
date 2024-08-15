@@ -8,6 +8,7 @@ private_game_commands_router = Router()
 
 
 @private_game_commands_router.message(Command(settings.RANDOM_CHOICE_GAME_COMMAND))
+@private_game_commands_router.message(Command(settings.CREATE_PUNISHMENT_COMMAND))
 async def private_game_command(message: Message):
     # Translators: wrong game command answer
     await message.answer(text=_("Can't start game in private chat"))
