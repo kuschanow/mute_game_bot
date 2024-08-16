@@ -3,7 +3,7 @@ from typing import Dict, Any
 from uuid import uuid4
 
 
-class Dialog:
+class GameCreationDialog:
     def __init__(self):
         self.dialog_id = str(uuid4())
         self.punishment_menu_mapping = {}
@@ -26,7 +26,7 @@ class Dialog:
 
     @staticmethod
     def from_dict(data: Dict[str, Any]):
-        dialog = Dialog()
+        dialog = GameCreationDialog()
         dialog.dialog_id = data['dialog_id']
         dialog.datetime = datetime.strptime(data['datetime'], "%Y-%m-%d %H:%M:%S.%f")
         dialog.punishment_menu_mapping = {int(key): value for key, value in data['punishment_menu_mapping'].items()}

@@ -8,7 +8,7 @@ from django.utils.translation import gettext as _
 
 from bot.filters import DialogAccessFilter
 from bot.models import ChatMember
-from .Dialog import Dialog
+from .GameCreationDialog import GameCreationDialog
 from .keyboards import get_punishment_categories_keyboard, get_punishments_keyboard
 
 game_handlers_router = Router()
@@ -18,8 +18,9 @@ game_handlers_router.callback_query.filter(F.data.startswith("rcgc"), DialogAcce
 
 @game_handlers_router.message(Command(settings.RANDOM_CHOICE_GAME_COMMAND))
 async def start_game_command(message: Message, state: FSMContext):
-    dialog = Dialog()
+    dialog = GameCreationDialog()
 
+    await state.clear()
     data = await state.get_data()
     if "dialogs" not in data:
         data["dialogs"] = {}
@@ -40,7 +41,7 @@ async def select_punishments_category(callback: CallbackQuery, member: ChatMembe
     keyboard, punishments_mapping = await get_punishments_keyboard(dialog_id, member, is_public, page)
 
     data = await state.get_data()
-    dialog = Dialog.from_dict(data["dialogs"][dialog_id])
+    dialog = GameCreationDialog.from_dict(data["dialogs"][dialog_id])
     dialog.set_punishment_menu_mapping(punishments_mapping)
 
     data["dialogs"][dialog_id] = dialog.to_dict()
@@ -59,7 +60,7 @@ async def select_punishment(callback: CallbackQuery, state: FSMContext):
     punish_num = int(callback_data[0])
 
     data = await state.get_data()
-    dialog = Dialog.from_dict(data["dialogs"][dialog_id])
+    dialog = GameCreationDialog.from_dict(data["dialogs"][dialog_id])
     dialog.select_punishment(punish_num)
 
     data["dialogs"].pop(dialog_id)
