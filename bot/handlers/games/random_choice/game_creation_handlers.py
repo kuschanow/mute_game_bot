@@ -6,17 +6,18 @@ from aiogram.types import Message, CallbackQuery
 from django.conf import settings
 from django.utils.translation import gettext as _
 
+from bot.filters import DialogAccessFilter
 from bot.models import ChatMember
 from .Dialog import Dialog
 from .keyboards import get_punishment_categories_keyboard, get_punishments_keyboard
 
 game_handlers_router = Router()
 game_handlers_router.message.filter(MagicData(F.chat.type.is_not(ChatType.PRIVATE)))
-game_handlers_router.callback_query.filter(F.data.startswith("rcgc"))
+game_handlers_router.callback_query.filter(F.data.startswith("rcgc"), DialogAccessFilter())
 
 
 @game_handlers_router.message(Command(settings.RANDOM_CHOICE_GAME_COMMAND))
-async def start_game_command(message: Message, member: ChatMember, state: FSMContext):
+async def start_game_command(message: Message, state: FSMContext):
     dialog = Dialog()
 
     data = await state.get_data()
