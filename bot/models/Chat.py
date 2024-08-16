@@ -17,7 +17,6 @@ class Chat(models.Model):
 
     can_admins_join_games = models.BooleanField(default=True, null=False)
     can_admins_create_games = models.BooleanField(default=True, null=False)
-    can_admins_press_all_buttons = models.BooleanField(default=True, null=False)
 
     min_punish_time_for_rand_choice = models.DurationField(default=timedelta(minutes=1), null=False)
     max_punish_time_for_rand_choice = models.DurationField(default=timedelta(days=1), null=False)

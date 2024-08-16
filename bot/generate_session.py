@@ -8,7 +8,7 @@ bot = Bot(token=settings.BOT_TOKEN, default=DefaultBotProperties(parse_mode=Pars
 
 if settings.REDIS_HOST and settings.REDIS_PORT:
     from aiogram.fsm.storage.redis import RedisStorage, DefaultKeyBuilder
-    from redis import Redis
+    from redis.asyncio.client import Redis
 
     r = Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=settings.REDIS_DB, decode_responses=True)
     storage = RedisStorage(redis=r, key_builder=DefaultKeyBuilder())
@@ -17,4 +17,4 @@ else:
 
     storage = MemoryStorage()
 
-dp = Dispatcher()
+dp = Dispatcher(storage=storage)

@@ -1,15 +1,13 @@
-from uuid import uuid4
-
 from aiogram import Router, F
 from aiogram.enums import ChatType
 from aiogram.filters import Command, MagicData
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
 from django.conf import settings
-
-from bot.models import User, Chat, ChatMember
-from games.models import RandomChoiceGame, Punishment
 from django.utils.translation import gettext as _
+
+from bot.models import ChatMember
+from .Dialog import Dialog
 from .keyboards import get_punishment_categories_keyboard, get_punishments_keyboard
 
 game_handlers_router = Router()
@@ -19,17 +17,16 @@ game_handlers_router.callback_query.filter(F.data.startswith("rcgc"))
 
 @game_handlers_router.message(Command(settings.RANDOM_CHOICE_GAME_COMMAND))
 async def start_game_command(message: Message, member: ChatMember, state: FSMContext):
-    dialog_id = str(uuid4())
-    game = RandomChoiceGame(creator=member)
+    dialog = Dialog()
+
     data = await state.get_data()
     if "dialogs" not in data:
         data["dialogs"] = {}
-    data["dialogs"][dialog_id] = {"game": game}
+    data["dialogs"][dialog.dialog_id] = dialog.to_dict()
     await state.set_data(data)
 
-    # Translators: punishment category selection dialogue
     await message.answer(text=_("Choose a punishment category from the list below"),
-                         reply_markup=get_punishment_categories_keyboard(dialog_id))
+                         reply_markup=get_punishment_categories_keyboard(dialog.dialog_id))
     await message.delete()
 
 
@@ -42,7 +39,10 @@ async def select_punishments_category(callback: CallbackQuery, member: ChatMembe
     keyboard, punishments_mapping = await get_punishments_keyboard(dialog_id, member, is_public, page)
 
     data = await state.get_data()
-    data["dialogs"][dialog_id]["mapping"] = punishments_mapping
+    dialog = Dialog.from_dict(data["dialogs"][dialog_id])
+    dialog.set_punishment_menu_mapping(punishments_mapping)
+
+    data["dialogs"][dialog_id] = dialog.to_dict()
 
     await state.set_data(data)
 
@@ -58,17 +58,11 @@ async def select_punishment(callback: CallbackQuery, state: FSMContext):
     punish_num = int(callback_data[0])
 
     data = await state.get_data()
-    punishment_id = data["dialogs"][dialog_id]["mapping"][punish_num]
-    punishment = await Punishment.objects.aget(id=punishment_id)
-    data["dialogs"][dialog_id].pop("mapping")
-
-    game: RandomChoiceGame = data["dialogs"][dialog_id]["game"]
+    dialog = Dialog.from_dict(data["dialogs"][dialog_id])
+    dialog.select_punishment(punish_num)
 
     data["dialogs"].pop(dialog_id)
     await state.set_data(data)
-
-    game.punishment = punishment
-    await game.asave()
 
     # Translators: random choice game dialogue
     await callback.message.edit_text(text=_("А на этом пока всё"))

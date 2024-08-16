@@ -205,7 +205,7 @@ SEQ_LEVEL = env.int('SEQ_LEVEL', default=20)
 
 REDIS_HOST = env('REDIS_HOST', default=None)
 REDIS_PORT = env.int('REDIS_PORT', default=6379)
-REDIS_DB = env.int('REDIS_DB', default=5)
+REDIS_DB = env.int('REDIS_DB', default=0)
 
 HELP_COMMAND = env('HELP_COMMAND', default="help")
 RANDOM_CHOICE_GAME_COMMAND = env('RANDOM_CHOICE_GAME_COMMAND', default="random_choice_game")

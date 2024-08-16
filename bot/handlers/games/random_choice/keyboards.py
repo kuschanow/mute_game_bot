@@ -55,7 +55,7 @@ uuid4]):
         m = int(p.time.total_seconds()//60 - h*60)
         buttons.append([InlineKeyboardButton(text=f"{p.name} ({h:02}:{m:02}:00)",
                                              callback_data=f"rcgc:p_select:{i}:{dialog_id}")])
-        punishments_mapping[i] = p.id
+        punishments_mapping[i] = str(p.id)
 
     navigation = [
         # Translators: change category
@@ -66,12 +66,12 @@ uuid4]):
     if page > 1:
         navigation.insert(0,
             # Translators: previous page
-            InlineKeyboardButton(text=_("Previous"), callback_data=f"rcgc:p_category:{is_public}:{page-1}:{dialog_id}")
+            InlineKeyboardButton(text=_("Previous"), callback_data=f"rcgc:p_category:{int(is_public)}:{page-1}:{dialog_id}")
         )
     if punishments_count - page * settings.PAGE_SIZE > 0:
         navigation.append(
             # Translators: next page
-            InlineKeyboardButton(text=_("Next"), callback_data=f"rcgc:p_category:{is_public}:{page+1}:{dialog_id}")
+            InlineKeyboardButton(text=_("Next"), callback_data=f"rcgc:p_category:{int(is_public)}:{page+1}:{dialog_id}")
         )
 
     buttons.append(navigation)
