@@ -1,5 +1,5 @@
 from aiogram import Bot
-from aiogram.types import BotCommand, BotCommandScopeDefault
+from aiogram.types import BotCommand
 from django.conf import settings
 from django.utils.translation import gettext as _
 
@@ -9,6 +9,8 @@ commands = [
     BotCommand(command=f"/{settings.HELP_COMMAND}", description=_("Show help information")),
     # Translators: random choice game command hint
     BotCommand(command=f"/{settings.RANDOM_CHOICE_GAME_COMMAND}", description=_("Start a random choice game")),
+    # Translators: create punishment command hint
+    BotCommand(command=f"/{settings.CREATE_PUNISHMENT_COMMAND}", description=_("Create new punishment")),
     # Translators: user stats command hint
     BotCommand(command=f"/{settings.SHOW_USER_STATS_COMMAND}", description=_("Display user statistics")),
     # Translators: chat stats command hint
@@ -18,6 +20,6 @@ commands = [
 ]
 
 async def set_default_commands(bot: Bot):
-    await bot.set_my_commands(commands, scope=BotCommandScopeDefault())
+    await bot.set_my_commands(commands)
 
 

@@ -11,6 +11,9 @@ from bot.logger import logger
 async def on_startup(bot: Bot):
     logger.info("Bot is running")
 
+    from bot.commands import set_default_commands
+    await set_default_commands(bot)
+
     for admin_id in settings.ADMINS:
         await bot.send_message(text=_("Bot is running"), chat_id=admin_id)
 

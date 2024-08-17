@@ -1,12 +1,10 @@
 from typing import Dict
 from uuid import uuid4
 
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from asgiref.sync import sync_to_async
 from django.conf import settings
-
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from django.utils.translation import gettext as _
-from sqlalchemy.util import await_only
 
 from bot.models import ChatMember
 from games.models import Punishment
@@ -15,12 +13,13 @@ from games.models import Punishment
 def get_punishment_categories_keyboard(dialog_id: uuid4) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=[
         [
-            # Translators: private punishments button
+            # Translators: private
             InlineKeyboardButton(text=_("Private"), callback_data=f"rcgc:p_category:0:1:{dialog_id}"),
-            # Translators: chat punishments button
+            # Translators: public
             InlineKeyboardButton(text=_("Public"), callback_data=f"rcgc:p_category:1:1:{dialog_id}"),
         ],
         [
+            # Translators: cancel
             InlineKeyboardButton(text=_("Cancel"), callback_data=f"rcgc:cancel:{dialog_id}"),
         ]
     ])

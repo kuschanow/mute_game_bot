@@ -26,7 +26,7 @@ async def start_game_command(message: Message, member: ChatMember):
     if "dialogs" not in data:
         data["dialogs"] = {}
     data["dialogs"][dialog.dialog_id] = dialog.to_dict()
-    await redis.set_serialized(data)
+    await redis.set_serialized(str(member.id), data)
 
     await message.answer(text=_("Choose a punishment category from the list below"),
                          reply_markup=get_punishment_categories_keyboard(dialog.dialog_id))
@@ -47,7 +47,7 @@ async def select_punishments_category(callback: CallbackQuery, member: ChatMembe
 
     data["dialogs"][dialog_id] = dialog.to_dict()
 
-    await redis.set_serialized(data)
+    await redis.set_serialized(str(member.id), data)
 
     # Translators: punishment selection dialogue
     await callback.message.edit_text(text=_("Choose a punishment from the list below\n\n"
@@ -65,7 +65,7 @@ async def select_punishment(callback: CallbackQuery, member: ChatMember):
     dialog.select_punishment(punish_num)
 
     data["dialogs"].pop(dialog_id)
-    await redis.set_serialized(data)
+    await redis.set_serialized(str(member.id), data)
 
     # Translators: random choice game dialogue
     await callback.message.edit_text(text=_("А на этом пока всё"))

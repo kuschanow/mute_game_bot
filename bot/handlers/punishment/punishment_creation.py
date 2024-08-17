@@ -1,24 +1,30 @@
 import re
-from datetime import timedelta
-
-from bot.generate_session import bot
+from datetime import timedelta, datetime
+from uuid import uuid4
 
 from aiogram import Router, F
 from aiogram.enums import ChatType, ContentType
 from aiogram.filters import Command, MagicData
-from aiogram.utils.formatting import Text, BlockQuote
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message
+from aiogram.types import Message, CallbackQuery
+from aiogram.utils.formatting import Text, BlockQuote
 from django.conf import settings
 from django.utils.translation import gettext as _
+from sympy.physics.units import second
 
-from bot.models import User, Chat, ChatMember
+from bot.generate_session import bot
+from bot.models import ChatMember
 from games.models import Punishment
 from .PunishmentCreationStates import PunishmentCreationStates
+from ...filters import DialogAccessFilter
 from ...filters.ReplyToCorrectMessageFilter import ReplayToCorrectMessageFilter
+
+from .keyboards import get_punishment_privacy_selection_keyboard
+from shared import redis
 
 punishment_creation_router = Router()
 punishment_creation_router.message.filter(MagicData(F.chat.type.is_not(ChatType.PRIVATE)), F.from_user.id.in_(settings.ADMINS))
+punishment_creation_router.callback_query.filter(F.data.startswith("pc"), DialogAccessFilter())
 
 
 @punishment_creation_router.message(Command(settings.CREATE_PUNISHMENT_COMMAND))
@@ -78,17 +84,37 @@ async def choose_name(message: Message, member: ChatMember, state: FSMContext):
     days, hours, minutes = (0,) * (3 - len(matches)) + tuple(map(int, matches))
     time = timedelta(days=days, hours=hours, minutes=minutes)
 
-    punishment = Punishment(name=data["name"],
-                            time=time,
-                            created_by=member,
-                            is_public=True)
-
-    await punishment.asave()
+    new_data = await redis.get_or_set(str(member.id))
+    if "dialogs" not in new_data:
+        new_data["dialogs"] = {}
+    dialog_id = str(uuid4())
+    new_data["dialogs"][dialog_id] = {"date": str(datetime.utcnow()), "name": data["name"], "time": time.total_seconds()}
+    await redis.set_serialized(str(member.id), new_data)
 
     await bot.delete_message(chat_id=member.chat_id, message_id=int(data["message_id"]))
-
-    # Translators: punishment created message
-    await message.answer(text=_("Punishment '%(punishment)s' successfully created" % {"punishment": punishment.get_string()}))
+    # Translators: privacy selection message
+    await message.answer(text=_("Now select the privacy of the new punishment"),
+                         reply_markup=get_punishment_privacy_selection_keyboard(dialog_id))
     await message.delete()
 
+
+@punishment_creation_router.callback_query()
+async def choose_privacy(callback: CallbackQuery, member: ChatMember):
+    callback_data = callback.data.split(':')[1:]
+    dialog_id = callback_data[1]
+    is_public = bool(int(callback_data[0]))
+
+    data = await redis.get_deserialized(str(member.id))
+    data["dialogs"].pop(dialog_id)
+    await redis.set_serialized(str(member.id), data)
+
+    punishment = Punishment(name=data["dialogs"][dialog_id]["name"],
+                            time=timedelta(seconds=int(data["dialogs"][dialog_id]["time"])),
+                            created_by=member,
+                            is_public=is_public)
+    await punishment.asave()
+
+
+    await callback.message.answer(text=_("Punishment '%(punishment)s' successfully created" % {"punishment": punishment.get_string()}))
+    await callback.message.delete()
 
