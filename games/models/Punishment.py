@@ -17,5 +17,10 @@ class Punishment(models.Model):
 
     is_deleted = models.BooleanField(default=False, null=False)
 
+    def get_string(self) -> str:
+        h = int(self.time.total_seconds() // 3600)
+        m = int(self.time.total_seconds() // 60 - h * 60)
+        return f"{self.name} ({h:02}:{m:02})"
+
     def __str__(self):
         return f"[name {self.name}] - [time {self.time}] - [public {self.is_public}]"

@@ -8,9 +8,5 @@ class User(models.Model):
 
     updated_at = models.DateTimeField(auto_now=True)
 
-    @staticmethod
-    def get_sentinel():
-        return User.objects.get_or_create(first_name="deleted")[0]
-
     def __str__(self):
         return f"[id {self.id}] - [username {self.username}] - [name {self.first_name}{f' {self.last_name}' if self.last_name is not None else ''}]"

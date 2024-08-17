@@ -51,10 +51,7 @@ uuid4]):
     buttons = []
     for i in range(len(punishments)):
         p = punishments[i]
-        h = int(p.time.total_seconds()//3600)
-        m = int(p.time.total_seconds()//60 - h*60)
-        buttons.append([InlineKeyboardButton(text=f"{p.name} ({h:02}:{m:02})",
-                                             callback_data=f"rcgc:p_select:{i}:{dialog_id}")])
+        buttons.append([InlineKeyboardButton(text=p.get_string(), callback_data=f"rcgc:p_select:{i}:{dialog_id}")])
         punishments_mapping[i] = str(p.id)
 
     navigation = [

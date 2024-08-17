@@ -17,7 +17,7 @@ class RandomChoiceGame(models.Model):
     max_players_count = models.PositiveIntegerField(null=False, default=6)
     losers_count = models.PositiveIntegerField(null=False, default=1)
 
-    creator = models.ForeignKey(ChatMember, null=False, blank=False, on_delete=models.CASCADE, related_name="created_random_choice_games")
+    creator = models.ForeignKey(ChatMember, null=True, blank=False, on_delete=models.SET_NULL, related_name="created_random_choice_games")
     players = models.ManyToManyField(ChatMember, through="RandomChoiceGamePlayer", related_name='participated_random_choice_games')
     is_creator_playing = models.BooleanField(default=True, null=False)
 

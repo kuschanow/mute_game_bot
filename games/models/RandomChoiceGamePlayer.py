@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 from django.db import models
 
 from bot.models import User, ChatMember
@@ -5,6 +7,7 @@ from games.models import RandomChoiceGame
 
 
 class RandomChoiceGamePlayer(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     game = models.ForeignKey(RandomChoiceGame, on_delete=models.CASCADE)
     chat_member = models.ForeignKey(ChatMember, on_delete=models.CASCADE)
     join_at = models.DateTimeField(auto_now_add=True)

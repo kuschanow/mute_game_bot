@@ -23,13 +23,14 @@ punishment_creation_router.message.filter(MagicData(F.chat.type.is_not(ChatType.
 
 @punishment_creation_router.message(Command(settings.CREATE_PUNISHMENT_COMMAND))
 async def create_punishment_command(message: Message, state: FSMContext):
+    await state.clear()
     await state.set_state(PunishmentCreationStates.choosing_name)
     data = await state.get_data()
 
     # Translators: choosing name for new punishment
     bot_message = await message.answer(text=_("To create a punishment, you need to write the name of the new punishment in response to this "
                                               "message."))
-    data["punish_creation"] = {"message_id": bot_message.message_id}
+    data["message_id"] = bot_message.message_id
     await state.set_data(data)
 
     await message.delete()
@@ -42,10 +43,10 @@ async def choose_name(message: Message, state: FSMContext):
     await state.set_state(PunishmentCreationStates.choosing_time)
     data = await state.get_data()
 
-    data["punish_creation"]["name"] = message.text
+    data["name"] = message.text
 
     # Translators: choosing time for new punishment
-    await bot.delete_message(chat_id=message.chat.id, message_id=data["punish_creation"]["message_id"])
+    await bot.delete_message(chat_id=message.chat.id, message_id=data["message_id"])
     new_message = await message.answer(**Text(_("Name: %(name)s\n\n"
                                   "Now in response to this message write the time of punishment" % {"name": message.text}),
                                 _("Time can be specified in any of the following ways:"),
@@ -59,7 +60,7 @@ async def choose_name(message: Message, state: FSMContext):
                                 ).as_kwargs()
                          )
 
-    data["punish_creation"]["message_id"] = new_message.message_id
+    data["message_id"] = new_message.message_id
     await state.set_data(data)
 
     await message.delete()
@@ -70,26 +71,24 @@ async def choose_name(message: Message, state: FSMContext):
                                     F.content_type == ContentType.TEXT,
                                     ReplayToCorrectMessageFilter("message_id"))
 async def choose_name(message: Message, member: ChatMember, state: FSMContext):
-    await state.set_state(None)
     data = await state.get_data()
+    await state.clear()
 
     matches = re.findall(r"\d+", message.text)
     days, hours, minutes = (0,) * (3 - len(matches)) + tuple(map(int, matches))
     time = timedelta(days=days, hours=hours, minutes=minutes)
 
-    punishment = Punishment(name=data["punish_creation"]["name"],
+    punishment = Punishment(name=data["name"],
                             time=time,
                             created_by=member,
                             is_public=True)
 
     await punishment.asave()
 
-    await bot.delete_message(chat_id=member.chat_id, message_id=int(data["punish_creation"]["message_id"])
-                             )
-    data.pop("punish_creation")
-    await state.set_data(data)
+    await bot.delete_message(chat_id=member.chat_id, message_id=int(data["message_id"]))
 
     # Translators: punishment created message
-    await message.answer(text=_("Punishment '%(punishment)s' successfully created" % {"punishment": punishment.name}))
+    await message.answer(text=_("Punishment '%(punishment)s' successfully created" % {"punishment": punishment.get_string()}))
     await message.delete()
+
 

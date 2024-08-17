@@ -21,7 +21,3 @@ class Chat(models.Model):
     min_punish_time_for_rand_choice = models.DurationField(default=timedelta(minutes=1), null=False)
     max_punish_time_for_rand_choice = models.DurationField(default=timedelta(days=1), null=False)
     can_admins_ignore_time_limitations = models.BooleanField(default=False, null=False)
-
-    @staticmethod
-    def get_sentinel():
-        return Chat.objects.get_or_create(name="deleted")[0]
