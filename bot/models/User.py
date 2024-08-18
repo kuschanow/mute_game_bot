@@ -8,5 +8,9 @@ class User(models.Model):
 
     updated_at = models.DateTimeField(auto_now=True)
 
+    def get_string(self, with_link: bool = False):
+       return f"<a href='tg://user?id={self.id}'>{self.first_name}{f' {self.last_name}' if self.last_name is not None else ''}</a>" if with_link \
+           else f"{self.first_name}{f' {self.last_name}' if self.last_name is not None else ''}"
+
     def __str__(self):
         return f"[id {self.id}] - [username {self.username}] - [name {self.first_name}{f' {self.last_name}' if self.last_name is not None else ''}]"

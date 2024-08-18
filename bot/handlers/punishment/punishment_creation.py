@@ -118,3 +118,15 @@ async def choose_privacy(callback: CallbackQuery, member: ChatMember):
     await callback.message.answer(text=_("Punishment '%(punishment)s' successfully created" % {"punishment": punishment.get_string()}))
     await callback.message.delete()
 
+@punishment_creation_router.callback_query(F.data.contains("cancel"))
+async def cancel(callback: CallbackQuery, member: ChatMember):
+    dialog_id = callback.data.split(':')[-1]
+
+    user_data = await redis.get_deserialized(str(member.id))
+    user_data["dialogs"].pop(dialog_id)
+
+    await redis.set_serialized(str(member.id), user_data)
+
+    # Translators: ok message
+    await callback.answer(_("Ok"))
+    await callback.message.delete()

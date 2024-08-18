@@ -1,18 +1,21 @@
+import random
 from uuid import uuid4
 
+from asgiref.sync import sync_to_async
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.utils.translation import gettext as _
 
-from shared.utils import enum_to_choices
-from .Punishment import Punishment
-from bot.models import User, ChatMember
+from bot.models import ChatMember
 from shared.enums import AutoStartGame
+from shared.utils import enum_to_choices
+from . import RandomChoiceGameResult, RandomChoiceGameLoser
 
 
 class RandomChoiceGame(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    punishment = models.ForeignKey(Punishment, on_delete=models.CASCADE)
+    punishment = models.ForeignKey("Punishment", on_delete=models.CASCADE)
     min_players_count = models.PositiveIntegerField(null=False, default=2, validators=[MinValueValidator(2)])
     max_players_count = models.PositiveIntegerField(null=False, default=6)
     losers_count = models.PositiveIntegerField(null=False, default=1)
@@ -22,12 +25,29 @@ class RandomChoiceGame(models.Model):
     is_creator_playing = models.BooleanField(default=True, null=False)
 
     auto_start_game = models.TextField(null=False, blank=False, choices=enum_to_choices(AutoStartGame), default=AutoStartGame.AT_MAX_PLAYERS.value)
-    auto_start_timer = models.DurationField(null=True, default=None)
+    auto_start_at = models.DateTimeField(null=True, default=None)
 
     is_finished = models.BooleanField(null=False, default=False)
 
     created_at = models.DateTimeField(auto_now_add=True)
-    expiration_timer = models.DurationField(null=True, default=None)
+    expire_at = models.DateTimeField(null=True, default=None)
+
+    @sync_to_async
+    def start_game(self) -> RandomChoiceGameResult:
+        losers = random.sample(self.players.all(), self.losers_count)
+
+        game_result = RandomChoiceGameResult(game=self)
+
+        for loser in losers:
+            RandomChoiceGameLoser(player=loser, game_result=game_result).save()
+            
+        return game_result
+
+    def get_string(self) -> str:
+        # Translators: game to string
+        return _(f"<b>Random choice game<b>\n\n"
+                 f"punishment: %(punishment)s\n\n"
+                 f"👑{self.creator.get_string(True)}" % {"punishment": self.punishment.get_string()})
 
     def clean(self):
         cleaned_data = super().clean()

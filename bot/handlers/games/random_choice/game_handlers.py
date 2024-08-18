@@ -1,0 +1,80 @@
+from datetime import datetime
+
+from aiogram import Router, F
+from aiogram.filters import MagicData
+from aiogram.types import CallbackQuery, ChatPermissions
+from asgiref.sync import sync_to_async
+from django.conf import settings
+from django.utils.translation import gettext as _
+
+from bot.generate_session import bot
+from bot.middlewares import set_random_choice_game_middlewares
+from bot.models import ChatMember, Chat
+from games.models import RandomChoiceGame, RandomChoiceGamePlayer, RandomChoiceGameResult
+from .utils.texts import get_players, get_losers
+
+game_router = Router()
+game_router.callback_query.filter(F.data.startswith("rcg"))
+set_random_choice_game_middlewares(game_router)
+
+
+@game_router.callback_query(F.data.contains("join"))
+async def join_game(callback: CallbackQuery, game: RandomChoiceGame, member: ChatMember):
+    if game.creator_id == member.id:
+        # Translators: an attempt to add the creator to the game
+        await callback.answer(_("You are the host of this game, you cannot join or leave it"))
+        return
+
+    if await sync_to_async(lambda: member in game.players.all())():
+        await sync_to_async(game.players.remove)(member)
+        # Translators: remove player from the game
+        await callback.answer(_("You left the game"))
+    else:
+        await RandomChoiceGamePlayer(game=game, chat_member=member).asave()
+        # Translators: add player to the game
+        await callback.answer(_("You join the game"))
+
+    await callback.message.edit_text(text=await get_players(game))
+
+@game_router.callback_query(F.data.contains("start"))
+async def start_game(callback: CallbackQuery, game: RandomChoiceGame, member: ChatMember, chat: Chat):
+    if game.creator_id != member.id:
+        # Translator:
+        await callback.answer(_("You cannot start a game without being the host"))
+        return
+
+    result: RandomChoiceGameResult = await game.start_game()
+
+    await callback.message.answer(text=await get_losers(result))
+
+    time = await sync_to_async(lambda: game.punishment.time)()
+    for loser in await sync_to_async(lambda: result.losers.all())():
+        user_id = sync_to_async(lambda: loser.chat_member.user_id)()
+        if user_id in settings.ADMINS:
+            continue
+
+        try:
+            await bot.restrict_chat_member(
+                chat_id=chat.id,
+                user_id=user_id,
+                permissions=ChatPermissions(can_send_messages=False),
+                until_date=datetime.utcnow() + time
+            )
+        except:
+            pass
+
+@game_router.callback_query(F.data.contains("delete"))
+async def delete_game(callback: CallbackQuery, game: RandomChoiceGame, member: ChatMember):
+    if game.creator_id != member.id:
+        # Translator: trying to delete a game
+        await callback.answer(_("You cannot delete a game without being the host"))
+        return
+
+    if sync_to_async(lambda: game.result is not None)():
+        # Translator: trying to delete a finished game
+        await callback.answer(_("You can't delete a finished game"))
+        return
+
+    await game.adelete()
+    # Translator: game deletion message
+    await callback.answer(_("Deleted successfully"))

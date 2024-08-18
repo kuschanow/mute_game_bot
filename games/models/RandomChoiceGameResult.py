@@ -2,13 +2,11 @@ from uuid import uuid4
 
 from django.db import models
 
-from games.models import RandomChoiceGame, RandomChoiceGamePlayer
-
 
 class RandomChoiceGameResult(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    game = models.ForeignKey(RandomChoiceGame, on_delete=models.CASCADE)
-    losers = models.ManyToManyField(RandomChoiceGamePlayer)
+    game = models.OneToOneField("RandomChoiceGame", related_name="result", on_delete=models.CASCADE)
+    losers = models.ManyToManyField("RandomChoiceGamePlayer", through="RandomChoiceGameLoser")
 
     finished_at = models.DateTimeField(auto_now_add=True)
 

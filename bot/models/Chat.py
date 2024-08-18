@@ -3,7 +3,6 @@ from datetime import timedelta
 from aiogram.enums.chat_type import ChatType
 from django.db import models
 
-from bot.models import User
 from shared.utils import enum_to_choices
 
 
@@ -11,7 +10,7 @@ class Chat(models.Model):
     id = models.BigIntegerField(primary_key=True, null=False, editable=False, blank=False)
     name = models.TextField(null=False, blank=False)
     type = models.TextField(choices=enum_to_choices(ChatType), default=ChatType.PRIVATE.value, null=False, blank=False)
-    users = models.ManyToManyField(User, through="ChatMember")
+    users = models.ManyToManyField("User", through="ChatMember")
 
     updated_at = models.DateTimeField(auto_now=True)
 

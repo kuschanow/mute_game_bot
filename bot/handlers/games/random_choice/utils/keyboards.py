@@ -25,8 +25,7 @@ def get_punishment_categories_keyboard(dialog_id: uuid4) -> InlineKeyboardMarkup
     ])
 
 @sync_to_async
-def get_punishments_keyboard(dialog_id: uuid4, chat_member: ChatMember, is_public: bool, page: int) -> (InlineKeyboardMarkup, Dict[int,
-uuid4]):
+def get_punishments_keyboard(dialog_id: uuid4, chat_member: ChatMember, is_public: bool, page: int) -> (InlineKeyboardMarkup, Dict[int, uuid4]):
     start_index = (page - 1) * settings.PAGE_SIZE
     end_index = page * settings.PAGE_SIZE
 
@@ -76,3 +75,21 @@ uuid4]):
     ])
 
     return InlineKeyboardMarkup(inline_keyboard=buttons), punishments_mapping
+
+def get_game_menu_keyboard(game_id: uuid4) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [
+            # Translators: join game button
+            InlineKeyboardButton(text=_("Join/Left"), callback_data=f"rcg:join:{game_id}")
+        ],
+        [
+            # Translators: start game button
+            InlineKeyboardButton(text=_("Start"), callback_data=f"rcg:start:{game_id}")
+        ],
+        [
+            # Translators: delete
+            InlineKeyboardButton(text=_("Delete"), callback_data=f"rcg:delete:{game_id}"),
+        ]
+    ])
+
+
