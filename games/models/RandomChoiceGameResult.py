@@ -5,7 +5,6 @@ from django.db import models
 
 class RandomChoiceGameResult(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    game = models.OneToOneField("RandomChoiceGame", related_name="result", on_delete=models.CASCADE)
     losers = models.ManyToManyField("RandomChoiceGamePlayer", through="RandomChoiceGameLoser")
 
     finished_at = models.DateTimeField(auto_now_add=True)

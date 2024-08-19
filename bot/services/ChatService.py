@@ -1,6 +1,6 @@
 from aiogram.types import Chat as TeleChat
 
-from bot.models.ChatMember import Chat
+from bot.models import Chat
 
 
 class ChatService:

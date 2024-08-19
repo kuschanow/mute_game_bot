@@ -10,17 +10,15 @@ from aiogram.types import Message, CallbackQuery
 from aiogram.utils.formatting import Text, BlockQuote
 from django.conf import settings
 from django.utils.translation import gettext as _
-from sympy.physics.units import second
 
 from bot.generate_session import bot
 from bot.models import ChatMember
 from games.models import Punishment
+from shared import redis
 from .PunishmentCreationStates import PunishmentCreationStates
+from .keyboards import get_punishment_privacy_selection_keyboard
 from ...filters import DialogAccessFilter
 from ...filters.ReplyToCorrectMessageFilter import ReplayToCorrectMessageFilter
-
-from .keyboards import get_punishment_privacy_selection_keyboard
-from shared import redis
 
 punishment_creation_router = Router()
 punishment_creation_router.message.filter(MagicData(F.chat.type.is_not(ChatType.PRIVATE)), F.from_user.id.in_(settings.ADMINS))
@@ -98,15 +96,13 @@ async def choose_name(message: Message, member: ChatMember, state: FSMContext):
     await message.delete()
 
 
-@punishment_creation_router.callback_query()
+@punishment_creation_router.callback_query(F.data.not_contains("cancel"))
 async def choose_privacy(callback: CallbackQuery, member: ChatMember):
     callback_data = callback.data.split(':')[1:]
     dialog_id = callback_data[1]
     is_public = bool(int(callback_data[0]))
 
     data = await redis.get_deserialized(str(member.id))
-    data["dialogs"].pop(dialog_id)
-    await redis.set_serialized(str(member.id), data)
 
     punishment = Punishment(name=data["dialogs"][dialog_id]["name"],
                             time=timedelta(seconds=int(data["dialogs"][dialog_id]["time"])),
@@ -114,6 +110,8 @@ async def choose_privacy(callback: CallbackQuery, member: ChatMember):
                             is_public=is_public)
     await punishment.asave()
 
+    data["dialogs"].pop(dialog_id)
+    await redis.set_serialized(str(member.id), data)
 
     await callback.message.answer(text=_("Punishment '%(punishment)s' successfully created" % {"punishment": punishment.get_string()}))
     await callback.message.delete()

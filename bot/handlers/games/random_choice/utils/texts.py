@@ -13,8 +13,8 @@ def get_players(game: RandomChoiceGame) -> str:
 
     player_index = 1
     for player in game.players.annotate(join_at=F('randomchoicegameplayer__join_at')).order_by("join_at"):
+        text += f"{player_index}) {'👑 ' if player.id == game.creator_id else ''}{player.get_string(True)}\n"
         player_index += 1
-        text += f"{player_index}) {'👑 ' if player.id == game.creator_id else ''}{player.get_string(True)}"
 
     return text
 
@@ -26,6 +26,6 @@ def get_losers(game_result: RandomChoiceGameResult) -> str:
             # Translators: loser
             text += _("%(player)s ◀️\n" % {"player": player.get_string(True)})
         else:
-            text += f"{player.get_string(True)}"
+            text += f"{player.get_string(True)}\n"
 
     return text

@@ -7,22 +7,8 @@ from django.conf import settings
 from django.utils.translation import gettext as _
 
 from bot.models import ChatMember
-from games.models import Punishment
+from games.models import Punishment, RandomChoiceGame
 
-
-def get_punishment_categories_keyboard(dialog_id: uuid4) -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup(inline_keyboard=[
-        [
-            # Translators: private
-            InlineKeyboardButton(text=_("Private"), callback_data=f"rcgc:p_category:0:1:{dialog_id}"),
-            # Translators: public
-            InlineKeyboardButton(text=_("Public"), callback_data=f"rcgc:p_category:1:1:{dialog_id}"),
-        ],
-        [
-            # Translators: cancel
-            InlineKeyboardButton(text=_("Cancel"), callback_data=f"rcgc:cancel:{dialog_id}"),
-        ]
-    ])
 
 @sync_to_async
 def get_punishments_keyboard(dialog_id: uuid4, chat_member: ChatMember, is_public: bool, page: int) -> (InlineKeyboardMarkup, Dict[int, uuid4]):
@@ -76,20 +62,23 @@ def get_punishments_keyboard(dialog_id: uuid4, chat_member: ChatMember, is_publi
 
     return InlineKeyboardMarkup(inline_keyboard=buttons), punishments_mapping
 
-def get_game_menu_keyboard(game_id: uuid4) -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup(inline_keyboard=[
+
+async def get_game_menu_keyboard(game: RandomChoiceGame) -> InlineKeyboardMarkup:
+    buttons = [
         [
             # Translators: join game button
-            InlineKeyboardButton(text=_("Join/Left"), callback_data=f"rcg:join:{game_id}")
-        ],
-        [
-            # Translators: start game button
-            InlineKeyboardButton(text=_("Start"), callback_data=f"rcg:start:{game_id}")
+            InlineKeyboardButton(text=_("Join/Left"), callback_data=f"rcg:join:{game.id}")
         ],
         [
             # Translators: delete
-            InlineKeyboardButton(text=_("Delete"), callback_data=f"rcg:delete:{game_id}"),
+            InlineKeyboardButton(text=_("Delete"), callback_data=f"rcg:delete:{game.id}"),
         ]
-    ])
+    ]
+
+    if game.max_players_count >= await game.players.acount() >= game.min_players_count:
+        # Translators: start game button
+        buttons.insert(1, [InlineKeyboardButton(text=_("Start"), callback_data=f"rcg:start:{game.id}")])
+
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
 
 

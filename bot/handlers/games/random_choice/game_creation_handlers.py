@@ -12,7 +12,7 @@ from bot.models import ChatMember
 from games.models import RandomChoiceGame, RandomChoiceGamePlayer
 from shared import redis
 from .GameCreationDialog import GameCreationDialog
-from .utils.keyboards import get_punishments_keyboard, get_game_menu_keyboard, get_punishment_categories_keyboard
+from .utils.keyboards import get_punishments_keyboard, get_game_menu_keyboard
 
 from .utils.texts import get_players
 
@@ -28,11 +28,15 @@ async def start_game_command(message: Message, member: ChatMember):
     data = await redis.get_or_set(str(member.id))
     if "dialogs" not in data:
         data["dialogs"] = {}
+
+    keyboard, punishments_mapping = await get_punishments_keyboard(dialog.dialog_id, member, True, 1)
+    dialog.set_punishment_menu_mapping(punishments_mapping)
     data["dialogs"][dialog.dialog_id] = dialog.to_dict()
     await redis.set_serialized(str(member.id), data)
 
-    await message.answer(text=_("Choose a punishment category from the list below"),
-                         reply_markup=get_punishment_categories_keyboard(dialog.dialog_id))
+    await message.answer(text=_("Choose a punishment from the list below\n\n"
+                                "Category: %(category)s" % {"category": _("Public")}),
+                         reply_markup=keyboard)
     await message.delete()
 
 
@@ -78,7 +82,7 @@ async def select_punishment(callback: CallbackQuery, member: ChatMember):
     await redis.set_serialized(str(member.id), data)
 
     # Translators: random choice game dialogue
-    await callback.message.edit_text(text=await get_players(game), reply_markup=get_game_menu_keyboard(game.id))
+    await callback.message.edit_text(text=await get_players(game), reply_markup=await get_game_menu_keyboard(game))
 
 @game_creation_router.callback_query(F.data.contains("cancel"))
 async def cancel(callback: CallbackQuery, member: ChatMember):

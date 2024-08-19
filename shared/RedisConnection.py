@@ -12,7 +12,8 @@ class RedisConnection(Redis):
         return {}
 
     async def get_deserialized(self, name: str):
-        return json.loads(await self.get(name))
+        data = await self.get(name)
+        return json.loads(data) if data is not None else None
 
     async def set_serialized(self, name: str, data):
         await self.set(name, json.dumps(data))

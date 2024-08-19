@@ -5,12 +5,12 @@ from asgiref.sync import sync_to_async
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.db.models import F
 from django.utils.translation import gettext as _
 
 from bot.models import ChatMember
 from shared.enums import AutoStartGame
 from shared.utils import enum_to_choices
-from . import RandomChoiceGameResult, RandomChoiceGameLoser
 
 
 class RandomChoiceGame(models.Model):
@@ -27,27 +27,39 @@ class RandomChoiceGame(models.Model):
     auto_start_game = models.TextField(null=False, blank=False, choices=enum_to_choices(AutoStartGame), default=AutoStartGame.AT_MAX_PLAYERS.value)
     auto_start_at = models.DateTimeField(null=True, default=None)
 
-    is_finished = models.BooleanField(null=False, default=False)
+    result = models.OneToOneField("RandomChoiceGameResult", null=True, default=None, on_delete=models.CASCADE, related_name="game")
 
     created_at = models.DateTimeField(auto_now_add=True)
     expire_at = models.DateTimeField(null=True, default=None)
 
     @sync_to_async
-    def start_game(self) -> RandomChoiceGameResult:
-        losers = random.sample(self.players.all(), self.losers_count)
+    def is_finished(self) -> bool:
+        self.is_finished = self.result is not None
+        return self.is_finished
+
+    @sync_to_async
+    def start_game(self):
+        from . import RandomChoiceGameResult, RandomChoiceGameLoser
+        losers = random.sample(list(self.players.annotate(player_id=F('randomchoicegameplayer__id')).all()), self.losers_count)
 
         game_result = RandomChoiceGameResult(game=self)
+        game_result.save()
 
         for loser in losers:
-            RandomChoiceGameLoser(player=loser, game_result=game_result).save()
-            
+            RandomChoiceGameLoser(player_id=loser.player_id, game_result=game_result).save()
+
+        self.is_finished = True
         return game_result
 
     def get_string(self) -> str:
         # Translators: game to string
-        return _(f"<b>Random choice game<b>\n\n"
-                 f"punishment: %(punishment)s\n\n"
-                 f"👑{self.creator.get_string(True)}" % {"punishment": self.punishment.get_string()})
+        return _(f"<b>Random choice game</b>\n\n"
+                 f"punishment: %(punishment)s\n" +
+                 # Translators: players diapason
+                 _("👤: %(min)d - %(max)d\n" % {"min": self.min_players_count, "max": self.max_players_count}) +
+                 # Translators: losers count
+                 _("💀: %(losers)d\n\n" % {"losers": self.losers_count}) +
+                 f"👑 {self.creator.get_string(True)}" % {"punishment": self.punishment.get_string()})
 
     def clean(self):
         cleaned_data = super().clean()
