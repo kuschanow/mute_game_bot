@@ -7,6 +7,9 @@ run:
 	docker-compose up -d --force-recreate
 
 build:
+	docker-compose build
+
+build_no_cache:
 	docker-compose build --no-cache
 
 down:
