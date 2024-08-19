@@ -23,7 +23,7 @@ async def callback_restricted_user_middleware(
         callback: CallbackQuery,
         data: Dict[str, Any]
 ) -> Any:
-    tele_member = await callback.chat.get_member(callback.from_user.id)
+    tele_member = await callback.message.chat.get_member(callback.from_user.id)
     if isinstance(tele_member, ChatMemberRestricted):
         if not tele_member.can_send_messages:
             return
