@@ -6,7 +6,6 @@ from aiogram.types import CallbackQuery, ChatPermissions
 from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.utils.translation import gettext as _
-from sqlalchemy.util import await_only
 
 from bot.generate_session import bot
 from bot.middlewares import set_random_choice_game_middlewares
