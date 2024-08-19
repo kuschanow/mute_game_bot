@@ -53,13 +53,14 @@ class RandomChoiceGame(models.Model):
 
     def get_string(self) -> str:
         # Translators: game to string
-        return _(f"<b>Random choice game</b>\n\n"
-                 f"punishment: %(punishment)s\n" +
+        return _("<b>Random choice game</b>\n\n" +
+                 # Translators: game punishment
+                 _("punishment: %(punishment)s\n" % {"punishment": self.punishment.get_string()}) +
                  # Translators: players diapason
                  _("👤: %(min)d - %(max)d\n" % {"min": self.min_players_count, "max": self.max_players_count}) +
                  # Translators: losers count
                  _("💀: %(losers)d\n\n" % {"losers": self.losers_count}) +
-                 f"👑 {self.creator.get_string(True)}" % {"punishment": self.punishment.get_string()})
+                 f"👑 {self.creator.get_string(True)}")
 
     def clean(self):
         cleaned_data = super().clean()
