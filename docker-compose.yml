@@ -1,5 +1,3 @@
-version: '3.7'
-
 x-backend-service: &x-backend-service
   build: .
   env_file:
