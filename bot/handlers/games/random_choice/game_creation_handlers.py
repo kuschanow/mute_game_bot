@@ -1,5 +1,3 @@
-from typing import Dict
-
 from aiogram import Router, F
 from aiogram.enums import ChatType
 from aiogram.filters import Command, MagicData
@@ -13,7 +11,6 @@ from games.models import RandomChoiceGame, RandomChoiceGamePlayer
 from shared import redis
 from .GameCreationDialog import GameCreationDialog
 from .utils.keyboards import get_punishments_keyboard, get_game_menu_keyboard
-
 from .utils.texts import get_players
 
 game_creation_router = Router()
@@ -80,6 +77,8 @@ async def select_punishment(callback: CallbackQuery, member: ChatMember):
 
     data["dialogs"].pop(dialog_id)
     await redis.set_serialized(str(member.id), data)
+
+    await redis.set_serialized(str(game.id), {"messages": [callback.message.message_id]})
 
     # Translators: random choice game dialogue
     await callback.message.edit_text(text=await get_players(game), reply_markup=await get_game_menu_keyboard(game))

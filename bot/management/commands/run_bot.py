@@ -6,6 +6,7 @@ from django.core.management.base import BaseCommand
 from django.utils.translation import gettext as _
 
 from bot.logger import logger
+from django_celery_beat.models import CrontabSchedule, PeriodicTask
 
 
 async def on_startup(bot: Bot):
@@ -16,6 +17,17 @@ async def on_startup(bot: Bot):
 
     for admin_id in settings.ADMINS:
         await bot.send_message(text=_("Bot is running"), chat_id=admin_id)
+
+    schedule, result = await CrontabSchedule.objects.aget_or_create(
+        minute="0",
+        hour="0"
+    )
+
+    await PeriodicTask.objects.aget_or_create(
+        crontab=schedule,
+        name='Garbage collector',
+        task='bot.tasks.collect_garbage',
+    )
 
 async def on_shutdown(bot: Bot):
     logger.info("Bot is turned off")
