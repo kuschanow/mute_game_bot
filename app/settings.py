@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
+from string import Template
 
 import environ
 
@@ -61,6 +62,9 @@ INSTALLED_APPS = [
 
     'corsheaders',
     'debug_toolbar',
+
+    'django_celery_results',
+    'django_celery_beat',
 
     "games.apps.GamesConfig",
     "bot.apps.BotConfig"
@@ -191,10 +195,21 @@ STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 )
 
+
+REDIS_HOST = env('REDIS_HOST', default=None)
+REDIS_PORT = env.int('REDIS_PORT', default=6379)
+REDIS_FSM_DB = env.int('REDIS_FSM_DB', default=0)
+REDIS_DB = env.int('REDIS_DB', default=1)
+REDIS_CELERY_DB = env.int('REDIS_CELERY_DB', default=2)
+
+CELERY_BROKER_URL = env('CELERY_BROKER_URL', default=f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_CELERY_DB}")
+CELERY_RESULT_BACKEND = env('CELERY_RESULT_BACKEND', default="django-db")
+CELERY_BEAT_SCHEDULER = env('CELERY_BEAT_SCHEDULER', default='django_celery_beat.schedulers:DatabaseScheduler')
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = env.bool('CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP', default=True)
+CELERY_TIMEZONE = env('CELERY_TIMEZONE', default='UTC')
+
 BOT_TOKEN = env('BOT_TOKEN', default=None)
-
 ADMINS = env.list('ADMINS', cast=int, default=[])
-
 PAGE_SIZE = env.int("PAGE_SIZE", default=10)
 
 SEQ_KEY = env('SEQ_KEY', default=None)
@@ -202,11 +217,6 @@ SEQ_URL = env('SEQ_URL', default=None)
 SEQ_BATCH = env.int('SEQ_BATCH', default=10)
 SEQ_TIMEOUT = env.int('SEQ_TIMEOUT', default=10)
 SEQ_LEVEL = env.int('SEQ_LEVEL', default=20)
-
-REDIS_HOST = env('REDIS_HOST', default=None)
-REDIS_PORT = env.int('REDIS_PORT', default=6379)
-REDIS_FSM_DB = env.int('REDIS_FSM_DB', default=0)
-REDIS_DB = env.int('REDIS_DB', default=1)
 
 HELP_COMMAND = env('HELP_COMMAND', default="help")
 RANDOM_CHOICE_GAME_COMMAND = env('RANDOM_CHOICE_GAME_COMMAND', default="random_choice_game")
