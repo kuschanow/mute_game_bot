@@ -35,12 +35,14 @@ services:
     <<: *x-backend-service
     depends_on:
       - postgres
+      - redis
     command: celery -A app worker --loglevel=info
 
   celery-beat:
     <<: *x-backend-service
     depends_on:
       - postgres
+      - redis
     command: celery -A app beat --loglevel=info
 
   nginx:
