@@ -26,7 +26,7 @@ async def start_game_command(message: Message, member: ChatMember):
     if "dialogs" not in data:
         data["dialogs"] = {}
 
-    keyboard, punishments_mapping = await get_punishments_keyboard(dialog.dialog_id, member, True, 1)
+    keyboard, punishments_mapping = await get_punishments_keyboard(dialog.dialog_id, member, 1, 1)
     dialog.set_punishment_menu_mapping(punishments_mapping)
     data["dialogs"][dialog.dialog_id] = dialog.to_dict()
     await redis.set_serialized(str(member.id), data)
@@ -42,8 +42,8 @@ async def select_punishments_category(callback: CallbackQuery, member: ChatMembe
     callback_data = callback.data.split(':')[2:]
     dialog_id = callback_data[2]
     page = int(callback_data[1])
-    is_public = bool(int(callback_data[0]))
-    keyboard, punishments_mapping = await get_punishments_keyboard(dialog_id, member, is_public, page)
+    public_indicator = int(callback_data[0])
+    keyboard, punishments_mapping = await get_punishments_keyboard(dialog_id, member, public_indicator, page)
 
     data = await redis.get_deserialized(str(member.id))
     dialog = GameCreationDialog.from_dict(data["dialogs"][dialog_id])
@@ -53,9 +53,15 @@ async def select_punishments_category(callback: CallbackQuery, member: ChatMembe
 
     await redis.set_serialized(str(member.id), data)
 
+    category = {
+        -1: _("Private Global"),
+        0: _("Private Local"),
+        1: _("Public")
+    }
+
     # Translators: punishment selection dialogue
     await callback.message.edit_text(text=_("Choose a punishment from the list below\n\n"
-                                            "Category: %(category)s" % {"category": _("Public") if is_public else _("Private")}),
+                                            "Category: %(category)s" % {"category": category[public_indicator]}),
                                      reply_markup=keyboard)
 
 @game_creation_router.callback_query(F.data.contains("p_select"))

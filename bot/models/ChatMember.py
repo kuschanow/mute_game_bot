@@ -2,7 +2,7 @@ from uuid import uuid4
 
 from django.db import models
 
-from shared.enums import MemberStatus
+from shared.enums import MemberStatus, InteractionLevel
 from shared.utils import enum_to_choices
 
 
@@ -13,7 +13,8 @@ class ChatMember(models.Model):
 
     status = models.TextField(choices=enum_to_choices(MemberStatus), default=MemberStatus.MEMBER.value, null=False)
     is_anon = models.BooleanField(default=False, null=False)
-    can_interact_with_bot = models.BooleanField(default=True)
+    interaction_level = models.TextField(choices=enum_to_choices(InteractionLevel), default=InteractionLevel.BASED_ON_STATUS.value, null=False)
+
 
     updated_at = models.DateTimeField(auto_now=True)
 

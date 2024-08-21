@@ -20,3 +20,5 @@ class Chat(models.Model):
     min_punish_time_for_rand_choice = models.DurationField(default=timedelta(minutes=1), null=False)
     max_punish_time_for_rand_choice = models.DurationField(default=timedelta(days=1), null=False)
     can_admins_ignore_time_limitations = models.BooleanField(default=False, null=False)
+
+    can_members_create_public_punishments = models.BooleanField(default=False, null=False)

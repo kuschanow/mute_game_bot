@@ -11,21 +11,24 @@ from games.models import Punishment, RandomChoiceGame
 
 
 @sync_to_async
-def get_punishments_keyboard(dialog_id: uuid4, chat_member: ChatMember, is_public: bool, page: int) -> (InlineKeyboardMarkup, Dict[int, uuid4]):
+def get_punishments_keyboard(dialog_id: uuid4, chat_member: ChatMember, public_indicator: int, page: int) -> (InlineKeyboardMarkup, Dict[int,
+uuid4]):
     start_index = (page - 1) * settings.PAGE_SIZE
     end_index = page * settings.PAGE_SIZE
 
     filters = {
-        'is_deleted': False
+        'is_deleted': False,
+        'is_public': public_indicator == 1
     }
-    
-    if is_public:
-        filters['created_by__chat'] = chat_member.chat
-        filters['is_public'] = is_public
-    else:
-        filters['created_by'] = chat_member
 
-    query = Punishment.objects.filter(**filters)
+    if public_indicator > -1:
+        filters['created_in'] = chat_member.chat
+    else:
+        filters['created_in__isnull'] = True
+    if public_indicator < 1:
+        filters['created_by'] = chat_member.user
+
+    query = Punishment.objects.filter(**filters).order_by("time")
 
     punishments = query[start_index:end_index]
     punishments_count = query.count()
@@ -39,20 +42,22 @@ def get_punishments_keyboard(dialog_id: uuid4, chat_member: ChatMember, is_publi
         punishments_mapping[i] = str(p.id)
 
     navigation = [
-        # Translators: change category
-        InlineKeyboardButton(text=_("%(category)s" % {"category": _("Private") if is_public else _("Public")}),
-                             callback_data=f"rcgc:p_category:{int(not is_public)}:1:{dialog_id}")
+        InlineKeyboardButton(text=_("Private Global"), callback_data=f"rcgc:p_category:-1:1:{dialog_id}"),
+        InlineKeyboardButton(text=_("Private Local"), callback_data=f"rcgc:p_category:0:1:{dialog_id}"),
+        InlineKeyboardButton(text=_("Public"), callback_data=f"rcgc:p_category:1:1:{dialog_id}"),
     ]
+
+    navigation.pop(public_indicator + 1)
 
     if page > 1:
         navigation.insert(0,
             # Translators: previous page
-            InlineKeyboardButton(text=_("Previous"), callback_data=f"rcgc:p_category:{int(is_public)}:{page-1}:{dialog_id}")
+            InlineKeyboardButton(text=_("Previous"), callback_data=f"rcgc:p_category:{public_indicator}:{page-1}:{dialog_id}")
         )
     if punishments_count - page * settings.PAGE_SIZE > 0:
         navigation.append(
             # Translators: next page
-            InlineKeyboardButton(text=_("Next"), callback_data=f"rcgc:p_category:{int(is_public)}:{page+1}:{dialog_id}")
+            InlineKeyboardButton(text=_("Next"), callback_data=f"rcgc:p_category:{public_indicator}:{page+1}:{dialog_id}")
         )
 
     buttons.append(navigation)

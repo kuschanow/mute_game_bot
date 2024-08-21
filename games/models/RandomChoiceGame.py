@@ -30,7 +30,6 @@ class RandomChoiceGame(models.Model):
     result = models.OneToOneField("RandomChoiceGameResult", null=True, default=None, on_delete=models.CASCADE, related_name="game")
 
     created_at = models.DateTimeField(auto_now_add=True)
-    expire_at = models.DateTimeField(null=True, default=None)
 
     @sync_to_async
     def is_finished(self) -> bool:

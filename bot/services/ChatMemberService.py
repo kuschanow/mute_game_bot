@@ -1,4 +1,4 @@
-from aiogram.types import Chat as TeleChat, ChatMemberAdministrator, ChatMemberMember, ChatMemberOwner
+from aiogram.types import Chat as TeleChat, ChatMemberAdministrator, ChatMemberMember, ChatMemberOwner, ChatMemberRestricted, ChatMemberLeft
 from aiogram.enums.chat_type import ChatType
 
 from bot.models import User, ChatMember
@@ -17,7 +17,9 @@ class ChatMemberService:
 
         if chat.type != ChatType.PRIVATE:
             tele_member = await tele_chat.get_member(user.id)
-            status = {ChatMemberMember: MemberStatus.MEMBER.value,
+            status = {ChatMemberLeft: MemberStatus.LEFT.value,
+                      ChatMemberRestricted: MemberStatus.RESTRICTED.value,
+                      ChatMemberMember: MemberStatus.MEMBER.value,
                       ChatMemberAdministrator: MemberStatus.ADMIN.value,
                       ChatMemberOwner: MemberStatus.OWNER.value}
             member.status = status[type(tele_member)]
