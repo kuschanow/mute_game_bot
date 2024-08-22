@@ -4,7 +4,7 @@ from uuid import uuid4
 
 from aiogram import Router, F
 from aiogram.enums import ChatType, ContentType
-from aiogram.filters import Command, MagicData
+from aiogram.filters import Command, MagicData, or_f
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
 from aiogram.utils.formatting import Text, BlockQuote
@@ -17,10 +17,11 @@ from games.models import Punishment
 from shared import redis
 from .PunishmentCreationStates import PunishmentCreationStates
 from .utils.keyboards import get_punishment_privacy_selection_keyboard, get_cancel_keyboard
-from ...filters import DialogAccess, ReplayToCorrectMessage
+from ...filters import DialogAccess, ReplayToCorrectMessage, IsAdmin
 
 punishment_creation_router = Router()
-punishment_creation_router.message.filter(MagicData(F.chat.type.is_not(ChatType.PRIVATE)), F.from_user.id.in_(settings.ADMINS))
+punishment_creation_router.message.filter(MagicData(F.chat.type.is_not(ChatType.PRIVATE)),
+                                          or_f(IsAdmin(),MagicData(F.chat.can_members_create_public_punishments.is_(True))))
 punishment_creation_router.callback_query.filter(F.data.startswith("pc"))
 
 

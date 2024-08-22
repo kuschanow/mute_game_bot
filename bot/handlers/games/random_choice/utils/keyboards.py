@@ -8,6 +8,7 @@ from django.utils.translation import gettext as _
 
 from bot.models import ChatMember
 from games.models import Punishment, RandomChoiceGame
+from shared.enums import MemberStatus, InteractionLevel
 
 
 @sync_to_async
@@ -27,6 +28,11 @@ uuid4]):
         filters['created_in__isnull'] = True
     if public_indicator < 1:
         filters['created_by'] = chat_member.user
+
+    if (chat_member.status != MemberStatus.ADMIN.value and chat_member.interaction_level != InteractionLevel.CAN_ADMINISTRATE.value) \
+        or not chat_member.chat.can_admins_ignore_time_limitations:
+        filters["time__gte"] = chat_member.chat.min_punish_time_for_rand_choice
+        filters["time__lte"] = chat_member.chat.max_punish_time_for_rand_choice
 
     query = Punishment.objects.filter(**filters).order_by("time")
 

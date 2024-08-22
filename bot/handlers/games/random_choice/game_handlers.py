@@ -7,11 +7,12 @@ from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.utils.translation import gettext as _
 
-from bot.filters import IsGameCreator, IsAdmin
+from bot.filters import IsGameCreator, IsAdmin, IsOwner
 from bot.generate_session import bot
 from bot.middlewares import set_random_choice_game_middlewares
 from bot.models import ChatMember, Chat
 from games.models import RandomChoiceGame, RandomChoiceGamePlayer, RandomChoiceGameResult
+from shared.enums import MemberStatus
 from .utils.keyboards import get_game_menu_keyboard
 from .utils.texts import get_players, get_losers
 
@@ -26,7 +27,11 @@ async def finished_game_handler(callback: CallbackQuery):
     await callback.answer(_("This game is already finished"))
 
 @game_router.callback_query(F.data.contains("join"), invert_f(IsGameCreator()))
-async def join_game(callback: CallbackQuery, game: RandomChoiceGame, member: ChatMember):
+async def join_game(callback: CallbackQuery, game: RandomChoiceGame, member: ChatMember ,chat: Chat):
+    if member.status == MemberStatus.ADMIN.value and ~chat.can_admins_join_games:
+        await callback.answer(_("Admins cannot join games"))
+        return
+
     if await sync_to_async(lambda: member in game.players.all())():
         await sync_to_async(game.players.remove)(member)
         # Translators: remove player from the game
@@ -44,7 +49,8 @@ async def join_game(callback: CallbackQuery, game: RandomChoiceGame, member: Cha
     await callback.message.edit_text(text=await get_players(game), reply_markup=await get_game_menu_keyboard(game))
 
 
-@game_router.callback_query(F.data.contains("start"), IsAdmin())
+@game_router.callback_query(F.data.contains("start"), IsOwner())
+@game_router.callback_query(F.data.contains("start"), IsAdmin(), MagicData(F.chat.can_admins_press_other_buttons.is_(True)))
 @game_router.callback_query(F.data.contains("start"), IsGameCreator())
 async def start_game(callback: CallbackQuery, game: RandomChoiceGame, chat: Chat):
     if await game.players.acount() < game.min_players_count:
@@ -75,7 +81,8 @@ async def start_game(callback: CallbackQuery, game: RandomChoiceGame, chat: Chat
     await callback.answer()
 
 
-@game_router.callback_query(F.data.contains("delete"), IsAdmin())
+@game_router.callback_query(F.data.contains("start"), IsOwner())
+@game_router.callback_query(F.data.contains("delete"), IsAdmin(), MagicData(F.chat.can_admins_press_other_buttons.is_(True)))
 @game_router.callback_query(F.data.contains("delete"), IsGameCreator())
 async def delete_game(callback: CallbackQuery, game: RandomChoiceGame, member: ChatMember):
     if await sync_to_async(lambda: game.result is not None)():
