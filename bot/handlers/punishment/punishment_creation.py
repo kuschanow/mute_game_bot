@@ -17,8 +17,7 @@ from games.models import Punishment
 from shared import redis
 from .PunishmentCreationStates import PunishmentCreationStates
 from .utils.keyboards import get_punishment_privacy_selection_keyboard, get_cancel_keyboard
-from ...filters import DialogAccessFilter
-from ...filters.ReplyToCorrectMessageFilter import ReplayToCorrectMessageFilter
+from ...filters import DialogAccess, ReplayToCorrectMessage
 
 punishment_creation_router = Router()
 punishment_creation_router.message.filter(MagicData(F.chat.type.is_not(ChatType.PRIVATE)), F.from_user.id.in_(settings.ADMINS))
@@ -50,7 +49,7 @@ async def create_punishment_command(message: Message, state: FSMContext):
 
 @punishment_creation_router.message(PunishmentCreationStates.choosing_name,
                                     F.content_type == ContentType.TEXT,
-                                    ReplayToCorrectMessageFilter("message_id"))
+                                    ReplayToCorrectMessage("message_id"))
 async def choose_name(message: Message, state: FSMContext):
     await state.set_state(PunishmentCreationStates.choosing_time)
     data = await state.get_data()
@@ -82,7 +81,7 @@ async def choose_name(message: Message, state: FSMContext):
 @punishment_creation_router.message(PunishmentCreationStates.choosing_time,
                                     F.text.regexp(r"\d+"),
                                     F.content_type == ContentType.TEXT,
-                                    ReplayToCorrectMessageFilter("message_id"))
+                                    ReplayToCorrectMessage("message_id"))
 async def choose_name(message: Message, member: ChatMember, state: FSMContext):
     data = await state.get_data()
     await state.clear()
@@ -105,7 +104,7 @@ async def choose_name(message: Message, member: ChatMember, state: FSMContext):
     await message.delete()
 
 
-@punishment_creation_router.callback_query(F.data.not_contains("cancel"), DialogAccessFilter())
+@punishment_creation_router.callback_query(F.data.not_contains("cancel"), DialogAccess())
 async def choose_privacy(callback: CallbackQuery, member: ChatMember, user: User, chat: Chat):
     callback_data = callback.data.split(':')[1:]
     dialog_id = callback_data[1]
@@ -139,7 +138,7 @@ async def cancel(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
 
 
-@punishment_creation_router.callback_query(F.data.contains("cancel"), DialogAccessFilter())
+@punishment_creation_router.callback_query(F.data.contains("cancel"), DialogAccess())
 async def cancel_creation(callback: CallbackQuery, member: ChatMember):
     dialog_id = callback.data.split(':')[-1]
 

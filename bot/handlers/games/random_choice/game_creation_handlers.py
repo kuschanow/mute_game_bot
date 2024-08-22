@@ -5,7 +5,7 @@ from aiogram.types import Message, CallbackQuery
 from django.conf import settings
 from django.utils.translation import gettext as _
 
-from bot.filters import DialogAccessFilter
+from bot.filters import DialogAccess
 from bot.models import ChatMember
 from games.models import RandomChoiceGame, RandomChoiceGamePlayer
 from shared import redis
@@ -15,7 +15,7 @@ from .utils.texts import get_players
 
 game_creation_router = Router()
 game_creation_router.message.filter(MagicData(F.chat.type.is_not(ChatType.PRIVATE)))
-game_creation_router.callback_query.filter(F.data.startswith("rcgc"), DialogAccessFilter())
+game_creation_router.callback_query.filter(F.data.startswith("rcgc"), DialogAccess())
 
 
 @game_creation_router.message(Command(settings.RANDOM_CHOICE_GAME_COMMAND))

@@ -5,7 +5,7 @@ from bot.models import ChatMember
 from shared import redis
 
 
-class DialogAccessFilter(Filter):
+class DialogAccess(Filter):
     async def __call__(self, callback_query: CallbackQuery, member: ChatMember) -> bool:
         data = await redis.get_deserialized(str(member.id))
         if data is None or "dialogs" not in data:

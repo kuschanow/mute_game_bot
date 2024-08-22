@@ -8,9 +8,9 @@ from games.models import RandomChoiceGame
 
 
 def set_random_choice_game_middlewares(router: Router):
-    router.callback_query.outer_middleware.register(message_game_middleware)
+    router.callback_query.outer_middleware.register(callback_game_middleware)
 
-async def message_game_middleware(
+async def callback_game_middleware(
         handler: Callable[[CallbackQuery, Dict[str, Any]], Awaitable[Any]],
         callback: CallbackQuery,
         data: Dict[str, Any]

@@ -1,12 +1,13 @@
 from datetime import datetime
 
 from aiogram import Router, F
-from aiogram.filters import MagicData
+from aiogram.filters import MagicData, invert_f
 from aiogram.types import CallbackQuery, ChatPermissions
 from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.utils.translation import gettext as _
 
+from bot.filters import IsGameCreator, IsAdmin
 from bot.generate_session import bot
 from bot.middlewares import set_random_choice_game_middlewares
 from bot.models import ChatMember, Chat
@@ -24,13 +25,8 @@ async def finished_game_handler(callback: CallbackQuery):
     # Translators: finished game message
     await callback.answer(_("This game is already finished"))
 
-@game_router.callback_query(F.data.contains("join"))
+@game_router.callback_query(F.data.contains("join"), invert_f(IsGameCreator()))
 async def join_game(callback: CallbackQuery, game: RandomChoiceGame, member: ChatMember):
-    if game.creator_id == member.id:
-        # Translators: an attempt to add the creator to the game
-        await callback.answer(_("You are the host of this game, you cannot join or leave it"))
-        return
-
     if await sync_to_async(lambda: member in game.players.all())():
         await sync_to_async(game.players.remove)(member)
         # Translators: remove player from the game
@@ -47,13 +43,10 @@ async def join_game(callback: CallbackQuery, game: RandomChoiceGame, member: Cha
 
     await callback.message.edit_text(text=await get_players(game), reply_markup=await get_game_menu_keyboard(game))
 
-@game_router.callback_query(F.data.contains("start"))
-async def start_game(callback: CallbackQuery, game: RandomChoiceGame, member: ChatMember, chat: Chat):
-    if game.creator_id != member.id:
-        # Translator: can't start the game without being the host
-        await callback.answer(_("You cannot start a game without being the host"))
-        return
 
+@game_router.callback_query(F.data.contains("start"), IsAdmin())
+@game_router.callback_query(F.data.contains("start"), IsGameCreator())
+async def start_game(callback: CallbackQuery, game: RandomChoiceGame, chat: Chat):
     if await game.players.acount() < game.min_players_count:
         # Translator: can't start the game with count of players less than min_players_count
         await callback.answer(_("There are not enough players in the game"))
@@ -81,13 +74,10 @@ async def start_game(callback: CallbackQuery, game: RandomChoiceGame, member: Ch
     await callback.message.answer(text=await get_losers(result), reply_to_message_id=callback.message.message_id)
     await callback.answer()
 
-@game_router.callback_query(F.data.contains("delete"))
-async def delete_game(callback: CallbackQuery, game: RandomChoiceGame, member: ChatMember):
-    if game.creator_id != member.id:
-        # Translator: trying to delete a game
-        await callback.answer(_("You cannot delete a game without being the host"))
-        return
 
+@game_router.callback_query(F.data.contains("delete"), IsAdmin())
+@game_router.callback_query(F.data.contains("delete"), IsGameCreator())
+async def delete_game(callback: CallbackQuery, game: RandomChoiceGame, member: ChatMember):
     if await sync_to_async(lambda: game.result is not None)():
         # Translator: trying to delete a finished game
         await callback.answer(_("You can't delete a finished game"))
