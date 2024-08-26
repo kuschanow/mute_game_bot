@@ -3,7 +3,7 @@ from typing import Callable, Dict, Any, Awaitable
 from aiogram import Router
 from aiogram.types import Message, CallbackQuery
 
-from bot.services.UserService import UserService
+from bot.models import User
 
 
 def set_user_middlewares(router: Router):
@@ -15,7 +15,7 @@ async def message_user_middleware(
         message: Message,
         data: Dict[str, Any]
 ) -> Any:
-    data["user"] = await UserService.get_or_create_user(message.from_user, message.chat)
+    data["user"] = await User.get_or_create_user(message.from_user, message.chat)
     return await handler(message, data)
 
 async def callback_user_middleware(
@@ -23,6 +23,6 @@ async def callback_user_middleware(
         callback: CallbackQuery,
         data: Dict[str, Any]
 ) -> Any:
-    data["user"] = await UserService.get_or_create_user(callback.from_user, callback.message.chat)
+    data["user"] = await User.get_or_create_user(callback.from_user, callback.message.chat)
     return await handler(callback, data)
 

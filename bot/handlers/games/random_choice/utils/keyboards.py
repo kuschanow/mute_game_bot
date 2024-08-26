@@ -7,19 +7,19 @@ from django.conf import settings
 from django.utils.translation import gettext as _
 
 from bot.models import ChatMember
+from bot.models.SettingsObject import SettingsObject
 from games.models import Punishment, RandomChoiceGame
-from shared.enums import MemberStatus, InteractionLevel
 
 
 @sync_to_async
-def get_punishments_keyboard(dialog_id: uuid4, chat_member: ChatMember, public_indicator: int, page: int) -> (InlineKeyboardMarkup, Dict[int,
-uuid4]):
+def get_punishments_keyboard(dialog_id: uuid4, chat_member: ChatMember, member_settings: SettingsObject, public_indicator: int, page: int) -> (InlineKeyboardMarkup, Dict[int, uuid4]):
     start_index = (page - 1) * settings.PAGE_SIZE
     end_index = page * settings.PAGE_SIZE
 
     filters = {
         'is_deleted': False,
-        'is_public': public_indicator == 1
+        'is_public': public_indicator == 1,
+        'time__gte': member_settings.min_punish_time_for_rand_choice
     }
 
     if public_indicator > -1:
@@ -28,12 +28,8 @@ uuid4]):
         filters['created_in__isnull'] = True
     if public_indicator < 1:
         filters['created_by'] = chat_member.user
-
-    if (chat_member.status != MemberStatus.ADMIN.value and chat_member.interaction_level != InteractionLevel.CAN_ADMINISTRATE.value) \
-        or not chat_member.chat.can_admins_ignore_time_limitations:
-        filters["time__gte"] = chat_member.chat.min_punish_time_for_rand_choice
-        if chat_member.chat.max_punish_time_for_rand_choice is not None:
-            filters["time__lte"] = chat_member.chat.max_punish_time_for_rand_choice
+    if member_settings.max_punish_time_for_rand_choice is not None:
+        filters["time__lte"] = member_settings.max_punish_time_for_rand_choice
 
     query = Punishment.objects.filter(**filters).order_by("time")
 

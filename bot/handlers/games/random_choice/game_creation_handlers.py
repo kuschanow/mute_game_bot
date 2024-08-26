@@ -1,15 +1,16 @@
 from aiogram import Router, F
 from aiogram.enums import ChatType
-from aiogram.filters import Command, MagicData, and_f, invert_f
+from aiogram.filters import Command, MagicData
 from aiogram.types import Message, CallbackQuery
+from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.utils.translation import gettext as _
 
-from bot.filters import DialogAccess, IsAdmin
-from bot.models import ChatMember, Chat
+from bot.filters import DialogAccess
+from bot.models import ChatMember
+from bot.models.SettingsObject import SettingsObject
 from games.models import RandomChoiceGame, RandomChoiceGamePlayer
 from shared import redis
-from shared.enums import MemberStatus
 from .GameCreationDialog import GameCreationDialog
 from .utils.keyboards import get_punishments_keyboard, get_game_menu_keyboard
 from .utils.texts import get_players
@@ -20,9 +21,9 @@ game_creation_router.callback_query.filter(F.data.startswith("rcgc"), DialogAcce
 
 
 @game_creation_router.message(Command(settings.RANDOM_CHOICE_GAME_COMMAND))
-async def start_game_command(message: Message, member: ChatMember, chat: Chat):
-    if member.status == MemberStatus.ADMIN.value and not chat.can_admins_create_games:
-        await message.answer(_("Admins cannot create games"))
+async def start_game_command(message: Message, member: ChatMember, member_settings: SettingsObject):
+    if not member_settings.can_create_games:
+        await message.answer(_("You cannot create games"))
         await message.delete()
         return
 
@@ -71,7 +72,7 @@ async def select_punishments_category(callback: CallbackQuery, member: ChatMembe
                                      reply_markup=keyboard)
 
 @game_creation_router.callback_query(F.data.contains("p_select"))
-async def select_punishment(callback: CallbackQuery, member: ChatMember, chat: Chat):
+async def select_punishment(callback: CallbackQuery, member: ChatMember, member_settings: SettingsObject):
     callback_data = callback.data.split(':')[2:]
     dialog_id = callback_data[1]
     punish_num = int(callback_data[0])
@@ -82,9 +83,10 @@ async def select_punishment(callback: CallbackQuery, member: ChatMember, chat: C
 
     game = RandomChoiceGame(punishment_id=dialog.punishment_id,
                             creator=member)
+    await sync_to_async(lambda: game.full_clean())()
     await game.asave()
 
-    if game.is_creator_playing and not (member.status == MemberStatus.ADMIN.value and not chat.can_admins_join_games):
+    if game.is_creator_playing and not member_settings.can_join_games:
         await RandomChoiceGamePlayer(game=game, chat_member=member).asave()
 
     data["dialogs"].pop(dialog_id)

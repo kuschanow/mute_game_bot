@@ -1,6 +1,6 @@
 from aiogram import Router
 
-from .chat_settings import chat_settings_router
+from .main_chat_settings import chat_settings_router
 
 administrative_router = Router()
 

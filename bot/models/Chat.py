@@ -1,8 +1,10 @@
-from datetime import timedelta
-
 from aiogram.enums.chat_type import ChatType
+from aiogram.types import Chat as TeleChat
+from asgiref.sync import sync_to_async
 from django.db import models
 
+from bot.models.ChatSettings import ChatSettings
+from shared.enums import SettingsTarget
 from shared.utils import enum_to_choices
 
 
@@ -14,12 +16,18 @@ class Chat(models.Model):
 
     updated_at = models.DateTimeField(auto_now=True)
 
-    can_admins_join_games = models.BooleanField(default=True, null=False)
-    can_admins_create_games = models.BooleanField(default=True, null=False)
-    can_admins_press_other_buttons = models.BooleanField(default=False, null=False)
+    @staticmethod
+    async def get_or_create_chat(tele_chat: TeleChat):
+        chat = (await Chat.objects.aget_or_create(id=tele_chat.id))[0]
 
-    min_punish_time_for_rand_choice = models.DurationField(default=timedelta(minutes=1), null=False)
-    max_punish_time_for_rand_choice = models.DurationField(default=None, null=True)
-    can_admins_ignore_time_limitations = models.BooleanField(default=False, null=False)
+        chat.name = tele_chat.full_name
+        chat.type = tele_chat.type
+        await chat.asave()
 
-    can_members_create_public_punishments = models.BooleanField(default=False, null=False)
+        if not await ChatSettings.objects.filter(chat=chat, target=SettingsTarget.CHAT.value, target_id=chat.id).aexists():
+            from bot.models import SettingsObject
+            settings_object = SettingsObject()
+            await settings_object.asave()
+            await ChatSettings(chat=chat, target=SettingsTarget.CHAT.value, target_id=chat.id, settings_object=settings_object).asave()
+
+        return chat

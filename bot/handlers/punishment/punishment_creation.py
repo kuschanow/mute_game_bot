@@ -18,10 +18,10 @@ from shared import redis
 from .PunishmentCreationStates import PunishmentCreationStates
 from .utils.keyboards import get_punishment_privacy_selection_keyboard, get_cancel_keyboard
 from ...filters import DialogAccess, ReplayToCorrectMessage, IsAdmin
+from ...models.SettingsObject import SettingsObject
 
 punishment_creation_router = Router()
-punishment_creation_router.message.filter(MagicData(F.chat.type.is_not(ChatType.PRIVATE)),
-                                          or_f(IsAdmin(),MagicData(F.chat.can_members_create_public_punishments.is_(True))))
+punishment_creation_router.message.filter(MagicData(F.chat.type.is_not(ChatType.PRIVATE)))
 punishment_creation_router.callback_query.filter(F.data.startswith("pc"))
 
 
@@ -83,7 +83,7 @@ async def choose_name(message: Message, state: FSMContext):
                                     F.text.regexp(r"\d+"),
                                     F.content_type == ContentType.TEXT,
                                     ReplayToCorrectMessage("message_id"))
-async def choose_name(message: Message, member: ChatMember, state: FSMContext):
+async def choose_name(message: Message, member: ChatMember, member_settings: SettingsObject, state: FSMContext):
     data = await state.get_data()
     await state.clear()
 
@@ -101,7 +101,7 @@ async def choose_name(message: Message, member: ChatMember, state: FSMContext):
     await bot.delete_message(chat_id=member.chat_id, message_id=int(data["message_id"]))
     # Translators: privacy selection message
     await message.answer(text=_("Now select the privacy of the new punishment"),
-                         reply_markup=get_punishment_privacy_selection_keyboard(dialog_id))
+                         reply_markup=get_punishment_privacy_selection_keyboard(dialog_id, member_settings))
     await message.delete()
 
 

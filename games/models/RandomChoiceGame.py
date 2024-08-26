@@ -62,22 +62,17 @@ class RandomChoiceGame(models.Model):
                  f"👑 {self.creator.get_string(True)}")
 
     def clean(self):
-        cleaned_data = super().clean()
-        min_players_count = cleaned_data.get("min_players_count")
-        max_players_count = cleaned_data.get("max_players_count")
-        is_creator_playing = cleaned_data.get("is_creator_playing")
-        players_count = cleaned_data.get("players").count()
-        losers_count = cleaned_data.get("losers_count")
+        players_count = self.players.count()
 
-        players_count = players_count + 1 if is_creator_playing else players_count
+        players_count = players_count + 1 if self.is_creator_playing else players_count
 
-        if min_players_count > max_players_count:
+        if self.min_players_count > self.max_players_count:
             raise ValidationError(f"min players count cannot be greater than max players count")
 
-        if players_count > max_players_count:
+        if players_count > self.max_players_count:
             raise ValidationError(f"players count cannot be greater than max players count")
 
-        if losers_count < 1 or losers_count > max_players_count - 1:
+        if self.losers_count < 1 or self.losers_count > self.max_players_count - 1:
             raise ValidationError(f"losers count must be less than max players count")
 
     def __str__(self):

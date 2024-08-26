@@ -5,5 +5,5 @@ from bot.models import ChatMember
 
 
 class IsSuperAdmin(Filter):
-    async def __call__(self, event, user: ChatMember) -> bool:
-        return user.id in settings.ADMINS
+    async def __call__(self, event, member: ChatMember) -> bool:
+        return member.is_super_admin()
