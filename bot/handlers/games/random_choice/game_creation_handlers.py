@@ -8,7 +8,7 @@ from django.utils.translation import gettext as _
 
 from bot.filters import DialogAccess
 from bot.models import ChatMember
-from bot.models.SettingsObject import SettingsObject
+from bot.models.AccessSettingsObject import AccessSettingsObject
 from games.models import RandomChoiceGame, RandomChoiceGamePlayer
 from shared import redis
 from .GameCreationDialog import GameCreationDialog
@@ -21,7 +21,7 @@ game_creation_router.callback_query.filter(F.data.startswith("rcgc"), DialogAcce
 
 
 @game_creation_router.message(Command(settings.RANDOM_CHOICE_GAME_COMMAND))
-async def start_game_command(message: Message, member: ChatMember, member_settings: SettingsObject):
+async def start_game_command(message: Message, member: ChatMember, member_settings: AccessSettingsObject):
     if not member_settings.can_create_games:
         await message.answer(_("You cannot create games"))
         await message.delete()
@@ -72,7 +72,7 @@ async def select_punishments_category(callback: CallbackQuery, member: ChatMembe
                                      reply_markup=keyboard)
 
 @game_creation_router.callback_query(F.data.contains("p_select"))
-async def select_punishment(callback: CallbackQuery, member: ChatMember, member_settings: SettingsObject):
+async def select_punishment(callback: CallbackQuery, member: ChatMember, member_settings: AccessSettingsObject):
     callback_data = callback.data.split(':')[2:]
     dialog_id = callback_data[1]
     punish_num = int(callback_data[0])

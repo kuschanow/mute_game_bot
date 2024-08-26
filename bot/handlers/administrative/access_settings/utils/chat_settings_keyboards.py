@@ -1,7 +1,7 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from django.utils.translation import gettext as _
 
-from bot.models import Chat, SettingsObject
+from bot.models import Chat, AccessSettingsObject
 
 
 def get_settings_targets_keyboard() -> InlineKeyboardMarkup:
@@ -22,7 +22,7 @@ def get_settings_targets_keyboard() -> InlineKeyboardMarkup:
 
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
-def get_settings_keyboard(settings_object: SettingsObject|None, _type: int) -> InlineKeyboardMarkup:
+def get_settings_keyboard(settings_object: AccessSettingsObject | None, _type: int) -> InlineKeyboardMarkup:
     if settings_object is None:
         buttons = [
             [

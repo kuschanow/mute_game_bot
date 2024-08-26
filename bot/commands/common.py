@@ -16,6 +16,8 @@ commands = [
     # Translators: chat stats command hint
     BotCommand(command=f"/{settings.SHOW_CHAT_STATS_COMMAND}", description=_("Display current chat statistics")),
     # Translators: chat settings command hint
+    BotCommand(command=f"/{settings.ACCESS_SETTINGS_COMMAND}", description=_("Change access settings for current chat")),
+    # Translators: chat settings command hint
     BotCommand(command=f"/{settings.CHAT_SETTINGS_COMMAND}", description=_("Change bot settings for current chat")),
 ]
 

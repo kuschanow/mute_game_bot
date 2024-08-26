@@ -5,8 +5,8 @@ from aiogram.types import TelegramObject
 from asgiref.sync import sync_to_async
 from django.conf import settings
 
-from bot.models.ChatSettings import ChatSettings
-from bot.models.SettingsObject import SettingsObject
+from bot.models.AccessSettings import AccessSettings
+from bot.models.AccessSettingsObject import AccessSettingsObject
 from shared.enums import SettingsTarget, MemberStatus, InteractionLevel
 
 
@@ -20,17 +20,17 @@ async def settings_middleware(
         data: Dict[str, Any]
 ) -> Any:
     if data["member"].is_owner():
-        data["member_settings"] = await SettingsObject.get_owner_settings()
+        data["member_settings"] = await AccessSettingsObject.get_owner_settings()
         return await handler(event, data)
 
-    if await ChatSettings.objects.filter(chat=data["chat"], target=SettingsTarget.MEMBER.value).aexists():
-        _settings = await ChatSettings.objects.aget(chat=data["chat"], target=SettingsTarget.MEMBER.value, target_id=data["member"].id)
+    if await AccessSettings.objects.filter(chat=data["chat"], target=SettingsTarget.MEMBER.value).aexists():
+        _settings = await AccessSettings.objects.aget(chat=data["chat"], target=SettingsTarget.MEMBER.value, target_id=data["member"].id)
     elif data["member"].settings_group_id is not None:
-        _settings = await ChatSettings.objects.aget(chat=data["chat"], target=SettingsTarget.GROUP.value, target_id=data["member"].settings_group_id)
-    elif data["member"].is_admin() and await ChatSettings.objects.filter(chat=data["chat"], target=SettingsTarget.ADMINS.value).aexists():
-            _settings = await ChatSettings.objects.aget(chat=data["chat"], target=SettingsTarget.ADMINS.value, target_id=data["chat"].id)
+        _settings = await AccessSettings.objects.aget(chat=data["chat"], target=SettingsTarget.GROUP.value, target_id=data["member"].settings_group_id)
+    elif data["member"].is_admin() and await AccessSettings.objects.filter(chat=data["chat"], target=SettingsTarget.ADMINS.value).aexists():
+            _settings = await AccessSettings.objects.aget(chat=data["chat"], target=SettingsTarget.ADMINS.value, target_id=data["chat"].id)
     else:
-        _settings = await ChatSettings.objects.aget(chat=data["chat"], target=SettingsTarget.CHAT.value, target_id=data["chat"].id)
+        _settings = await AccessSettings.objects.aget(chat=data["chat"], target=SettingsTarget.CHAT.value, target_id=data["chat"].id)
 
     data["member_settings"] = await sync_to_async(lambda: _settings.settings_object)()
     return await handler(event, data)

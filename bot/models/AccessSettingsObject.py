@@ -5,7 +5,7 @@ from django.db import models
 
 
 
-class SettingsObject(models.Model):
+class AccessSettingsObject(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
     can_join_games = models.BooleanField(default=True, null=False)
@@ -20,7 +20,7 @@ class SettingsObject(models.Model):
 
     @staticmethod
     async def get_owner_settings():
-        return (await SettingsObject.objects.aget_or_create(
+        return (await AccessSettingsObject.objects.aget_or_create(
             id=uuid.UUID(int=0, version=4),
 
             can_join_games=True,

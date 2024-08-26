@@ -7,12 +7,12 @@ from django.conf import settings
 from django.utils.translation import gettext as _
 
 from bot.models import ChatMember
-from bot.models.SettingsObject import SettingsObject
+from bot.models.AccessSettingsObject import AccessSettingsObject
 from games.models import Punishment, RandomChoiceGame
 
 
 @sync_to_async
-def get_punishments_keyboard(dialog_id: uuid4, chat_member: ChatMember, member_settings: SettingsObject, public_indicator: int, page: int) -> (InlineKeyboardMarkup, Dict[int, uuid4]):
+def get_punishments_keyboard(dialog_id: uuid4, chat_member: ChatMember, member_settings: AccessSettingsObject, public_indicator: int, page: int) -> (InlineKeyboardMarkup, Dict[int, uuid4]):
     start_index = (page - 1) * settings.PAGE_SIZE
     end_index = page * settings.PAGE_SIZE
 

@@ -3,7 +3,7 @@ from aiogram.types import Chat as TeleChat
 from asgiref.sync import sync_to_async
 from django.db import models
 
-from bot.models.ChatSettings import ChatSettings
+from bot.models.AccessSettings import AccessSettings
 from shared.enums import SettingsTarget
 from shared.utils import enum_to_choices
 
@@ -24,10 +24,10 @@ class Chat(models.Model):
         chat.type = tele_chat.type
         await chat.asave()
 
-        if not await ChatSettings.objects.filter(chat=chat, target=SettingsTarget.CHAT.value, target_id=chat.id).aexists():
-            from bot.models import SettingsObject
-            settings_object = SettingsObject()
+        if not await AccessSettings.objects.filter(chat=chat, target=SettingsTarget.CHAT.value, target_id=chat.id).aexists():
+            from bot.models import AccessSettingsObject
+            settings_object = AccessSettingsObject()
             await settings_object.asave()
-            await ChatSettings(chat=chat, target=SettingsTarget.CHAT.value, target_id=chat.id, settings_object=settings_object).asave()
+            await AccessSettings(chat=chat, target=SettingsTarget.CHAT.value, target_id=chat.id, settings_object=settings_object).asave()
 
         return chat

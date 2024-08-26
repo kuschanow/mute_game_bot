@@ -1,10 +1,10 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from django.utils.translation import gettext as _
 
-from bot.models.SettingsObject import SettingsObject
+from bot.models.AccessSettingsObject import AccessSettingsObject
 
 
-def get_punishment_privacy_selection_keyboard(dialog_id: str, member_settings: SettingsObject) -> InlineKeyboardMarkup:
+def get_punishment_privacy_selection_keyboard(dialog_id: str, member_settings: AccessSettingsObject) -> InlineKeyboardMarkup:
     buttons =[
         [
             InlineKeyboardButton(text=_("Private Global"), callback_data=f"pc:-1:{dialog_id}"),

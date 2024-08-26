@@ -11,7 +11,7 @@ from bot.filters import IsGameCreator, IsAdmin, IsOwner
 from bot.generate_session import bot
 from bot.middlewares import set_random_choice_game_middlewares
 from bot.models import ChatMember, Chat
-from bot.models.SettingsObject import SettingsObject
+from bot.models.AccessSettingsObject import AccessSettingsObject
 from games.models import RandomChoiceGame, RandomChoiceGamePlayer, RandomChoiceGameResult
 from .utils.keyboards import get_game_menu_keyboard
 from .utils.texts import get_players, get_losers
@@ -27,7 +27,7 @@ async def finished_game_handler(callback: CallbackQuery):
     await callback.answer(_("This game is already finished"))
 
 @game_router.callback_query(F.data.contains("join"), invert_f(IsGameCreator()))
-async def join_game(callback: CallbackQuery, game: RandomChoiceGame, member: ChatMember, member_settings: SettingsObject):
+async def join_game(callback: CallbackQuery, game: RandomChoiceGame, member: ChatMember, member_settings: AccessSettingsObject):
     if not member_settings.can_join_games:
         await callback.answer(_("You cannot join games"))
         return

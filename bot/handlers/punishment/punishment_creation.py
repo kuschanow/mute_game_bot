@@ -18,7 +18,7 @@ from shared import redis
 from .PunishmentCreationStates import PunishmentCreationStates
 from .utils.keyboards import get_punishment_privacy_selection_keyboard, get_cancel_keyboard
 from ...filters import DialogAccess, ReplayToCorrectMessage, IsAdmin
-from ...models.SettingsObject import SettingsObject
+from ...models.AccessSettingsObject import AccessSettingsObject
 
 punishment_creation_router = Router()
 punishment_creation_router.message.filter(MagicData(F.chat.type.is_not(ChatType.PRIVATE)))
@@ -83,7 +83,7 @@ async def choose_name(message: Message, state: FSMContext):
                                     F.text.regexp(r"\d+"),
                                     F.content_type == ContentType.TEXT,
                                     ReplayToCorrectMessage("message_id"))
-async def choose_name(message: Message, member: ChatMember, member_settings: SettingsObject, state: FSMContext):
+async def choose_name(message: Message, member: ChatMember, member_settings: AccessSettingsObject, state: FSMContext):
     data = await state.get_data()
     await state.clear()
 
