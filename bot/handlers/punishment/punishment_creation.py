@@ -4,7 +4,7 @@ from uuid import uuid4
 
 from aiogram import Router, F
 from aiogram.enums import ChatType, ContentType
-from aiogram.filters import Command, MagicData, or_f
+from aiogram.filters import Command, MagicData
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
 from aiogram.utils.formatting import Text, BlockQuote
@@ -17,7 +17,7 @@ from games.models import Punishment
 from shared import redis
 from .PunishmentCreationStates import PunishmentCreationStates
 from .utils.keyboards import get_punishment_privacy_selection_keyboard, get_cancel_keyboard
-from ...filters import DialogAccess, ReplayToCorrectMessage, IsAdmin
+from ...filters import DialogAccess, ReplayToCorrectMessage
 from ...models.AccessSettingsObject import AccessSettingsObject
 
 punishment_creation_router = Router()
@@ -101,7 +101,7 @@ async def choose_name(message: Message, member: ChatMember, member_settings: Acc
     await bot.delete_message(chat_id=member.chat_id, message_id=int(data["message_id"]))
     # Translators: privacy selection message
     await message.answer(text=_("Now select the privacy of the new punishment"),
-                         reply_markup=get_punishment_privacy_selection_keyboard(dialog_id, member_settings))
+                         reply_markup=get_punishment_privacy_selection_keyboard("pc", dialog_id, member_settings.can_create_public_punishments))
     await message.delete()
 
 

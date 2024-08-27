@@ -11,7 +11,7 @@ from django.utils.translation import gettext as _
 from bot.filters import IsOwner
 from shared.enums import SettingsTarget
 from .utils.chat_settings_keyboards import get_settings_targets_keyboard, get_settings_keyboard
-from ...models import AccessSettings, Chat, AccessSettingsObject
+from bot.models import AccessSettings, Chat, AccessSettingsObject
 
 main_access_settings_router = Router()
 main_access_settings_router.callback_query.filter(F.data.startswith("stgs"), IsOwner())

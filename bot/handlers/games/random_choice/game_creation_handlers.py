@@ -10,7 +10,7 @@ from bot.filters import DialogAccess
 from bot.models import ChatMember
 from bot.models.AccessSettingsObject import AccessSettingsObject
 from games.models import RandomChoiceGame, RandomChoiceGamePlayer
-from shared import redis
+from shared import redis, category
 from .GameCreationDialog import GameCreationDialog
 from .utils.keyboards import get_punishments_keyboard, get_game_menu_keyboard
 from .utils.texts import get_players
@@ -33,7 +33,7 @@ async def start_game_command(message: Message, member: ChatMember, member_settin
     if "dialogs" not in data:
         data["dialogs"] = {}
 
-    keyboard, punishments_mapping = await get_punishments_keyboard(dialog.dialog_id, member, 1, 1)
+    keyboard, punishments_mapping = await get_punishments_keyboard(dialog.dialog_id, member, member_settings, 1, 1)
     dialog.set_punishment_menu_mapping(punishments_mapping)
     data["dialogs"][dialog.dialog_id] = dialog.to_dict()
     await redis.set_serialized(str(member.id), data)
@@ -45,12 +45,12 @@ async def start_game_command(message: Message, member: ChatMember, member_settin
 
 
 @game_creation_router.callback_query(F.data.contains("p_category"))
-async def select_punishments_category(callback: CallbackQuery, member: ChatMember):
+async def select_punishments_category(callback: CallbackQuery, member: ChatMember, member_settings: AccessSettingsObject):
     callback_data = callback.data.split(':')[2:]
     dialog_id = callback_data[2]
     page = int(callback_data[1])
     public_indicator = int(callback_data[0])
-    keyboard, punishments_mapping = await get_punishments_keyboard(dialog_id, member, public_indicator, page)
+    keyboard, punishments_mapping = await get_punishments_keyboard(dialog_id, member, member_settings, public_indicator, page)
 
     data = await redis.get_deserialized(str(member.id))
     dialog = GameCreationDialog.from_dict(data["dialogs"][dialog_id])
@@ -59,12 +59,6 @@ async def select_punishments_category(callback: CallbackQuery, member: ChatMembe
     data["dialogs"][dialog_id] = dialog.to_dict()
 
     await redis.set_serialized(str(member.id), data)
-
-    category = {
-        -1: _("Private Global"),
-        0: _("Private Local"),
-        1: _("Public")
-    }
 
     # Translators: punishment selection dialogue
     await callback.message.edit_text(text=_("Choose a punishment from the list below\n\n"
