@@ -34,7 +34,7 @@ async def delete_punishments_command(message: Message, member: ChatMember, membe
     dialog_message = await message.answer(text=_("Choose a punishment from the list below\n\n"
                                               "Category: %(category)s" % {"category": _("Public")}), reply_markup=keyboard)
 
-    new_data["dialogs"][dialog_id] = {"date": str(datetime.utcnow()), "mapping": punishments_mapping, "dialog_message_id": dialog_message.message_id, "category": category, "page": 1}
+    new_data["dialogs"][dialog_id] = {"date": str(datetime.utcnow()), "mapping": punishments_mapping, "message_id": dialog_message.message_id, "category": category, "page": 1}
     await redis.set_serialized(str(member.id), new_data)
 
     await message.delete()
@@ -107,7 +107,7 @@ async def accept(callback: CallbackQuery, member: ChatMember, member_settings: A
 
     dialog["mapping"] = punishments_mapping
 
-    await bot.edit_message_text(chat_id=member.chat_id, message_id=int(dialog["dialog_message_id"]),
+    await bot.edit_message_text(chat_id=member.chat_id, message_id=int(dialog["message_id"]),
                                 text=_("Choose a punishment from the list below\n\n"
                                        "Category: %(category)s" % {"category": category[int(dialog["category"])]}),
                                 reply_markup=keyboard)

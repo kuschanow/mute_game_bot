@@ -1,4 +1,4 @@
-from asgiref.sync import sync_to_async
+from asgiref.sync import sync_to_async, async_to_sync
 from django.utils.translation import gettext as _
 from django.db.models import F
 
@@ -9,7 +9,7 @@ from games.models import RandomChoiceGame, RandomChoiceGameResult
 def get_players(game: RandomChoiceGame) -> str:
     # Translators: game menu base text
     text = _("%(game_text)s\n\n"
-             "Players:\n" % {"game_text": game.get_string()})
+             "Players:\n" % {"game_text": async_to_sync(game.get_string)()})
 
     player_index = 1
     for player in game.players.annotate(join_at=F('randomchoicegameplayer__join_at')).order_by("join_at"):

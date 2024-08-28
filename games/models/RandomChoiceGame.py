@@ -1,4 +1,5 @@
 import random
+from datetime import datetime
 from uuid import uuid4
 
 from asgiref.sync import sync_to_async
@@ -9,23 +10,24 @@ from django.db.models import F
 from django.utils.translation import gettext as _
 
 from bot.models import ChatMember
-from shared.enums import AutoStartGame
-from shared.utils import enum_to_choices
 
 
 class RandomChoiceGame(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     punishment = models.ForeignKey("Punishment", on_delete=models.CASCADE)
     min_players_count = models.PositiveIntegerField(null=False, default=2, validators=[MinValueValidator(2)])
-    max_players_count = models.PositiveIntegerField(null=False, default=6)
+    max_players_count = models.PositiveIntegerField(null=True, default=6)
     losers_count = models.PositiveIntegerField(null=False, default=1)
 
     creator = models.ForeignKey(ChatMember, null=True, blank=False, on_delete=models.SET_NULL, related_name="created_random_choice_games")
     players = models.ManyToManyField(ChatMember, through="RandomChoiceGamePlayer", related_name='participated_random_choice_games')
     is_creator_playing = models.BooleanField(default=True, null=False)
 
-    auto_start_game = models.TextField(null=False, blank=False, choices=enum_to_choices(AutoStartGame), default=AutoStartGame.AT_MAX_PLAYERS.value)
-    auto_start_at = models.DateTimeField(null=True, default=None)
+    autostart_at_max_players = models.BooleanField(null=False, default=False)
+    autostart_operator = models.TextField(null=False, blank=False, default="or")
+    autostart_at = models.DateTimeField(null=True, default=None)
+
+    is_opened_to_join = models.BooleanField(null=False, default=False)
 
     result = models.OneToOneField("RandomChoiceGameResult", null=True, default=None, on_delete=models.CASCADE, related_name="game")
 
@@ -50,16 +52,38 @@ class RandomChoiceGame(models.Model):
         self.is_finished = True
         return game_result
 
+    @sync_to_async
     def get_string(self) -> str:
+        when_full = _("when full")
+
+        autostart_text = _("No")
+
+        if self.autostart_at_max_players and self.autostart_at is None:
+            autostart_text = when_full
+        elif self.autostart_at is not None:
+            if self.autostart_at.date() == datetime.now().date():
+                at_time = _("%(time)s" % {"time": self.autostart_at.strftime("%H:%M:%S")})
+            else:
+                at_time = _("%(time)s" % {"time": self.autostart_at.strftime("%Y-%m-%d %H:%M:%S")})
+
+            if not self.autostart_at_max_players:
+                autostart_text = _("at %(time)s" % {"time": at_time})
+            else:
+                if self.autostart_operator == "or":
+                    autostart_text = _("if time is %(time)s or %(full)s" % {"time": at_time, "full": when_full})
+                else:
+                    autostart_text = _("if the time is greater than %(time)s and %(full)s" % {"time": at_time, "full": when_full})
+
         # Translators: game to string
-        return _("<b>Random choice game</b>\n\n" +
-                 # Translators: game punishment
-                 _("punishment: %(punishment)s\n" % {"punishment": self.punishment.get_string()}) +
-                 # Translators: players diapason
-                 _("👤: %(min)d - %(max)d\n" % {"min": self.min_players_count, "max": self.max_players_count}) +
-                 # Translators: losers count
-                 _("💀: %(losers)d\n\n" % {"losers": self.losers_count}) +
-                 f"👑 {self.creator.get_string(True)}")
+        return (_("<b>Random choice game</b>\n\n") +
+                # Translators: game punishment
+                _("punishment: %(punishment)s\n" % {"punishment": self.punishment.get_string()}) +
+                # Translators: players diapason
+                _("👤: %(min)d - %(max)d\n" % {"min": self.min_players_count, "max": self.max_players_count}) +
+                # Translators: losers count
+                _("💀: %(losers)d\n\n" % {"losers": self.losers_count}) +
+                _("autostart: %(text)s\n\n" % {"text": autostart_text}) +
+                f"👑 {self.creator.get_string(True)}")
 
     def clean(self):
         players_count = self.players.count()

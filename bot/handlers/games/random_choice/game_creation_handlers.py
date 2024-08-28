@@ -1,6 +1,9 @@
+from datetime import datetime
+
 from aiogram import Router, F
 from aiogram.enums import ChatType
 from aiogram.filters import Command, MagicData
+from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
 from asgiref.sync import sync_to_async
 from django.conf import settings
@@ -9,11 +12,10 @@ from django.utils.translation import gettext as _
 from bot.filters import DialogAccess
 from bot.models import ChatMember
 from bot.models.AccessSettingsObject import AccessSettingsObject
-from games.models import RandomChoiceGame, RandomChoiceGamePlayer
+from games.models import RandomChoiceGame
 from shared import redis, category
 from .GameCreationDialog import GameCreationDialog
-from .utils.keyboards import get_punishments_keyboard, get_game_menu_keyboard
-from .utils.texts import get_players
+from .utils.keyboards import get_punishments_keyboard, get_game_settings_keyboard
 
 game_creation_router = Router()
 game_creation_router.message.filter(MagicData(F.chat.type.is_not(ChatType.PRIVATE)))
@@ -21,11 +23,13 @@ game_creation_router.callback_query.filter(F.data.startswith("rcgc"), DialogAcce
 
 
 @game_creation_router.message(Command(settings.RANDOM_CHOICE_GAME_COMMAND))
-async def start_game_command(message: Message, member: ChatMember, member_settings: AccessSettingsObject):
+async def start_game_command(message: Message, member: ChatMember, member_settings: AccessSettingsObject, state: FSMContext):
     if not member_settings.can_create_games:
         await message.answer(_("You cannot create games"))
         await message.delete()
         return
+
+    await state.clear()
 
     dialog = GameCreationDialog()
 
@@ -77,19 +81,16 @@ async def select_punishment(callback: CallbackQuery, member: ChatMember, member_
 
     game = RandomChoiceGame(punishment_id=dialog.punishment_id,
                             creator=member)
-    await sync_to_async(lambda: game.full_clean())()
+    await sync_to_async(lambda: game.clean())()
     await game.asave()
 
-    if game.is_creator_playing and not member_settings.can_join_games:
-        await RandomChoiceGamePlayer(game=game, chat_member=member).asave()
-
     data["dialogs"].pop(dialog_id)
+    data["dialogs"][str(game.id)] = {"date": str(datetime.utcnow()), "message_id": callback.message.message_id}
     await redis.set_serialized(str(member.id), data)
 
-    await redis.set_serialized(str(game.id), {"messages": [callback.message.message_id]})
-
     # Translators: random choice game dialogue
-    await callback.message.edit_text(text=await get_players(game), reply_markup=await get_game_menu_keyboard(game))
+    await callback.message.edit_text(text=await game.get_string(), reply_markup=get_game_settings_keyboard(game, member_settings))
+
 
 @game_creation_router.callback_query(F.data.contains("cancel"))
 async def cancel(callback: CallbackQuery, member: ChatMember):

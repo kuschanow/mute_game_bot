@@ -15,6 +15,7 @@ from bot.models.AccessSettingsObject import AccessSettingsObject
 from games.models import RandomChoiceGame, RandomChoiceGamePlayer, RandomChoiceGameResult
 from .utils.keyboards import get_game_menu_keyboard
 from .utils.texts import get_players, get_losers
+from ..utils import mute_losers
 
 game_router = Router()
 game_router.callback_query.filter(F.data.startswith("rcg"), MagicData(F.game.is_not(None)))
@@ -26,8 +27,8 @@ async def finished_game_handler(callback: CallbackQuery):
     # Translators: finished game message
     await callback.answer(_("This game is already finished"))
 
-@game_router.callback_query(F.data.contains("join"), invert_f(IsGameCreator()))
-async def join_game(callback: CallbackQuery, game: RandomChoiceGame, member: ChatMember, member_settings: AccessSettingsObject):
+@game_router.callback_query(F.data.contains("join"), MagicData(F.game.is_opened_to_join.is_(True)), invert_f(IsGameCreator()))
+async def join_game(callback: CallbackQuery, game: RandomChoiceGame, member: ChatMember, member_settings: AccessSettingsObject, chat: Chat):
     if not member_settings.can_join_games:
         await callback.answer(_("You cannot join games"))
         return
@@ -48,6 +49,15 @@ async def join_game(callback: CallbackQuery, game: RandomChoiceGame, member: Cha
 
     await callback.message.edit_text(text=await get_players(game), reply_markup=await get_game_menu_keyboard(game))
 
+    if game.autostart_at_max_players and await game.players.acount() == game.max_players_count:
+        result: RandomChoiceGameResult = await game.start_game()
+
+        await mute_losers(game, result, chat)
+
+        await callback.message.edit_text(text=await get_players(game))
+        await callback.message.answer(text=await get_losers(result), reply_to_message_id=callback.message.message_id)
+        await callback.answer()
+
 
 @game_router.callback_query(F.data.contains("start"), MagicData(F.member_settings.can_press_other_buttons.is_(True)))
 @game_router.callback_query(F.data.contains("start"), IsGameCreator())
@@ -59,21 +69,7 @@ async def start_game(callback: CallbackQuery, game: RandomChoiceGame, chat: Chat
 
     result: RandomChoiceGameResult = await game.start_game()
 
-    time = await sync_to_async(lambda: game.punishment.time)()
-    for loser in await sync_to_async(lambda: list(result.losers.all()))():
-        user_id = await sync_to_async(lambda: loser.chat_member.user_id)()
-        if user_id in settings.ADMINS:
-            continue
-
-        try:
-            await bot.restrict_chat_member(
-                chat_id=chat.id,
-                user_id=user_id,
-                permissions=ChatPermissions(can_send_messages=False),
-                until_date=datetime.now() + time
-            )
-        except:
-            pass
+    await mute_losers(game, result, chat)
 
     await callback.message.edit_text(text=await get_players(game))
     await callback.message.answer(text=await get_losers(result), reply_to_message_id=callback.message.message_id)

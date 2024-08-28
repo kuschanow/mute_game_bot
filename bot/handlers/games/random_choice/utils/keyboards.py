@@ -70,6 +70,50 @@ def get_punishments_keyboard(dialog_id: uuid4, chat_member: ChatMember, member_s
 
     return InlineKeyboardMarkup(inline_keyboard=buttons), punishments_mapping
 
+def get_game_settings_keyboard(game: RandomChoiceGame, member_settings: AccessSettingsObject, highlight_this: str = "") -> InlineKeyboardMarkup:
+    min_text = _("Min players: %(count)s" % {"count": game.min_players_count})
+    max_text = _("Max players: %(count)s" % {"count": game.max_players_count if game.max_players_count is not None else '–'})
+    losers_text = _("Losers count: %(count)s" % {"count": game.losers_count})
+
+    if highlight_this == "min":
+        min_text = _("▶ %(text)s ◀" % {"text": min_text})
+    if highlight_this == "max":
+        max_text = _("▶ %(text)s ◀" % {"text": max_text})
+    if highlight_this == "losers":
+        losers_text = _("▶ %(text)s ◀" % {"text": losers_text})
+
+    buttons = [
+        [
+            InlineKeyboardButton(text=_("%(indicator)s Add creator as player"
+                                        % {"indicator": '🚫' if not member_settings.can_join_games else ('✅' if game.is_creator_playing else '☑️')}),
+                                 callback_data=f"rcgs:is_creator_play:{game.id}")
+        ],
+        [
+            InlineKeyboardButton(text=min_text,
+                                 callback_data=f"rcgs:min:{game.id}"),
+            InlineKeyboardButton(text=max_text,
+                                 callback_data=f"rcgs:max:{game.id}"),
+        ],
+        [
+            InlineKeyboardButton(text=losers_text,
+                                 callback_data=f"rcgs:losers:{game.id}"),
+        ],
+        [
+            InlineKeyboardButton(text=_("Autostart when full %(indicator)s"
+                                        % {"indicator": '🚫' if game.max_players_count is None else ('✅' if game.autostart_at_max_players else '☑️')}),
+                                 callback_data=f"rcgs:when_full:{game.id}"),
+        ],
+        [
+            InlineKeyboardButton(text=_("Create game"),
+                                 callback_data=f"rcgs:create:{game.id}"),
+        ],
+        [
+            InlineKeyboardButton(text=_("Cancel"),
+                                 callback_data=f"rcgs:cancel_creation:{game.id}"),
+        ]
+    ]
+
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
 
 async def get_game_menu_keyboard(game: RandomChoiceGame) -> InlineKeyboardMarkup:
     buttons = [

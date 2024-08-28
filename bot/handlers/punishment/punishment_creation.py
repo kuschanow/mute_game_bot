@@ -95,13 +95,15 @@ async def choose_name(message: Message, member: ChatMember, member_settings: Acc
     if "dialogs" not in new_data:
         new_data["dialogs"] = {}
     dialog_id = str(uuid4())
-    new_data["dialogs"][dialog_id] = {"date": str(datetime.utcnow()), "name": data["name"], "time": time.total_seconds()}
-    await redis.set_serialized(str(member.id), new_data)
 
     await bot.delete_message(chat_id=member.chat_id, message_id=int(data["message_id"]))
     # Translators: privacy selection message
-    await message.answer(text=_("Now select the privacy of the new punishment"),
+    privacy_selection_message = await message.answer(text=_("Now select the privacy of the new punishment"),
                          reply_markup=get_punishment_privacy_selection_keyboard("pc", dialog_id, member_settings.can_create_public_punishments))
+
+    new_data["dialogs"][dialog_id] = {"date": str(datetime.utcnow()), "message_id": privacy_selection_message.message_id, "name": data["name"], "time": time.total_seconds()}
+    await redis.set_serialized(str(member.id), new_data)
+
     await message.delete()
 
 
