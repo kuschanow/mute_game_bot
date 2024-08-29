@@ -4,4 +4,4 @@ from .IsGameCreator import IsGameCreator
 from .IsOwner import IsOwner
 from .IsRestricted import IsRestricted
 from .IsSuperAdmin import IsSuperAdmin
-from .ReplyToCorrectMessage import ReplayToCorrectMessage
+from .ReplyToCorrectMessage import ReplyToCorrectMessage

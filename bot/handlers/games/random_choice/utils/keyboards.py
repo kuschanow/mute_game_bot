@@ -71,14 +71,11 @@ def get_punishments_keyboard(dialog_id: uuid4, chat_member: ChatMember, member_s
     return InlineKeyboardMarkup(inline_keyboard=buttons), punishments_mapping
 
 def get_game_settings_keyboard(game: RandomChoiceGame, member_settings: AccessSettingsObject, highlight_this: str = "") -> InlineKeyboardMarkup:
-    min_text = _("Min players: %(count)s" % {"count": game.min_players_count})
-    max_text = _("Max players: %(count)s" % {"count": game.max_players_count if game.max_players_count is not None else '–'})
+    min_max_text = _("Min-Max players: %(min)d-%(max)d" % {"min": game.min_players_count, "max": game.max_players_count})
     losers_text = _("Losers count: %(count)s" % {"count": game.losers_count})
 
-    if highlight_this == "min":
-        min_text = _("▶ %(text)s ◀" % {"text": min_text})
-    if highlight_this == "max":
-        max_text = _("▶ %(text)s ◀" % {"text": max_text})
+    if highlight_this == "min_max":
+        min_max_text = _("▶ %(text)s ◀" % {"text": min_max_text})
     if highlight_this == "losers":
         losers_text = _("▶ %(text)s ◀" % {"text": losers_text})
 
@@ -89,10 +86,8 @@ def get_game_settings_keyboard(game: RandomChoiceGame, member_settings: AccessSe
                                  callback_data=f"rcgs:is_creator_play:{game.id}")
         ],
         [
-            InlineKeyboardButton(text=min_text,
-                                 callback_data=f"rcgs:min:{game.id}"),
-            InlineKeyboardButton(text=max_text,
-                                 callback_data=f"rcgs:max:{game.id}"),
+            InlineKeyboardButton(text=min_max_text,
+                                 callback_data=f"rcgs:min-max:{game.id}"),
         ],
         [
             InlineKeyboardButton(text=losers_text,

@@ -6,7 +6,7 @@ from aiogram.types import CallbackQuery, Message
 from django.utils.translation import gettext as _
 
 from bot.filters import DialogAccess
-from bot.filters.ReplyToCorrectMessage import ReplayToCorrectMessage
+from bot.filters.ReplyToCorrectMessage import ReplyToCorrectMessage
 from bot.handlers.games.random_choice.GameSettingsStates import GameSettingsStates
 from bot.handlers.games.random_choice.utils.keyboards import get_game_settings_keyboard, get_game_menu_keyboard
 from bot.handlers.games.random_choice.utils.texts import get_players
@@ -17,8 +17,18 @@ from shared import redis
 
 game_settings_router = Router()
 game_settings_router.callback_query.filter(F.data.startswith("rcgs"), DialogAccess())
-game_settings_router.message.filter(ReplayToCorrectMessage("message_id"))
+game_settings_router.message.filter(ReplyToCorrectMessage("message_id"))
 set_random_choice_game_middlewares(game_settings_router)
+
+
+async def update_message(message, game, member_settings):
+    try:
+        await message.reply_to_message.edit_text(
+            text=await game.get_string(),
+            reply_markup=get_game_settings_keyboard(game, member_settings)
+        )
+    except:
+        pass
 
 
 @game_settings_router.callback_query(F.data.contains("is_creator_play"))
@@ -35,8 +45,7 @@ async def is_creator_play(callback: CallbackQuery, game: RandomChoiceGame, membe
     await callback.answer()
 
 
-@game_settings_router.callback_query(F.data.contains("min"))
-@game_settings_router.callback_query(F.data.contains("max"))
+@game_settings_router.callback_query(F.data.contains("min-max"))
 @game_settings_router.callback_query(F.data.contains("losers"))
 async def is_creator_play(callback: CallbackQuery, game: RandomChoiceGame, member_settings: AccessSettingsObject, state: FSMContext):
     await state.clear()
@@ -52,47 +61,32 @@ async def is_creator_play(callback: CallbackQuery, game: RandomChoiceGame, membe
     except:
         pass
 
-    await callback.answer(_("Replay with int number"))
+    await callback.answer(_("Reply with your values"))
 
 
-@game_settings_router.message(GameSettingsStates.set_min, F.text.regexp(r"\d+"))
+@game_settings_router.message(GameSettingsStates.set_min_max, F.text.regexp(r"(\d+|)-(\d+|)"))
 async def set_min(message: Message, game: RandomChoiceGame, member_settings: AccessSettingsObject, state: FSMContext):
-    number = int(re.search(r"\d+", message.text).group())
+    min_str, max_str = re.search(r"(\d+|)-(\d+|)", message.text).groups()
 
-    if 2 <= number <= game.max_players_count:
-        game.min_players_count = number
-        if game.losers_count >= number:
-            game.losers_count = number - 1
+    min_num = int(min_str) if min_str else 2
+    if 2 <= min_num <= game.max_players_count:
+        game.min_players_count = min_num
+        game.losers_count = min(min_num - 1, game.losers_count)
         await game.asave()
-        try:
-            await message.reply_to_message.edit_text(text=await game.get_string(), reply_markup=get_game_settings_keyboard(game, member_settings))
-        except:
-            pass
+        await update_message(message.reply_to_message, game, member_settings)
         await state.clear()
-        
-    await message.delete()
 
-
-@game_settings_router.message(GameSettingsStates.set_max, F.text.regexp(r"\d+|-"))
-async def set_max(message: Message, game: RandomChoiceGame, member_settings: AccessSettingsObject, state: FSMContext):
-    if re.search(r"\d+", message.text).group() == "-":
+    if max_str:
+        max_num = int(max_str)
+        if game.min_players_count <= max_num:
+            game.max_players_count = max_num
+            await game.asave()
+            await update_message(message.reply_to_message, game, member_settings)
+            await state.clear()
+    else:
         game.max_players_count = None
         await game.asave()
-        try:
-            await message.reply_to_message.edit_text(text=await game.get_string(), reply_markup=get_game_settings_keyboard(game, member_settings))
-        except:
-            pass
-        await state.clear()
-
-    number = int(re.search(r"\d+", message.text).group())
-
-    if game.min_players_count <= number:
-        game.max_players_count = number
-        await game.asave()
-        try:
-            await message.reply_to_message.edit_text(text=await game.get_string(), reply_markup=get_game_settings_keyboard(game, member_settings))
-        except:
-            pass
+        await update_message(message.reply_to_message, game, member_settings)
         await state.clear()
 
     await message.delete()
@@ -105,10 +99,7 @@ async def set_losers(message: Message, game: RandomChoiceGame, member_settings: 
     if 0 < number < game.min_players_count:
         game.losers_count = number
         await game.asave()
-        try:
-            await message.reply_to_message.edit_text(text=await game.get_string(), reply_markup=get_game_settings_keyboard(game, member_settings))
-        except:
-            pass
+        await update_message(message.reply_to_message, game, member_settings)
         await state.clear()
 
     await message.delete()

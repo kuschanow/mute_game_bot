@@ -3,7 +3,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
 
-class ReplayToCorrectMessage(Filter):
+class ReplyToCorrectMessage(Filter):
     def __init__(self, key: str):
         self.key = key
 

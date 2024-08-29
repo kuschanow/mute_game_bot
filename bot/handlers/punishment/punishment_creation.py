@@ -17,7 +17,7 @@ from games.models import Punishment
 from shared import redis
 from .PunishmentCreationStates import PunishmentCreationStates
 from .utils.keyboards import get_punishment_privacy_selection_keyboard, get_cancel_keyboard
-from ...filters import DialogAccess, ReplayToCorrectMessage
+from ...filters import DialogAccess, ReplyToCorrectMessage
 from ...models.AccessSettingsObject import AccessSettingsObject
 
 punishment_creation_router = Router()
@@ -50,7 +50,7 @@ async def create_punishment_command(message: Message, state: FSMContext):
 
 @punishment_creation_router.message(PunishmentCreationStates.choosing_name,
                                     F.content_type == ContentType.TEXT,
-                                    ReplayToCorrectMessage("message_id"))
+                                    ReplyToCorrectMessage("message_id"))
 async def choose_name(message: Message, state: FSMContext):
     await state.set_state(PunishmentCreationStates.choosing_time)
     data = await state.get_data()
@@ -82,7 +82,7 @@ async def choose_name(message: Message, state: FSMContext):
 @punishment_creation_router.message(PunishmentCreationStates.choosing_time,
                                     F.text.regexp(r"\d+"),
                                     F.content_type == ContentType.TEXT,
-                                    ReplayToCorrectMessage("message_id"))
+                                    ReplyToCorrectMessage("message_id"))
 async def choose_name(message: Message, member: ChatMember, member_settings: AccessSettingsObject, state: FSMContext):
     data = await state.get_data()
     await state.clear()
