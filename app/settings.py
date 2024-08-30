@@ -211,6 +211,7 @@ CELERY_TIMEZONE = env('CELERY_TIMEZONE', default='UTC')
 BOT_TOKEN = env('BOT_TOKEN', default=None)
 ADMINS = env.list('ADMINS', cast=int, default=[])
 PAGE_SIZE = env.int("PAGE_SIZE", default=10)
+RATING_PAGE_SIZE = env.int("RATING_PAGE_SIZE", default=10)
 
 SEQ_KEY = env('SEQ_KEY', default=None)
 SEQ_URL = env('SEQ_URL', default=None)

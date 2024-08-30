@@ -16,7 +16,7 @@ def collect_garbage():
         if "dialogs" in data:
             for key in data["dialogs"]:
                 if "datetime" in data["dialogs"][key]:
-                    if datetime.strptime(data["dialogs"][key]["datetime"], "%Y-%m-%d %H:%M:%S.%f") + timedelta(days=1) < datetime.now():
+                    if datetime.strptime(data["dialogs"][key]["datetime"], "%Y-%m-%d %H:%M:%S") + timedelta(days=1) < datetime.now():
                         if "message_id" in data["dialogs"][key]:
                             async_to_sync(bot.delete_message)(chat_id=member.chat.id, message_id=int(data["dialogs"][key]["message_id"]))
                         data["dialogs"].pop(key)

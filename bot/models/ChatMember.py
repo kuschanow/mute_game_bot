@@ -2,6 +2,7 @@ from uuid import uuid4
 
 from aiogram.enums.chat_type import ChatType
 from aiogram.types import Chat as TeleChat, ChatMemberAdministrator, ChatMemberMember, ChatMemberOwner, ChatMemberRestricted, ChatMemberLeft
+from asgiref.sync import async_to_sync, sync_to_async
 from django.conf import settings
 from django.db import models
 

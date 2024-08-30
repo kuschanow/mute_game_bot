@@ -50,6 +50,8 @@ class RandomChoiceGame(models.Model):
             RandomChoiceGameLoser(player_id=loser.player_id, game_result=game_result).save()
 
         self.is_finished = True
+        self.result = game_result
+        self.save()
         return game_result
 
     @sync_to_async
@@ -81,7 +83,7 @@ class RandomChoiceGame(models.Model):
                 # Translators: players diapason
                 _("👤: %(min)d - %(max)d\n" % {"min": self.min_players_count, "max": self.max_players_count}) +
                 # Translators: losers count
-                _("💀: %(losers)d\n\n" % {"losers": self.losers_count}) +
+                _("☠: %(losers)d\n\n" % {"losers": self.losers_count}) +
                 _("autostart: %(text)s\n\n" % {"text": autostart_text}) +
                 f"👑 {self.creator.get_string(True)}")
 

@@ -3,7 +3,7 @@ from datetime import timedelta, datetime
 from uuid import uuid4
 
 from aiogram import Router, F
-from aiogram.enums import ChatType, ContentType
+from aiogram.enums import ChatType, ContentType, ParseMode
 from aiogram.filters import Command, MagicData
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
@@ -59,18 +59,19 @@ async def choose_name(message: Message, state: FSMContext):
 
     # Translators: choosing time for new punishment
     await bot.delete_message(chat_id=message.chat.id, message_id=data["message_id"])
-    new_message = await message.answer(**Text(_("Name: %(name)s\n\n"
-                                  "Now in response to this message write the time of punishment" % {"name": message.text}),
-                                _("Time can be specified in any of the following ways:"),
-                                BlockQuote(_("5:30 – 5 hours and 30 minutes\n"
-                                             "30 – 30 minutes\n"
-                                             "5 30 – the same as first\n"
-                                             "1:0:0 – 1 day\n"
-                                             "1 5 0 – 1 day and 5 hours\n"
-                                             "40:00 – 40 hours\n"
-                                             "100 – 100 minutes\n"))
-                                ).as_kwargs(),
-                                reply_markup=get_cancel_keyboard()
+    new_message = await message.answer(_("Name: %(name)s\n\n"
+                                         "Now in response to this message write the time of punishment" % {"name": message.text}) +
+                                       _("Time can be specified in any of the following ways:") +
+                                       _("<blockquote>"
+                                         "5:30 – 5 hours and 30 minutes\n"
+                                         "30 – 30 minutes\n"
+                                         "5 30 – the same as first\n"
+                                         "1:0:0 – 1 day\n"
+                                         "1 5 0 – 1 day and 5 hours\n"
+                                         "40:00 – 40 hours\n"
+                                         "100 – 100 minutes"
+                                         "</blockquote>"),
+                                       reply_markup=get_cancel_keyboard()
                          )
 
     data["message_id"] = new_message.message_id
