@@ -26,7 +26,8 @@ async def chat_stats_command(message: Message, chat: Chat, user: User, member: C
 
     data = await redis.get_deserialized(str(member.id))
     if "dialogs" not in data:
-        data["dialogs"] = {str(new_message.message_id): {"datetime": str(datetime.utcnow())}}
+        data["dialogs"] = {}
+    data["dialogs"][str(new_message.message_id)] = {"datetime": str(datetime.utcnow())}
     await redis.set_serialized(str(member.id), data)
 
     await message.delete()
@@ -46,7 +47,6 @@ async def chat_stats_command(message: Message, member: ChatMember):
             member_for_stats = await ChatMember.objects.aget(chat_id=member.chat_id, user__username=groups[0])
         elif groups[1]:
             member_for_stats = await ChatMember.objects.aget(chat_id=member.chat_id, user_id=int(groups[1]))
-
 
     await message.answer(text=await get_detailed_text_by_member(await get_random_choice_game_detailed_stats_by_user(member_for_stats), member_for_stats))
 
