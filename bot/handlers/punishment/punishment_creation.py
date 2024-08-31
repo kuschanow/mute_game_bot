@@ -6,6 +6,7 @@ from aiogram.enums import ChatType, ContentType
 from aiogram.filters import Command, MagicData
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
+from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.utils.translation import gettext as _
 
@@ -118,6 +119,7 @@ async def choose_privacy(callback: CallbackQuery, member: ChatMember, user: User
                             created_by=user,
                             created_in=chat if public_indicator > -1 else None,
                             is_public=public_indicator == 1)
+    await sync_to_async(lambda: punishment.clean())()
     await punishment.asave()
 
     data["dialogs"].pop(dialog_id)

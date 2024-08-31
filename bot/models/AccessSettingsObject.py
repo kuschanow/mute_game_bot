@@ -13,7 +13,7 @@ class AccessSettingsObject(models.Model):
     can_press_other_buttons = models.BooleanField(default=False, null=False)
 
     min_punish_time_for_rand_choice = models.DurationField(default=timedelta(minutes=1), null=False)
-    max_punish_time_for_rand_choice = models.DurationField(default=None, null=True)
+    max_punish_time_for_rand_choice = models.DurationField(default=timedelta(days=365), null=True)
 
     can_create_public_punishments = models.BooleanField(default=False, null=False)
     can_delete_public_punishments = models.BooleanField(default=False, null=False)
