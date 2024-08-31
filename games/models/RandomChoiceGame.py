@@ -101,6 +101,8 @@ class RandomChoiceGame(models.Model):
         if self.losers_count < 1 or self.losers_count > self.max_players_count - 1:
             raise ValidationError(f"losers count must be less than max players count")
 
+        super().clean()
+
     def __str__(self):
         return f"[id {self.id}] - [creator {self.creator}] - [punishment {self.punishment}]"
 

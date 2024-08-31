@@ -26,11 +26,15 @@ class Punishment(models.Model):
         return f"{self.name} {str(self.time).replace(' days,', '')[:-3]}"
 
     def clean(self):
+        self.name = self.name[:200].replace("\n", " ")
+
         if self.time > timedelta(days=365):
             self.time = timedelta(days=365)
 
         if self.created_in is None and self.is_public:
             raise ValidationError(f"Punishment cannot be public if chat is not given")
+
+        super().clean()
 
     def __str__(self):
         return f"[name {self.name}] - [time {self.time}] - [public {self.is_public}]"
