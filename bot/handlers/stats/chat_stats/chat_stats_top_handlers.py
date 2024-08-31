@@ -8,7 +8,7 @@ from bot.handlers.stats.chat_stats.utils.texts import get_top_time_text, get_top
 from bot.models import Chat
 
 chat_stats_top_router = Router()
-chat_stats_top_router.callback_query.filter(F.data.startswith("stats:chat:top"))
+chat_stats_top_router.callback_query.filter(F.data.startswith("stats:chat:top"), DialogAccess())
 
 
 @chat_stats_top_router.callback_query()
