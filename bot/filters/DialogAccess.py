@@ -10,4 +10,4 @@ class DialogAccess(Filter):
         data = await redis.get_deserialized(str(member.id))
         if data is None or "dialogs" not in data:
             return False
-        return callback_query.data.split(':')[-1] in data["dialogs"]
+        return str(callback_query.message.message_id) in data["dialogs"]

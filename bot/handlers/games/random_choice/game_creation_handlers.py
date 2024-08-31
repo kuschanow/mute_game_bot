@@ -14,7 +14,6 @@ from bot.models import ChatMember
 from bot.models.AccessSettingsObject import AccessSettingsObject
 from games.models import RandomChoiceGame
 from shared import redis, category
-from .GameCreationDialog import GameCreationDialog
 from .utils.keyboards import get_punishments_keyboard, get_game_settings_keyboard
 
 game_creation_router = Router()
@@ -31,38 +30,27 @@ async def start_game_command(message: Message, member: ChatMember, member_settin
 
     await state.clear()
 
-    dialog = GameCreationDialog()
-
-    data = await redis.get_or_set(str(member.id))
+    data = await redis.get_deserialized(str(member.id))
     if "dialogs" not in data:
         data["dialogs"] = {}
 
-    keyboard, punishments_mapping = await get_punishments_keyboard(dialog.dialog_id, member, member_settings, 1, 1)
-    dialog.set_punishment_menu_mapping(punishments_mapping)
-    data["dialogs"][dialog.dialog_id] = dialog.to_dict()
-    await redis.set_serialized(str(member.id), data)
+    keyboard = await get_punishments_keyboard(member, member_settings, 1, 0)
 
-    await message.answer(text=_("Choose a punishment from the list below\n\n"
+    dialog_message = await message.answer(text=_("Choose a punishment from the list below\n\n"
                                 "Category: %(category)s" % {"category": _("Public")}),
                          reply_markup=keyboard)
     await message.delete()
+
+    data["dialogs"][dialog_message.message_id] = {"datetime": str(datetime.utcnow())}
+    await redis.set_serialized(str(member.id), data)
 
 
 @game_creation_router.callback_query(F.data.contains("p_category"))
 async def select_punishments_category(callback: CallbackQuery, member: ChatMember, member_settings: AccessSettingsObject):
     callback_data = callback.data.split(':')[2:]
-    dialog_id = callback_data[2]
     page = int(callback_data[1])
     public_indicator = int(callback_data[0])
-    keyboard, punishments_mapping = await get_punishments_keyboard(dialog_id, member, member_settings, public_indicator, page)
-
-    data = await redis.get_deserialized(str(member.id))
-    dialog = GameCreationDialog.from_dict(data["dialogs"][dialog_id])
-    dialog.set_punishment_menu_mapping(punishments_mapping)
-
-    data["dialogs"][dialog_id] = dialog.to_dict()
-
-    await redis.set_serialized(str(member.id), data)
+    keyboard = await get_punishments_keyboard(member, member_settings, public_indicator, page)
 
     # Translators: punishment selection dialogue
     await callback.message.edit_text(text=_("Choose a punishment from the list below\n\n"
@@ -72,20 +60,15 @@ async def select_punishments_category(callback: CallbackQuery, member: ChatMembe
 @game_creation_router.callback_query(F.data.contains("p_select"))
 async def select_punishment(callback: CallbackQuery, member: ChatMember, member_settings: AccessSettingsObject):
     callback_data = callback.data.split(':')[2:]
-    dialog_id = callback_data[1]
-    punish_num = int(callback_data[0])
+    punishment_id = callback_data[0]
 
-    data = await redis.get_deserialized(str(member.id))
-    dialog = GameCreationDialog.from_dict(data["dialogs"][dialog_id])
-    dialog.select_punishment(punish_num)
-
-    game = RandomChoiceGame(punishment_id=dialog.punishment_id,
+    game = RandomChoiceGame(punishment_id=punishment_id,
                             creator=member)
     await sync_to_async(lambda: game.clean())()
     await game.asave()
 
-    data["dialogs"].pop(dialog_id)
-    data["dialogs"][str(game.id)] = {"date": str(datetime.utcnow()), "message_id": callback.message.message_id}
+    data = await redis.get_deserialized(str(member.id))
+    data["dialogs"][callback.message.message_id] = {"datetime": str(datetime.utcnow())}
     await redis.set_serialized(str(member.id), data)
 
     # Translators: random choice game dialogue
@@ -94,10 +77,8 @@ async def select_punishment(callback: CallbackQuery, member: ChatMember, member_
 
 @game_creation_router.callback_query(F.data.contains("cancel"))
 async def cancel(callback: CallbackQuery, member: ChatMember):
-    dialog_id = callback.data.split(':')[-1]
-
     user_data = await redis.get_deserialized(str(member.id))
-    user_data["dialogs"].pop(dialog_id)
+    user_data["dialogs"].pop(callback.message.message_id)
 
     await redis.set_serialized(str(member.id), user_data)
 

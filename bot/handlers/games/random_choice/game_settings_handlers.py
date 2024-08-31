@@ -136,7 +136,7 @@ async def create(callback: CallbackQuery, game: RandomChoiceGame, member: ChatMe
 @game_settings_router.callback_query(F.data.contains("cancel_creation"))
 async def cancel_creation(callback: CallbackQuery, game: RandomChoiceGame, member: ChatMember):
     data = await redis.get_deserialized(str(member.id))
-    data["dialogs"].pop(str(game.id))
+    data["dialogs"].pop(callback.message.message_id)
     await redis.set_serialized(str(member.id), data)
 
     await game.adelete()

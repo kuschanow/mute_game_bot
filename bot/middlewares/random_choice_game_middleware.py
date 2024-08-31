@@ -16,7 +16,7 @@ async def callback_game_middleware(
         callback: CallbackQuery,
         data: Dict[str, Any]
 ) -> Any:
-    if "rcg" in callback.data:
+    if "rcg:" in callback.data or "rcgs:" in callback.data:
         query = await sync_to_async(lambda: RandomChoiceGame.objects.filter(id=callback.data.split(":")[-1]))()
         if await sync_to_async(lambda: query.exists())():
             game = (await RandomChoiceGame.objects.aget(id=callback.data.split(":")[-1]))

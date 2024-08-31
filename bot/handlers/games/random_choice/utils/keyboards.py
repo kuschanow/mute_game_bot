@@ -12,9 +12,9 @@ from games.models import Punishment, RandomChoiceGame
 
 
 @sync_to_async
-def get_punishments_keyboard(dialog_id: uuid4, chat_member: ChatMember, member_settings: AccessSettingsObject, public_indicator: int, page: int) -> (InlineKeyboardMarkup, Dict[int, uuid4]):
-    start_index = (page - 1) * settings.PAGE_SIZE
-    end_index = page * settings.PAGE_SIZE
+def get_punishments_keyboard(chat_member: ChatMember, member_settings: AccessSettingsObject, public_indicator: int, page: int) -> InlineKeyboardMarkup:
+    start_index = page * settings.PAGE_SIZE
+    end_index = page + 1 * settings.PAGE_SIZE
 
     filters = {
         'is_deleted': False,
@@ -36,39 +36,35 @@ def get_punishments_keyboard(dialog_id: uuid4, chat_member: ChatMember, member_s
     punishments = query[start_index:end_index]
     punishments_count = query.count()
 
-    punishments_mapping = {}
-
     buttons = []
-    for i in range(len(punishments)):
-        p = punishments[i]
-        buttons.append([InlineKeyboardButton(text=p.get_string(), callback_data=f"rcgc:p_select:{i}:{dialog_id}")])
-        punishments_mapping[i] = str(p.id)
+    for p in punishments:
+        buttons.append([InlineKeyboardButton(text=p.get_string(), callback_data=f"rcgc:p_select:{p.id}")])
 
     navigation = [
-        InlineKeyboardButton(text=_("Private Global"), callback_data=f"rcgc:p_category:-1:1:{dialog_id}"),
-        InlineKeyboardButton(text=_("Private Local"), callback_data=f"rcgc:p_category:0:1:{dialog_id}"),
-        InlineKeyboardButton(text=_("Public"), callback_data=f"rcgc:p_category:1:1:{dialog_id}"),
+        InlineKeyboardButton(text=_("Private Global"), callback_data=f"rcgc:p_category:-1:1"),
+        InlineKeyboardButton(text=_("Private Local"), callback_data=f"rcgc:p_category:0:1"),
+        InlineKeyboardButton(text=_("Public"), callback_data=f"rcgc:p_category:1:1"),
     ]
 
     navigation.pop(public_indicator + 1)
 
-    if page > 1:
+    if page > 0:
         navigation.insert(0,
             # Translators: previous page
-            InlineKeyboardButton(text=_("Previous"), callback_data=f"rcgc:p_category:{public_indicator}:{page-1}:{dialog_id}")
+            InlineKeyboardButton(text=_("Previous"), callback_data=f"rcgc:p_category:{public_indicator}:{page-1}")
         )
-    if punishments_count - page * settings.PAGE_SIZE > 0:
+    if punishments_count - (page + 1) * settings.PAGE_SIZE > 0:
         navigation.append(
             # Translators: next page
-            InlineKeyboardButton(text=_("Next"), callback_data=f"rcgc:p_category:{public_indicator}:{page+1}:{dialog_id}")
+            InlineKeyboardButton(text=_("Next"), callback_data=f"rcgc:p_category:{public_indicator}:{page+1}")
         )
 
     buttons.append(navigation)
     buttons.append([
-        InlineKeyboardButton(text=_("Cancel"), callback_data=f"rcgc:cancel:{dialog_id}")
+        InlineKeyboardButton(text=_("Cancel"), callback_data=f"rcgc:cancel")
     ])
 
-    return InlineKeyboardMarkup(inline_keyboard=buttons), punishments_mapping
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
 
 def get_game_settings_keyboard(game: RandomChoiceGame, member_settings: AccessSettingsObject, highlight_this: str = "") -> InlineKeyboardMarkup:
     min_max_text = _("Min-Max players: %(min)d-%(max)d" % {"min": game.min_players_count, "max": game.max_players_count})

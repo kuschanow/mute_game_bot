@@ -1,14 +1,10 @@
-from datetime import datetime
-
 from aiogram import Router, F
 from aiogram.filters import MagicData, invert_f
-from aiogram.types import CallbackQuery, ChatPermissions
+from aiogram.types import CallbackQuery
 from asgiref.sync import sync_to_async
-from django.conf import settings
 from django.utils.translation import gettext as _
 
-from bot.filters import IsGameCreator, IsAdmin, IsOwner
-from bot.generate_session import bot
+from bot.filters import IsGameCreator
 from bot.middlewares import set_random_choice_game_middlewares
 from bot.models import ChatMember, Chat
 from bot.models.AccessSettingsObject import AccessSettingsObject

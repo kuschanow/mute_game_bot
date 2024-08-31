@@ -11,19 +11,19 @@ from bot.models.AccessSettingsObject import AccessSettingsObject
 from games.models import Punishment
 
 
-def get_punishment_privacy_selection_keyboard(handler_type: str, dialog_id: str, show_public: bool) -> InlineKeyboardMarkup:
+def get_punishment_privacy_selection_keyboard(handler_type: str, show_public: bool) -> InlineKeyboardMarkup:
     buttons = [
         [
-            InlineKeyboardButton(text=_("Private Global"), callback_data=f"{handler_type}:-1:{dialog_id}"),
-            InlineKeyboardButton(text=_("Private Local"), callback_data=f"{handler_type}:0:{dialog_id}")
+            InlineKeyboardButton(text=_("Private Global"), callback_data=f"{handler_type}:-1"),
+            InlineKeyboardButton(text=_("Private Local"), callback_data=f"{handler_type}:0")
         ],
         [
-            InlineKeyboardButton(text=_("Cancel"), callback_data=f"{handler_type}:cancel:{dialog_id}"),
+            InlineKeyboardButton(text=_("Cancel"), callback_data=f"{handler_type}:cancel"),
         ]
     ]
 
     if show_public:
-        buttons.insert(1, [InlineKeyboardButton(text=_("Public"), callback_data=f"{handler_type}:1:{dialog_id}")])
+        buttons.insert(1, [InlineKeyboardButton(text=_("Public"), callback_data=f"{handler_type}:1")])
 
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
@@ -35,9 +35,9 @@ def get_cancel_keyboard():
     ])
 
 @sync_to_async
-def get_punishments_keyboard(dialog_id: uuid4, chat_member: ChatMember, member_settings: AccessSettingsObject, public_indicator: int, page: int) -> (InlineKeyboardMarkup, Dict[int, uuid4]):
-    start_index = (page - 1) * settings.PAGE_SIZE
-    end_index = page * settings.PAGE_SIZE
+def get_punishments_keyboard(chat_member: ChatMember, member_settings: AccessSettingsObject, public_indicator: int, page: int) -> InlineKeyboardMarkup:
+    start_index = page * settings.PAGE_SIZE
+    end_index = page + 1 * settings.PAGE_SIZE
 
     filters = {
         'is_deleted': False,
@@ -56,52 +56,48 @@ def get_punishments_keyboard(dialog_id: uuid4, chat_member: ChatMember, member_s
     punishments = query[start_index:end_index]
     punishments_count = query.count()
 
-    if len(punishments) == 0 and page > 1:
+    if len(punishments) == 0 and page > 0:
         raise Exception("Invalid page number")
 
-    punishments_mapping = {}
-
     buttons = []
-    for i in range(len(punishments)):
-        p = punishments[i]
-        buttons.append([InlineKeyboardButton(text=p.get_string(), callback_data=f"pd:p_select:{i}:{dialog_id}")])
-        punishments_mapping[i] = str(p.id)
+    for p in punishments:
+        buttons.append([InlineKeyboardButton(text=p.get_string(), callback_data=f"pd:p_select:{p.id}")])
 
     navigation = [
-        InlineKeyboardButton(text=_("Private Global"), callback_data=f"pd:p_category:-1:1:{dialog_id}"),
-        InlineKeyboardButton(text=_("Private Local"), callback_data=f"pd:p_category:0:1:{dialog_id}"),
+        InlineKeyboardButton(text=_("Private Global"), callback_data=f"pd:p_category:-1:0"),
+        InlineKeyboardButton(text=_("Private Local"), callback_data=f"pd:p_category:0:0"),
     ]
 
     if member_settings.can_delete_public_punishments:
-        navigation.append(InlineKeyboardButton(text=_("Public"), callback_data=f"pd:p_category:1:1:{dialog_id}"))
+        navigation.append(InlineKeyboardButton(text=_("Public"), callback_data=f"pd:p_category:1:0"))
 
     navigation.pop(public_indicator + 1)
 
-    if page > 1:
+    if page > 0:
         navigation.insert(0,
             # Translators: previous page
-            InlineKeyboardButton(text=_("Previous"), callback_data=f"pd:p_category:{public_indicator}:{page-1}:{dialog_id}")
+            InlineKeyboardButton(text=_("Previous"), callback_data=f"pd:p_category:{public_indicator}:{page-1}")
         )
-    if punishments_count - page * settings.PAGE_SIZE > 0:
+    if punishments_count - (page + 1) * settings.PAGE_SIZE > 0:
         navigation.append(
             # Translators: next page
-            InlineKeyboardButton(text=_("Next"), callback_data=f"pd:p_category:{public_indicator}:{page+1}:{dialog_id}")
+            InlineKeyboardButton(text=_("Next"), callback_data=f"pd:p_category:{public_indicator}:{page+1}")
         )
 
     buttons.append(navigation)
     buttons.append([
-        InlineKeyboardButton(text=_("Cancel"), callback_data=f"pd:cancel:{dialog_id}")
+        InlineKeyboardButton(text=_("Cancel"), callback_data=f"pd:cancel")
     ])
 
-    return InlineKeyboardMarkup(inline_keyboard=buttons), punishments_mapping
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
 
-def get_acceptance_keyboard(dialog_id: str) -> InlineKeyboardMarkup:
+def get_acceptance_keyboard(punishment_id: str) -> InlineKeyboardMarkup:
     buttons = [
         [
-            InlineKeyboardButton(text=_("Accept"), callback_data=f"pd:accept:{dialog_id}"),
+            InlineKeyboardButton(text=_("Accept"), callback_data=f"pd:accept:{punishment_id}"),
         ],
         [
-            InlineKeyboardButton(text=_("Cancel"), callback_data=f"pd:refuse:{dialog_id}"),
+            InlineKeyboardButton(text=_("Cancel"), callback_data=f"pd:refuse"),
         ]
     ]
 

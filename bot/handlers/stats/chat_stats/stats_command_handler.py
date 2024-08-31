@@ -24,7 +24,7 @@ async def chat_stats_command(message: Message, chat: Chat, member: ChatMember):
 
     data = await redis.get_deserialized(str(member.id))
     if "dialogs" not in data:
-        data["dialogs"] = {str(new_message.message_id): {"datetime": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")}}
+        data["dialogs"] = {str(new_message.message_id): {"datetime": str(datetime.utcnow())}}
     await redis.set_serialized(str(member.id), data)
 
     await message.delete()

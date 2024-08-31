@@ -9,7 +9,7 @@ class RedisConnection(Redis):
         data = await self.get(name)
         if data is None:
             await self.set(name, "{}")
-        return {}
+        return data
 
     async def get_deserialized(self, name: str):
         data = await self.get(name)

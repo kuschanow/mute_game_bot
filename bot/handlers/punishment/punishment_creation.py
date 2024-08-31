@@ -1,13 +1,11 @@
 import re
 from datetime import timedelta, datetime
-from uuid import uuid4
 
 from aiogram import Router, F
-from aiogram.enums import ChatType, ContentType, ParseMode
+from aiogram.enums import ChatType, ContentType
 from aiogram.filters import Command, MagicData
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
-from aiogram.utils.formatting import Text, BlockQuote
 from django.conf import settings
 from django.utils.translation import gettext as _
 
@@ -95,14 +93,12 @@ async def choose_name(message: Message, member: ChatMember, member_settings: Acc
     new_data = await redis.get_or_set(str(member.id))
     if "dialogs" not in new_data:
         new_data["dialogs"] = {}
-    dialog_id = str(uuid4())
-
     await bot.delete_message(chat_id=member.chat_id, message_id=int(data["message_id"]))
     # Translators: privacy selection message
     privacy_selection_message = await message.answer(text=_("Now select the privacy of the new punishment"),
-                         reply_markup=get_punishment_privacy_selection_keyboard("pc", dialog_id, member_settings.can_create_public_punishments))
+                         reply_markup=get_punishment_privacy_selection_keyboard("pc", member_settings.can_create_public_punishments))
 
-    new_data["dialogs"][dialog_id] = {"date": str(datetime.utcnow()), "message_id": privacy_selection_message.message_id, "name": data["name"], "time": time.total_seconds()}
+    new_data["dialogs"][privacy_selection_message.message_id] = {"date": str(datetime.utcnow()), "name": data["name"], "time": time.total_seconds()}
     await redis.set_serialized(str(member.id), new_data)
 
     await message.delete()
@@ -111,10 +107,11 @@ async def choose_name(message: Message, member: ChatMember, member_settings: Acc
 @punishment_creation_router.callback_query(F.data.not_contains("cancel"), DialogAccess())
 async def choose_privacy(callback: CallbackQuery, member: ChatMember, user: User, chat: Chat):
     callback_data = callback.data.split(':')[1:]
-    dialog_id = callback_data[1]
     public_indicator = int(callback_data[0])
 
     data = await redis.get_deserialized(str(member.id))
+
+    dialog_id = str(callback.message.message_id)
 
     punishment = Punishment(name=data["dialogs"][dialog_id]["name"],
                             time=timedelta(seconds=int(data["dialogs"][dialog_id]["time"])),
@@ -144,10 +141,8 @@ async def cancel(callback: CallbackQuery, state: FSMContext):
 
 @punishment_creation_router.callback_query(F.data.contains("cancel"), DialogAccess())
 async def cancel_creation(callback: CallbackQuery, member: ChatMember):
-    dialog_id = callback.data.split(':')[-1]
-
     user_data = await redis.get_deserialized(str(member.id))
-    user_data["dialogs"].pop(dialog_id)
+    user_data["dialogs"].pop(callback.message.message_id)
 
     await redis.set_serialized(str(member.id), user_data)
 
