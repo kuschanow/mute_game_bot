@@ -18,16 +18,23 @@ class Chat(models.Model):
 
     @staticmethod
     async def get_or_create_chat(tele_chat: TeleChat):
-        chat = (await Chat.objects.aget_or_create(id=tele_chat.id))[0]
+        chat, created = await Chat.objects.aget_or_create(id=tele_chat.id)
 
         chat.name = tele_chat.full_name
         chat.type = tele_chat.type
         await chat.asave()
 
-        if not await AccessSettings.objects.filter(chat=chat, target=SettingsTarget.CHAT.value, target_id=chat.id).aexists():
+        if created:
             from bot.models import AccessSettingsObject
+
             settings_object = AccessSettingsObject()
             await settings_object.asave()
-            await AccessSettings(chat=chat, target=SettingsTarget.CHAT.value, target_id=chat.id, settings_object=settings_object).asave()
+
+            await AccessSettings.objects.acreate(
+                chat=chat,
+                target=SettingsTarget.CHAT.value,
+                target_id=chat.id,
+                settings_object=settings_object
+            )
 
         return chat
