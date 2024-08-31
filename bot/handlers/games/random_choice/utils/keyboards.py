@@ -83,7 +83,7 @@ def get_game_settings_keyboard(game: RandomChoiceGame, member_settings: AccessSe
         ],
         [
             InlineKeyboardButton(text=min_max_text,
-                                 callback_data=f"rcgs:min-max:{game.id}"),
+                                 callback_data=f"rcgs:min_max:{game.id}"),
         ],
         [
             InlineKeyboardButton(text=losers_text,

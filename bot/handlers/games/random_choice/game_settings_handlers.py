@@ -45,7 +45,7 @@ async def is_creator_play(callback: CallbackQuery, game: RandomChoiceGame, membe
     await callback.answer()
 
 
-@game_settings_router.callback_query(F.data.contains("min-max"))
+@game_settings_router.callback_query(F.data.contains("min_max"))
 @game_settings_router.callback_query(F.data.contains("losers"))
 async def is_creator_play(callback: CallbackQuery, game: RandomChoiceGame, member_settings: AccessSettingsObject, state: FSMContext):
     await state.clear()
@@ -69,12 +69,13 @@ async def set_min(message: Message, game: RandomChoiceGame, member_settings: Acc
     min_str, max_str = re.search(r"(\d+|)-(\d+|)", message.text).groups()
 
     min_num = int(min_str) if min_str else 2
-    if 2 <= min_num <= game.max_players_count:
-        game.min_players_count = min_num
-        game.losers_count = min(min_num - 1, game.losers_count)
-        await game.asave()
-        await update_message(message.reply_to_message, game, member_settings)
-        await state.clear()
+    if 2 <= min_num:
+        if game.max_players_count or (not game.max_players_count and min_num <= game.max_players_count):
+            game.min_players_count = min_num
+            game.losers_count = min(min_num - 1, game.losers_count)
+            await game.asave()
+            await update_message(message.reply_to_message, game, member_settings)
+            await state.clear()
 
     if max_str:
         max_num = int(max_str)
