@@ -9,7 +9,7 @@ from bot.models import Chat, User
 
 class Punishment(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    name = models.TextField(null=False, blank=False, default="untitled")
+    name = models.TextField(null=False, blank=False, default="untitled", max_length=200)
     time = models.DurationField(default=timedelta(hours=5))
 
     created_by = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
