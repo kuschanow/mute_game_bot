@@ -12,6 +12,11 @@ services:
       - postgres
     command: python manage.py migrate --noinput
     restart: "no"
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "your_postgres_user", "-h", "postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   backend:
     <<: *x-backend-service
@@ -20,13 +25,15 @@ services:
     volumes:
       - static_volume:/app/static
     depends_on:
-      - postgres
-    command: ["gunicorn", "-c", "/app/app/gunicorn.py", "app.wsgi"]
+      migrate:
+        condition: service_healthy
+    command: [ "gunicorn", "-c", "/app/app/gunicorn.py", "app.wsgi" ]
 
   bot:
     <<: *x-backend-service
     depends_on:
-      - postgres
+      migrate:
+        condition: service_healthy
     command: python manage.py run_bot
 
   celery-worker:
