@@ -9,7 +9,7 @@ from bot.models import Chat, User
 
 class Punishment(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    name = models.TextField(null=False, blank=False, default="untitled", max_length=200)
+    name = models.TextField(null=False, blank=False, default="untitled", max_length=100)
     time = models.DurationField(default=timedelta(hours=5))
 
     created_by = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
@@ -26,7 +26,7 @@ class Punishment(models.Model):
         return f"{self.name} {str(self.time).replace(' days,', '')[:-3]}"
 
     def clean(self):
-        self.name = self.name[:200].replace("\n", " ")
+        self.name = self.name[:100].replace("\n", " ")
 
         if self.time > timedelta(days=365):
             self.time = timedelta(days=365)

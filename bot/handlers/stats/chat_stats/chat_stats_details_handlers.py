@@ -6,16 +6,18 @@ from bot.filters import DialogAccess
 from bot.handlers.stats.chat_stats.utils.keyboards import get_detailed_stats_keyboard
 from bot.handlers.stats.chat_stats.utils.stats import get_random_choice_game_detailed_stats
 from bot.handlers.stats.chat_stats.utils.texts import get_detailed_text
-from bot.models import Chat
+from bot.models import Chat, User
 
 chat_stats_detailed_router = Router()
 chat_stats_detailed_router.callback_query.filter(F.data.startswith("stats:chat:detailed"), DialogAccess())
 
 
 @chat_stats_detailed_router.callback_query()
-async def top_stats(callback: CallbackQuery, chat: Chat):
+async def top_stats(callback: CallbackQuery, user: User, chat: Chat):
     try:
-        await callback.message.edit_text(text=get_detailed_text(await get_random_choice_game_detailed_stats(chat)),
+        await callback.message.edit_text(text=user.get_string(True) +
+                                              "\n\n" +
+                                              get_detailed_text(await get_random_choice_game_detailed_stats(chat)),
                                          reply_markup=get_detailed_stats_keyboard())
     except:
         pass

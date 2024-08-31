@@ -10,7 +10,7 @@ from django.conf import settings
 from django.utils.translation import gettext as _
 
 from bot.filters import DialogAccess
-from bot.models import ChatMember
+from bot.models import ChatMember, User
 from bot.models.AccessSettingsObject import AccessSettingsObject
 from games.models import RandomChoiceGame
 from shared import redis, category
@@ -22,7 +22,7 @@ game_creation_router.callback_query.filter(F.data.startswith("rcgc"), DialogAcce
 
 
 @game_creation_router.message(Command(settings.RANDOM_CHOICE_GAME_COMMAND))
-async def start_game_command(message: Message, member: ChatMember, member_settings: AccessSettingsObject, state: FSMContext):
+async def start_game_command(message: Message, member: ChatMember, user: User, member_settings: AccessSettingsObject, state: FSMContext):
     if not member_settings.can_create_games:
         await message.answer(_("You cannot create games"))
         await message.delete()
@@ -36,8 +36,10 @@ async def start_game_command(message: Message, member: ChatMember, member_settin
 
     keyboard = await get_punishments_keyboard(member, member_settings, 1, 0)
 
-    dialog_message = await message.answer(text=_("Choose a punishment from the list below\n\n"
-                                "Category: %(category)s" % {"category": _("Public")}),
+    dialog_message = await message.answer(text=user.get_string(True) +
+                                               "\n\n" +
+                                               _("Choose a punishment from the list below\n\n"
+                                                 "Category: %(category)s" % {"category": _("Public")}),
                          reply_markup=keyboard)
     await message.delete()
 
@@ -71,14 +73,13 @@ async def select_punishment(callback: CallbackQuery, member: ChatMember, member_
     data["dialogs"][callback.message.message_id] = {"datetime": str(datetime.utcnow())}
     await redis.set_serialized(str(member.id), data)
 
-    # Translators: random choice game dialogue
     await callback.message.edit_text(text=await game.get_string(), reply_markup=get_game_settings_keyboard(game, member_settings))
 
 
 @game_creation_router.callback_query(F.data.contains("cancel"))
 async def cancel(callback: CallbackQuery, member: ChatMember):
     user_data = await redis.get_deserialized(str(member.id))
-    user_data["dialogs"].pop(callback.message.message_id)
+    user_data["dialogs"].pop(str(callback.message.message_id))
 
     await redis.set_serialized(str(member.id), user_data)
 

@@ -10,7 +10,7 @@ from django.conf import settings
 from bot.handlers.stats.chat_stats.utils.keyboards import get_top_stats_keyboard
 from bot.handlers.stats.chat_stats.utils.stats import get_random_choice_game_time_stats, get_random_choice_game_detailed_stats_by_user
 from bot.handlers.stats.chat_stats.utils.texts import get_top_time_text, get_detailed_text, get_detailed_text_by_member
-from bot.models import Chat, ChatMember
+from bot.models import Chat, ChatMember, User
 from shared import redis
 
 stats_command_router = Router()
@@ -18,8 +18,10 @@ stats_command_router.message.filter(MagicData(F.chat.type.is_not(ChatType.PRIVAT
 
 
 @stats_command_router.message(Command(settings.SHOW_CHAT_STATS_COMMAND))
-async def chat_stats_command(message: Message, chat: Chat, member: ChatMember):
-    new_message = await message.answer(text=await get_top_time_text(await get_random_choice_game_time_stats(chat), 0),
+async def chat_stats_command(message: Message, chat: Chat, user: User, member: ChatMember):
+    new_message = await message.answer(text=user.get_string(True) +
+                                            "\n\n" +
+                                            await get_top_time_text(await get_random_choice_game_time_stats(chat), 0),
                                        reply_markup=await get_top_stats_keyboard(chat, 0, "time"))
 
     data = await redis.get_deserialized(str(member.id))

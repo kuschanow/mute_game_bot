@@ -25,7 +25,7 @@ punishment_creation_router.callback_query.filter(F.data.startswith("pc"))
 
 
 @punishment_creation_router.message(Command(settings.CREATE_PUNISHMENT_COMMAND))
-async def create_punishment_command(message: Message, state: FSMContext):
+async def create_punishment_command(message: Message, user: User, state: FSMContext):
     data = await state.get_data()
     if "message_id" in data:
         try:
@@ -38,7 +38,9 @@ async def create_punishment_command(message: Message, state: FSMContext):
     data = await state.get_data()
 
     # Translators: choosing name for new punishment
-    bot_message = await message.answer(text=_("To create a punishment, you need to write the name of the new punishment in response to this "
+    bot_message = await message.answer(text=_(user.get_string(True) +
+                                              "\n\n" +
+                                              "To create a punishment, you need to write the name of the new punishment in response to this "
                                               "message."),
                                        reply_markup=get_cancel_keyboard())
     data["message_id"] = bot_message.message_id
@@ -50,7 +52,7 @@ async def create_punishment_command(message: Message, state: FSMContext):
 @punishment_creation_router.message(PunishmentCreationStates.choosing_name,
                                     F.content_type == ContentType.TEXT,
                                     ReplyToCorrectMessage("message_id"))
-async def choose_name(message: Message, state: FSMContext):
+async def choose_name(message: Message, user: User, state: FSMContext):
     await state.set_state(PunishmentCreationStates.choosing_time)
     data = await state.get_data()
 
@@ -58,7 +60,9 @@ async def choose_name(message: Message, state: FSMContext):
 
     # Translators: choosing time for new punishment
     await bot.delete_message(chat_id=message.chat.id, message_id=data["message_id"])
-    new_message = await message.answer(_("Name: %(name)s\n\n"
+    new_message = await message.answer(user.get_string(True) +
+                                       "\n\n" +
+                                       _("Name: %(name)s\n\n"
                                          "Now in response to this message write the time of punishment" % {"name": message.text}) +
                                        _("Time can be specified in any of the following ways:") +
                                        _("<blockquote>"
@@ -71,7 +75,7 @@ async def choose_name(message: Message, state: FSMContext):
                                          "100 – 100 minutes"
                                          "</blockquote>"),
                                        reply_markup=get_cancel_keyboard()
-                         )
+                                       )
 
     data["message_id"] = new_message.message_id
     await state.set_data(data)
@@ -125,7 +129,9 @@ async def choose_privacy(callback: CallbackQuery, member: ChatMember, user: User
     data["dialogs"].pop(dialog_id)
     await redis.set_serialized(str(member.id), data)
 
-    await callback.message.answer(text=_("Punishment '%(punishment)s' successfully created" % {"punishment": punishment.get_string()}))
+    await callback.message.answer(text=user.get_string(True) +
+                                       "\n\n" +
+                                       _("Punishment '%(punishment)s' successfully created" % {"punishment": punishment.get_string()}))
     await callback.message.delete()
 
 
@@ -144,7 +150,7 @@ async def cancel(callback: CallbackQuery, state: FSMContext):
 @punishment_creation_router.callback_query(F.data.contains("cancel"), DialogAccess())
 async def cancel_creation(callback: CallbackQuery, member: ChatMember):
     user_data = await redis.get_deserialized(str(member.id))
-    user_data["dialogs"].pop(callback.message.message_id)
+    user_data["dialogs"].pop(str(callback.message.message_id))
 
     await redis.set_serialized(str(member.id), user_data)
 

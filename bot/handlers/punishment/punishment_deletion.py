@@ -12,7 +12,7 @@ from django.utils.translation import gettext as _
 from bot.filters import DialogAccess
 from bot.generate_session import bot
 from bot.handlers.punishment.utils.keyboards import get_punishments_keyboard, get_acceptance_keyboard
-from bot.models import ChatMember, AccessSettingsObject
+from bot.models import ChatMember, AccessSettingsObject, User
 from games.models import Punishment
 from shared import redis, category
 
@@ -22,14 +22,16 @@ punishment_deletion_router.callback_query.filter(F.data.startswith("pd"), Dialog
 
 
 @punishment_deletion_router.message(Command(settings.DELETE_PUNISHMENT_COMMAND))
-async def delete_punishments_command(message: Message, member: ChatMember, member_settings: AccessSettingsObject):
+async def delete_punishments_command(message: Message, member: ChatMember, user: User, member_settings: AccessSettingsObject):
     data = await redis.get_deserialized(str(member.id))
     if "dialogs" not in data:
         data["dialogs"] = {}
     public_indicator = 1 if member_settings.can_delete_public_punishments else 0
     keyboard = await get_punishments_keyboard(member, member_settings, public_indicator, 0)
 
-    dialog_message = await message.answer(text=_("Choose a punishment from the list below\n\n"
+    dialog_message = await message.answer(text=user.get_string(True) +
+                                              "\n\n" +
+                                               _("Choose a punishment from the list below\n\n"
                                               "Category: %(category)s" % {"category": _("Public")}), reply_markup=keyboard)
 
     data["dialogs"][str(dialog_message.message_id)] = {"datetime": str(datetime.utcnow()), "public_indicator": public_indicator, "page": 1}
@@ -59,7 +61,7 @@ async def select_punishments_category(callback: CallbackQuery, member: ChatMembe
 
 
 @punishment_deletion_router.callback_query(F.data.contains("p_select"))
-async def choose_privacy(callback: CallbackQuery, member: ChatMember):
+async def choose_privacy(callback: CallbackQuery, member: ChatMember, user: User):
     callback_data = callback.data.split(':')[2:]
     punishment_id = callback_data[0]
 
@@ -69,8 +71,10 @@ async def choose_privacy(callback: CallbackQuery, member: ChatMember):
     dialog = data["dialogs"][dialog_id]
 
     # Translators: deletion acceptance dialogue
-    deletion_message = await callback.message.reply(text=_("Accept deletion for %(punishment)s" % {"punishment": (await Punishment.objects.aget(id=punishment_id)).get_string()}),
-                                     reply_markup=get_acceptance_keyboard(punishment_id))
+    deletion_message = await callback.message.reply(text=user.get_string(True) +
+                                                         "\n\n" +
+                                                         _("Accept deletion for %(punishment)s" % {"punishment": (await Punishment.objects.aget(id=punishment_id)).get_string()}),
+                                                    reply_markup=get_acceptance_keyboard(punishment_id))
 
     if "deletion_message_id" in dialog:
         try:
