@@ -2,7 +2,6 @@ from uuid import uuid4
 
 from aiogram.enums.chat_type import ChatType
 from aiogram.types import Chat as TeleChat, ChatMemberAdministrator, ChatMemberMember, ChatMemberOwner, ChatMemberRestricted, ChatMemberLeft
-from asgiref.sync import async_to_sync, sync_to_async
 from django.conf import settings
 from django.db import models
 
@@ -47,7 +46,7 @@ class ChatMember(models.Model):
     @staticmethod
     async def get_or_create_member(user: User, tele_chat: TeleChat):
         from bot.models import Chat
-        chat = await Chat.get_or_create_chat(tele_chat)
+        chat = await Chat.objects.aget(id=tele_chat.id)
         member = (await ChatMember.objects.aget_or_create(user=user, chat=chat))[0]
 
         if chat.type != ChatType.PRIVATE:

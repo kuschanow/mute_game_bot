@@ -23,9 +23,6 @@ class User(models.Model):
         user.last_name = tele_user.last_name
         await user.asave()
 
-        from bot.models import ChatMember
-        await ChatMember.get_or_create_member(user, chat)
-
         return user
 
     def __str__(self):

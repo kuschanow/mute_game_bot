@@ -32,6 +32,7 @@ services:
   celery-worker:
     <<: *x-backend-service
     depends_on:
+      - bot
       - postgres
       - redis
     command: celery -A app worker --loglevel=info
@@ -39,8 +40,7 @@ services:
   celery-beat:
     <<: *x-backend-service
     depends_on:
-      - postgres
-      - redis
+      - celery-worker
     command: celery -A app beat --loglevel=info
 
   nginx:
