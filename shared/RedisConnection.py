@@ -6,7 +6,7 @@ from redis.asyncio.client import Redis
 
 class RedisConnection(Redis):
     async def get_or_set(self, name: str):
-        data = await self.get(name)
+        data = await self.get_deserialized(name)
         if data is None:
             await self.set(name, "{}")
         return data

@@ -90,7 +90,7 @@ async def choose_name(message: Message, member: ChatMember, member_settings: Acc
     days, hours, minutes = (0,) * (3 - len(matches)) + tuple(map(int, matches))
     time = timedelta(days=days, hours=hours, minutes=minutes)
 
-    new_data = await redis.get_or_set(str(member.id))
+    new_data = await redis.get_deserialized(str(member.id))
     if "dialogs" not in new_data:
         new_data["dialogs"] = {}
     await bot.delete_message(chat_id=member.chat_id, message_id=int(data["message_id"]))
