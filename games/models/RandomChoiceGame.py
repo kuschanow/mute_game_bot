@@ -81,7 +81,7 @@ class RandomChoiceGame(models.Model):
                 # Translators: game punishment
                 _("punishment: %(punishment)s\n" % {"punishment": self.punishment.get_string()}) +
                 # Translators: players diapason
-                _("👤: %(min)d - %(max)d\n" % {"min": self.min_players_count, "max": self.max_players_count}) +
+                _("👤: %(min)d - %(max)s\n" % {"min": self.min_players_count, "max": self.max_players_count or "♾"}) +
                 # Translators: losers count
                 _("☠: %(losers)d\n\n" % {"losers": self.losers_count}) +
                 _("autostart: %(text)s\n\n" % {"text": autostart_text}) +

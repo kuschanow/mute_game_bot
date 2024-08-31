@@ -23,7 +23,7 @@ set_random_choice_game_middlewares(game_settings_router)
 
 async def update_message(message, game, member_settings):
     try:
-        await message.reply_to_message.edit_text(
+        await message.edit_text(
             text=await game.get_string(),
             reply_markup=get_game_settings_keyboard(game, member_settings)
         )
@@ -32,7 +32,9 @@ async def update_message(message, game, member_settings):
 
 
 @game_settings_router.callback_query(F.data.contains("is_creator_play"))
-async def is_creator_play(callback: CallbackQuery, game: RandomChoiceGame, member_settings: AccessSettingsObject):
+async def is_creator_play(callback: CallbackQuery, game: RandomChoiceGame, member_settings: AccessSettingsObject, state: FSMContext):
+    await state.clear()
+
     if not member_settings.can_join_games:
         await callback.answer(_("You are not allowed to join the games"))
         return
@@ -69,27 +71,22 @@ async def set_min(message: Message, game: RandomChoiceGame, member_settings: Acc
     min_str, max_str = re.search(r"(\d+|)-(\d+|)", message.text).groups()
 
     min_num = int(min_str) if min_str else 2
-    if 2 <= min_num:
-        if game.max_players_count or (not game.max_players_count and min_num <= game.max_players_count):
-            game.min_players_count = min_num
-            game.losers_count = min(min_num - 1, game.losers_count)
-            await game.asave()
-            await update_message(message.reply_to_message, game, member_settings)
-            await state.clear()
+    max_num = int(max_str) if max_str else None
 
-    if max_str:
-        max_num = int(max_str)
-        if game.min_players_count <= max_num:
-            game.max_players_count = max_num
-            await game.asave()
-            await update_message(message.reply_to_message, game, member_settings)
-            await state.clear()
-    else:
-        game.max_players_count = None
-        await game.asave()
-        await update_message(message.reply_to_message, game, member_settings)
-        await state.clear()
+    if max_num:
+        max_num = max_num if max_num >= 2 else 2
+        if min_num > max_num:
+            max_num, min_num = min_num, max_num
 
+    min_num = min_num if min_num >= 2 else 2
+
+    game.min_players_count = min_num
+    game.losers_count = min(min_num - 1, game.losers_count)
+    game.max_players_count = max_num
+    await game.asave()
+
+    await state.clear()
+    await update_message(message.reply_to_message, game, member_settings)
     await message.delete()
 
 
@@ -97,17 +94,26 @@ async def set_min(message: Message, game: RandomChoiceGame, member_settings: Acc
 async def set_losers(message: Message, game: RandomChoiceGame, member_settings: AccessSettingsObject, state: FSMContext):
     number = int(re.search(r"\d+", message.text).group())
 
-    if 0 < number < game.min_players_count:
-        game.losers_count = number
-        await game.asave()
-        await update_message(message.reply_to_message, game, member_settings)
-        await state.clear()
+    if number <= 0:
+        number = 1
+
+    if number > game.min_players_count:
+        game.min_players_count = number + 1
+    if game.max_players_count and number >= game.max_players_count:
+        game.max_players_count = number + 1
+
+    game.losers_count = number
+    await game.asave()
+    await update_message(message.reply_to_message, game, member_settings)
+    await state.clear()
 
     await message.delete()
 
 
 @game_settings_router.callback_query(F.data.contains("when_full"))
-async def is_creator_play(callback: CallbackQuery, game: RandomChoiceGame, member_settings: AccessSettingsObject):
+async def is_creator_play(callback: CallbackQuery, game: RandomChoiceGame, member_settings: AccessSettingsObject, state: FSMContext):
+    await state.clear()
+
     if game.max_players_count is None:
         await callback.answer(_("Cannot be installed if the maximum number of players is not set"))
         return
@@ -121,7 +127,8 @@ async def is_creator_play(callback: CallbackQuery, game: RandomChoiceGame, membe
 
 
 @game_settings_router.callback_query(F.data.contains("create"))
-async def create(callback: CallbackQuery, game: RandomChoiceGame, member: ChatMember, member_settings: AccessSettingsObject):
+async def create(callback: CallbackQuery, game: RandomChoiceGame, member: ChatMember, member_settings: AccessSettingsObject, state: FSMContext):
+    await state.clear()
     game.is_opened_to_join = True
     await game.asave()
 

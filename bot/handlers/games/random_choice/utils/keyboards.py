@@ -67,7 +67,7 @@ def get_punishments_keyboard(chat_member: ChatMember, member_settings: AccessSet
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
 def get_game_settings_keyboard(game: RandomChoiceGame, member_settings: AccessSettingsObject, highlight_this: str = "") -> InlineKeyboardMarkup:
-    min_max_text = _("Min-Max players: %(min)d-%(max)d" % {"min": game.min_players_count, "max": game.max_players_count})
+    min_max_text = _("Min-Max players: %(min)d - %(max)s" % {"min": game.min_players_count, "max": game.max_players_count or "♾"})
     losers_text = _("Losers count: %(count)s" % {"count": game.losers_count})
 
     if highlight_this == "min_max":

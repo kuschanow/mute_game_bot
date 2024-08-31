@@ -8,7 +8,7 @@ class GameSettingsStates(StatesGroup):
 
     @staticmethod
     def get_be_string(name: str):
-        if name == "min-max":
+        if name == "min_max":
             return GameSettingsStates.set_min_max
         if name == "losers":
             return GameSettingsStates.set_losers
