@@ -97,7 +97,7 @@ async def set_losers(message: Message, game: RandomChoiceGame, member_settings: 
     if number <= 0:
         number = 1
 
-    if number > game.min_players_count:
+    if number >= game.min_players_count:
         game.min_players_count = number + 1
     if game.max_players_count and number >= game.max_players_count:
         game.max_players_count = number + 1
