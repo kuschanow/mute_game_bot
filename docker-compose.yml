@@ -12,10 +12,6 @@ services:
       - postgres
     command: python manage.py migrate --noinput
     restart: "no"
-    healthcheck:
-      test: python manage.py showmigrations | grep -q '\\[X\\]' || exit 1
-      interval: 10s
-      timeout: 5s
 
   backend:
     <<: *x-backend-service
@@ -25,14 +21,14 @@ services:
       - static_volume:/app/static
     depends_on:
       migrate:
-        condition: service_healthy
+        condition: service_completed_successfully
     command: [ "gunicorn", "-c", "/app/app/gunicorn.py", "app.wsgi" ]
 
   bot:
     <<: *x-backend-service
     depends_on:
       migrate:
-        condition: service_healthy
+        condition: service_completed_successfully
     command: python manage.py run_bot
 
   celery-worker:
