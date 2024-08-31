@@ -13,10 +13,9 @@ services:
     command: python manage.py migrate --noinput
     restart: "no"
     healthcheck:
-      test: ["CMD-SHELL", "python manage.py showmigrations | grep -q '\\[X\\]' || exit 1"]
+      test: python manage.py showmigrations | grep -q '\\[X\\]' || exit 1
       interval: 10s
       timeout: 5s
-      retries: 5
 
   backend:
     <<: *x-backend-service
