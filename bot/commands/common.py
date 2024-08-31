@@ -19,8 +19,8 @@ commands = [
     BotCommand(command=f"/{settings.DELETE_PUNISHMENT_COMMAND}", description=_("Delete punishments")),
     # Translators: access settings command hint
     BotCommand(command=f"/{settings.ACCESS_SETTINGS_COMMAND}", description=_("Change access settings for current chat")),
-    # Translators: chat settings command hint
-    BotCommand(command=f"/{settings.CHAT_SETTINGS_COMMAND}", description=_("Change bot settings for current chat")),
+    # # Translators: chat settings command hint
+    # BotCommand(command=f"/{settings.CHAT_SETTINGS_COMMAND}", description=_("Change bot settings for current chat")),
 ]
 
 async def set_default_commands(bot: Bot):
