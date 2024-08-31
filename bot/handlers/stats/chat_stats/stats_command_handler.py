@@ -34,7 +34,7 @@ async def chat_stats_command(message: Message, chat: Chat, member: ChatMember):
 async def chat_stats_command(message: Message, member: ChatMember):
     member_for_stats = member
 
-    match = re.search(f"/{settings.SHOW_USER_STATS_COMMAND} @([a-zA-Z0-9]+)|(\d+)", message.text)
+    match = re.search(rf"/{settings.SHOW_USER_STATS_COMMAND} @([a-zA-Z0-9]+)|(\d+)", message.text)
 
     if message.reply_to_message is not None:
         member_for_stats = await ChatMember.objects.aget(chat_id=member.chat_id, user_id=message.reply_to_message.from_user.id)
