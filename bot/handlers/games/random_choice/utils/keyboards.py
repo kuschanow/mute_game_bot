@@ -41,9 +41,9 @@ def get_punishments_keyboard(chat_member: ChatMember, member_settings: AccessSet
         buttons.append([InlineKeyboardButton(text=p.get_string(), callback_data=f"rcgc:p_select:{p.id}")])
 
     navigation = [
-        InlineKeyboardButton(text=_("Private Global"), callback_data=f"rcgc:p_category:-1:1"),
-        InlineKeyboardButton(text=_("Private Local"), callback_data=f"rcgc:p_category:0:1"),
-        InlineKeyboardButton(text=_("Public"), callback_data=f"rcgc:p_category:1:1"),
+        InlineKeyboardButton(text=_("Private Global"), callback_data=f"rcgc:p_category:-1:0"),
+        InlineKeyboardButton(text=_("Private Local"), callback_data=f"rcgc:p_category:0:0"),
+        InlineKeyboardButton(text=_("Public"), callback_data=f"rcgc:p_category:1:0"),
     ]
 
     navigation.pop(public_indicator + 1)
