@@ -1,8 +1,6 @@
 from aiogram.filters import Filter
-from django.conf import settings
 
 from bot.models import ChatMember
-from shared.enums import MemberStatus, InteractionLevel
 
 
 class IsGameCreator(Filter):

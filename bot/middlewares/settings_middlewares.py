@@ -3,11 +3,10 @@ from typing import Callable, Dict, Any, Awaitable
 from aiogram import Router
 from aiogram.types import TelegramObject
 from asgiref.sync import sync_to_async
-from django.conf import settings
 
 from bot.models.AccessSettings import AccessSettings
 from bot.models.AccessSettingsObject import AccessSettingsObject
-from shared.enums import SettingsTarget, MemberStatus, InteractionLevel
+from shared.enums import SettingsTarget
 
 
 def set_settings_middlewares(router: Router):
