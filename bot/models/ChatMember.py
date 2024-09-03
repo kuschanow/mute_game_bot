@@ -6,7 +6,6 @@ from django.conf import settings
 from django.db import models
 
 from bot.models import User
-from shared.enums import InteractionLevel
 from shared.enums import MemberStatus
 from shared.utils import enum_to_choices
 
@@ -18,20 +17,17 @@ class ChatMember(models.Model):
 
     status = models.TextField(choices=enum_to_choices(MemberStatus), default=MemberStatus.MEMBER.value, null=False)
     is_anon = models.BooleanField(default=False, null=False)
-    interaction_level = models.TextField(choices=enum_to_choices(InteractionLevel), default=InteractionLevel.BASED_ON_STATUS.value, null=False)
+    can_interact = models.BooleanField(default=True, null=False)
 
     settings_group = models.ForeignKey("AccessGroup", on_delete=models.SET_NULL, null=True, default=None)
 
     updated_at = models.DateTimeField(auto_now=True)
 
     def is_admin(self) -> bool:
-        return (self.user_id in settings.ADMINS or
-                self.status == MemberStatus.ADMIN.value or
-                self.status == MemberStatus.OWNER.value or
-                self.interaction_level ==InteractionLevel.CAN_ADMINISTRATE.value)
+        return self.is_owner() or self.status == MemberStatus.ADMIN.value
 
     def is_owner(self) -> bool:
-        return self.user_id in settings.ADMINS or self.status == MemberStatus.OWNER.value
+        return self.is_super_admin() or self.status == MemberStatus.OWNER.value
 
     def is_super_admin(self) -> bool:
         return self.user_id in settings.ADMINS

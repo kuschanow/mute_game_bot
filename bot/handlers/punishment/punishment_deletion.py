@@ -41,7 +41,7 @@ async def delete_punishments_command(message: Message, member: ChatMember, user:
 
 
 @punishment_deletion_router.callback_query(F.data.contains("p_category"))
-async def select_punishments_category(callback: CallbackQuery, member: ChatMember, member_settings: AccessSettingsObject):
+async def select_punishments_category(callback: CallbackQuery, user: User, member: ChatMember, member_settings: AccessSettingsObject):
     callback_data = callback.data.split(':')[2:]
     page = int(callback_data[1])
     public_indicator = int(callback_data[0])
@@ -55,7 +55,9 @@ async def select_punishments_category(callback: CallbackQuery, member: ChatMembe
     data["dialogs"][dialog_id] = dialog
     await redis.set_serialized(str(member.id), data)
 
-    await callback.message.edit_text(text=_("Choose a punishment from the list below\n\n"
+    await callback.message.edit_text(text=user.get_string(True) +
+                                          "\n\n" +
+                                          _("Choose a punishment from the list below\n\n"
                                             "Category: %(category)s" % {"category": category[public_indicator]}),
                                      reply_markup=keyboard)
 
@@ -89,7 +91,7 @@ async def choose_privacy(callback: CallbackQuery, member: ChatMember, user: User
 
 
 @punishment_deletion_router.callback_query(F.data.contains("accept"))
-async def accept(callback: CallbackQuery, member: ChatMember, member_settings: AccessSettingsObject):
+async def accept(callback: CallbackQuery, user: User, member: ChatMember, member_settings: AccessSettingsObject):
     callback_data = callback.data.split(':')[2:]
     punishment_id = callback_data[0]
 
@@ -118,7 +120,9 @@ async def accept(callback: CallbackQuery, member: ChatMember, member_settings: A
         dialog["page"] = int(dialog["page"]) - 1
 
     await bot.edit_message_text(chat_id=member.chat_id, message_id=callback.message.reply_to_message.message_id,
-                                text=_("Choose a punishment from the list below\n\n"
+                                text=user.get_string(True) +
+                                     "\n\n" +
+                                     _("Choose a punishment from the list below\n\n"
                                        "Category: %(category)s" % {"category": category[int(dialog["public_indicator"])]}),
                                 reply_markup=keyboard)
 

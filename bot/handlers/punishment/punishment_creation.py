@@ -49,9 +49,7 @@ async def create_punishment_command(message: Message, user: User, state: FSMCont
     await message.delete()
 
 
-@punishment_creation_router.message(PunishmentCreationStates.choosing_name,
-                                    F.content_type == ContentType.TEXT,
-                                    ReplyToCorrectMessage("message_id"))
+@punishment_creation_router.message(PunishmentCreationStates.choosing_name, F.content_type == ContentType.TEXT)
 async def choose_name(message: Message, user: User, state: FSMContext):
     await state.set_state(PunishmentCreationStates.choosing_time)
     data = await state.get_data()
@@ -85,8 +83,7 @@ async def choose_name(message: Message, user: User, state: FSMContext):
 
 @punishment_creation_router.message(PunishmentCreationStates.choosing_time,
                                     F.text.regexp(r"\d+"),
-                                    F.content_type == ContentType.TEXT,
-                                    ReplyToCorrectMessage("message_id"))
+                                    F.content_type == ContentType.TEXT)
 async def choose_name(message: Message, member: ChatMember, member_settings: AccessSettingsObject, state: FSMContext):
     data = await state.get_data()
     await state.clear()
@@ -129,9 +126,7 @@ async def choose_privacy(callback: CallbackQuery, member: ChatMember, user: User
     data["dialogs"].pop(dialog_id)
     await redis.set_serialized(str(member.id), data)
 
-    await callback.message.answer(text=user.get_string(True) +
-                                       "\n\n" +
-                                       _("Punishment '%(punishment)s' successfully created" % {"punishment": punishment.get_string()}))
+    await callback.message.answer(text=_("Punishment '%(punishment)s' successfully created" % {"punishment": punishment.get_string()}))
     await callback.message.delete()
 
 

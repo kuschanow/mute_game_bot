@@ -72,7 +72,7 @@ async def start_game(callback: CallbackQuery, game: RandomChoiceGame, chat: Chat
     await callback.answer()
 
 
-@game_router.callback_query(F.data.contains("start"), MagicData(F.member_settings.can_press_other_buttons.is_(True)))
+@game_router.callback_query(F.data.contains("delete"), MagicData(F.member_settings.can_press_other_buttons.is_(True)))
 @game_router.callback_query(F.data.contains("delete"), IsGameCreator())
 async def delete_game(callback: CallbackQuery, game: RandomChoiceGame, member: ChatMember):
     if await sync_to_async(lambda: game.result is not None)():

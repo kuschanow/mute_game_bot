@@ -6,7 +6,6 @@ from aiogram.types import CallbackQuery, Message
 from django.utils.translation import gettext as _
 
 from bot.filters import DialogAccess
-from bot.filters.ReplyToCorrectMessage import ReplyToCorrectMessage
 from bot.handlers.games.random_choice.GameSettingsStates import GameSettingsStates
 from bot.handlers.games.random_choice.utils.keyboards import get_game_settings_keyboard, get_game_menu_keyboard
 from bot.handlers.games.random_choice.utils.texts import get_players
@@ -17,7 +16,6 @@ from shared import redis
 
 game_settings_router = Router()
 game_settings_router.callback_query.filter(F.data.startswith("rcgs"), DialogAccess())
-game_settings_router.message.filter(ReplyToCorrectMessage("message_id"))
 set_random_choice_game_middlewares(game_settings_router)
 
 
