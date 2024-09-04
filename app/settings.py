@@ -210,8 +210,14 @@ CELERY_TIMEZONE = env('CELERY_TIMEZONE', default='UTC')
 
 BOT_TOKEN = env('BOT_TOKEN', default=None)
 ADMINS = env.list('ADMINS', cast=int, default=[])
-PAGE_SIZE = env.int("PAGE_SIZE", default=10)
-RATING_PAGE_SIZE = env.int("RATING_PAGE_SIZE", default=10)
+PAGE_SIZE = env.int('PAGE_SIZE', default=10)
+RATING_PAGE_SIZE = env.int('RATING_PAGE_SIZE', default=10)
+
+WEB_SERVER_HOST=env('WEB_SERVER_HOST', default="localhost")
+WEB_SERVER_PORT=env.int('WEB_SERVER_PORT', default=8080)
+WEBHOOK_SECRET=env('WEBHOOK_SECRET', default="my-secret")
+BASE_WEBHOOK_URL=env('BASE_WEBHOOK_URL', default=None)
+WEBHOOK_PATH=env('WEBHOOK_PATH', default="/webhook")
 
 SEQ_KEY = env('SEQ_KEY', default=None)
 SEQ_URL = env('SEQ_URL', default=None)

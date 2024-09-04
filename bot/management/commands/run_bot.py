@@ -51,4 +51,24 @@ class Command(BaseCommand):
 
         dp.startup.register(on_startup)
         dp.shutdown.register(on_shutdown)
-        asyncio.run(dp.start_polling(bot))
+
+        if settings.BASE_WEBHOOK_URL:
+            from aiohttp import web
+            from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
+
+            app = web.Application()
+
+            webhook_requests_handler = SimpleRequestHandler(
+                dispatcher=dp,
+                bot=bot,
+                secret_token=settings.WEBHOOK_SECRET,
+            )
+            webhook_requests_handler.register(app, path=settings.WEBHOOK_PATH)
+
+            setup_application(app, dp, bot=bot)
+
+            web.run_app(app, host=settings.WEB_SERVER_HOST, port=settings.WEB_SERVER_PORT)
+
+            asyncio.run(bot.set_webhook(f"{settings.BASE_WEBHOOK_URL}{settings.WEBHOOK_PATH}", secret_token=settings.WEBHOOK_SECRET))
+        else:
+            asyncio.run(dp.start_polling(bot))
