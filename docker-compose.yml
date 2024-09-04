@@ -26,6 +26,8 @@ services:
 
   bot:
     <<: *x-backend-service
+    ports:
+      - "8080:8080"
     depends_on:
       migrate:
         condition: service_completed_successfully
