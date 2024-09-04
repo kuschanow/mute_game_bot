@@ -16,7 +16,22 @@ down:
 	docker compose down
 
 log:
+	docker compose logs
+
+bot_log:
 	docker compose logs bot
+
+backend_log:
+	docker compose logs backend
+
+migrate_log:
+	docker compose logs megrate
+
+celery_log:
+	docker compose logs celery-worker celery-beat
+
+backend_exec:
+	docker compose exec -it backend /bin/bash
 
 psql:
 	docker compose exec postgres psql -U postgres postgres

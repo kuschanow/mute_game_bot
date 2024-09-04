@@ -17,6 +17,7 @@ async def message_logger_middleware(
         data: Dict[str, Any]
 ) -> Any:
     logger.info("Receive message from user: %(user_id)s in chat: %(chat_id)s" % {"user_id": data["user"].id, "chat_id": data["chat"].id},
+                message_text=message.text,
                 user=data["user"],
                 chat=data["chat"],
                 chat_member=data["member"],
@@ -36,6 +37,7 @@ async def callback_logger_middleware(
         data: Dict[str, Any]
 ) -> Any:
     logger.info("Receive callback from user: %(user_id)s in chat: %(chat_id)s" % {"user_id": data["user"].id, "chat_id": data["chat"].id},
+                callback_data=callback.data,
                 user=data["user"],
                 chat=data["chat"],
                 chat_member=data["member"],
