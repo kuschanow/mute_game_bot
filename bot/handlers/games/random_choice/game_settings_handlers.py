@@ -61,7 +61,7 @@ async def is_creator_play(callback: CallbackQuery, game: RandomChoiceGame, membe
     except:
         pass
 
-    await callback.answer(_("Reply with your values"))
+    await callback.answer(_("Send with your values"))
 
 
 @game_settings_router.message(GameSettingsStates.set_min_max, F.text.regexp(r"(\d+|)-(\d+|)"))

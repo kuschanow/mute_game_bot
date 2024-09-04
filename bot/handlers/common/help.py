@@ -9,7 +9,6 @@ help_router = Router()
 
 @help_router.message(Command(settings.HELP_COMMAND))
 async def help_command(message: Message):
-    # Translators: help command answer
     text = _("This is basic text, replace it to suit your needs")
     await message.answer(text=text)
 

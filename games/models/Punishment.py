@@ -23,7 +23,7 @@ class Punishment(models.Model):
         # h = int(self.time.total_seconds() // 3600)
         # m = int(self.time.total_seconds() // 60 - h * 60)
         # return f"{self.name} ({h:02}:{m:02})"
-        return f"{self.name} {str(self.time).replace(' days,', '')[:-3]}"
+        return f"'{self.name}' ({str(self.time).replace(' days,', '')[:-3]})"
 
     def clean(self):
         self.name = self.name[:100].replace("\n", " ")

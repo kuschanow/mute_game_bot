@@ -1,6 +1,6 @@
 from aiogram import Router
 
-from .main_chat_settings import main_access_settings_router
+from .main_access_settings import main_access_settings_router
 
 access_settings_router = Router()
 

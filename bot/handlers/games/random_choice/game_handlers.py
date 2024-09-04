@@ -20,7 +20,6 @@ set_random_choice_game_middlewares(game_router)
 
 @game_router.callback_query(MagicData(F.game.is_finished.is_(True)))
 async def finished_game_handler(callback: CallbackQuery):
-    # Translators: finished game message
     await callback.answer(_("This game is already finished"))
 
 @game_router.callback_query(F.data.contains("join"), MagicData(F.game.is_opened_to_join.is_(True)), invert_f(IsGameCreator()))
@@ -31,15 +30,12 @@ async def join_game(callback: CallbackQuery, game: RandomChoiceGame, member: Cha
 
     if await sync_to_async(lambda: member in game.players.all())():
         await sync_to_async(game.players.remove)(member)
-        # Translators: remove player from the game
         await callback.answer(_("You left the game"))
     else:
         if await game.players.acount() < game.max_players_count:
             await RandomChoiceGamePlayer(game=game, chat_member=member).asave()
-            # Translators: add player to the game
             await callback.answer(_("You join the game"))
         else:
-            # Translators: can't join to the game warning
             await callback.answer(_("The game already has the maximum number of players"))
             return
 

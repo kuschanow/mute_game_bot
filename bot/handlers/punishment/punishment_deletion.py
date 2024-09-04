@@ -71,8 +71,6 @@ async def choose_privacy(callback: CallbackQuery, member: ChatMember, user: User
 
     data = await redis.get_deserialized(str(member.id))
     dialog = data["dialogs"][dialog_id]
-
-    # Translators: deletion acceptance dialogue
     deletion_message = await callback.message.reply(text=user.get_string(True) +
                                                          "\n\n" +
                                                          _("Accept deletion for %(punishment)s" % {"punishment": (await Punishment.objects.aget(id=punishment_id)).get_string()}),

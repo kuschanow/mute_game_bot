@@ -36,12 +36,9 @@ async def create_punishment_command(message: Message, user: User, state: FSMCont
     await state.clear()
     await state.set_state(PunishmentCreationStates.choosing_name)
     data = await state.get_data()
-
-    # Translators: choosing name for new punishment
-    bot_message = await message.answer(text=_(user.get_string(True) +
-                                              "\n\n" +
-                                              "To create a punishment, you need to write the name of the new punishment in response to this "
-                                              "message."),
+    bot_message = await message.answer(text=user.get_string(True) +
+                                            "\n\n" +
+                                            _("To create a punishment, you need to write the name of the new punishment"),
                                        reply_markup=get_cancel_keyboard())
     data["message_id"] = bot_message.message_id
     await state.set_data(data)
@@ -55,13 +52,11 @@ async def choose_name(message: Message, user: User, state: FSMContext):
     data = await state.get_data()
 
     data["name"] = message.text
-
-    # Translators: choosing time for new punishment
     await bot.delete_message(chat_id=message.chat.id, message_id=data["message_id"])
     new_message = await message.answer(user.get_string(True) +
                                        "\n\n" +
                                        _("Name: %(name)s\n\n"
-                                         "Now in response to this message write the time of punishment" % {"name": message.text}) +
+                                         "Now send the time of punishment" % {"name": message.text}) +
                                        _("Time can be specified in any of the following ways:") +
                                        _("<blockquote>"
                                          "5:30 – 5 hours and 30 minutes\n"
@@ -96,7 +91,6 @@ async def choose_name(message: Message, member: ChatMember, member_settings: Acc
     if "dialogs" not in new_data:
         new_data["dialogs"] = {}
     await bot.delete_message(chat_id=member.chat_id, message_id=int(data["message_id"]))
-    # Translators: privacy selection message
     privacy_selection_message = await message.answer(text=_("Now select the privacy of the new punishment"),
                          reply_markup=get_punishment_privacy_selection_keyboard("pc", member_settings.can_create_public_punishments))
 
@@ -126,7 +120,7 @@ async def choose_privacy(callback: CallbackQuery, member: ChatMember, user: User
     data["dialogs"].pop(dialog_id)
     await redis.set_serialized(str(member.id), data)
 
-    await callback.message.answer(text=_("Punishment '%(punishment)s' successfully created" % {"punishment": punishment.get_string()}))
+    await callback.message.answer(text=_("Punishment %(punishment)s successfully created" % {"punishment": punishment.get_string()}))
     await callback.message.delete()
 
 
@@ -148,7 +142,5 @@ async def cancel_creation(callback: CallbackQuery, member: ChatMember):
     user_data["dialogs"].pop(str(callback.message.message_id))
 
     await redis.set_serialized(str(member.id), user_data)
-
-    # Translators: ok message
     await callback.answer(_("Ok"))
     await callback.message.delete()

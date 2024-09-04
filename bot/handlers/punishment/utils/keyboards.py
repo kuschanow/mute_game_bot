@@ -75,12 +75,10 @@ def get_punishments_keyboard(chat_member: ChatMember, member_settings: AccessSet
 
     if page > 0:
         navigation.insert(0,
-            # Translators: previous page
             InlineKeyboardButton(text=_("Previous"), callback_data=f"pd:p_category:{public_indicator}:{page-1}")
         )
     if punishments_count - (page + 1) * settings.PAGE_SIZE > 0:
         navigation.append(
-            # Translators: next page
             InlineKeyboardButton(text=_("Next"), callback_data=f"pd:p_category:{public_indicator}:{page+1}")
         )
 

@@ -50,12 +50,10 @@ def get_punishments_keyboard(chat_member: ChatMember, member_settings: AccessSet
 
     if page > 0:
         navigation.insert(0,
-            # Translators: previous page
             InlineKeyboardButton(text=_("Previous"), callback_data=f"rcgc:p_category:{public_indicator}:{page-1}")
         )
     if punishments_count - (page + 1) * settings.PAGE_SIZE > 0:
         navigation.append(
-            # Translators: next page
             InlineKeyboardButton(text=_("Next"), callback_data=f"rcgc:p_category:{public_indicator}:{page+1}")
         )
 
@@ -77,7 +75,7 @@ def get_game_settings_keyboard(game: RandomChoiceGame, member_settings: AccessSe
 
     buttons = [
         [
-            InlineKeyboardButton(text=_("%(indicator)s Add creator as player"
+            InlineKeyboardButton(text=_("Add creator as player %(indicator)s"
                                         % {"indicator": '🚫' if not member_settings.can_join_games else ('✅' if game.is_creator_playing else '☑️')}),
                                  callback_data=f"rcgs:is_creator_play:{game.id}")
         ],
@@ -109,17 +107,14 @@ def get_game_settings_keyboard(game: RandomChoiceGame, member_settings: AccessSe
 async def get_game_menu_keyboard(game: RandomChoiceGame) -> InlineKeyboardMarkup:
     buttons = [
         [
-            # Translators: join game button
             InlineKeyboardButton(text=_("Join/Left"), callback_data=f"rcg:join:{game.id}")
         ],
         [
-            # Translators: delete
             InlineKeyboardButton(text=_("Delete"), callback_data=f"rcg:delete:{game.id}"),
         ]
     ]
 
     if game.max_players_count >= await game.players.acount() >= game.min_players_count:
-        # Translators: start game button
         buttons.insert(1, [InlineKeyboardButton(text=_("Start"), callback_data=f"rcg:start:{game.id}")])
 
     return InlineKeyboardMarkup(inline_keyboard=buttons)

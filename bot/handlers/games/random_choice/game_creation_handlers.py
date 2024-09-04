@@ -53,8 +53,6 @@ async def select_punishments_category(callback: CallbackQuery, member: ChatMembe
     page = int(callback_data[1])
     public_indicator = int(callback_data[0])
     keyboard = await get_punishments_keyboard(member, member_settings, public_indicator, page)
-
-    # Translators: punishment selection dialogue
     await callback.message.edit_text(text=_("Choose a punishment from the list below\n\n"
                                             "Category: %(category)s" % {"category": category[public_indicator]}),
                                      reply_markup=keyboard)

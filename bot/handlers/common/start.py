@@ -9,7 +9,6 @@ start_router = Router()
 
 @start_router.message(CommandStart())
 async def start_command(message: Message):
-    # Translators: start command answer
     text = _("Hi!\n"
              "I'm a bot that randomly gives out mutes in various games of luck.\n"
              "You can find out more by entering the command /%(help)s." % { "help": settings.HELP_COMMAND }

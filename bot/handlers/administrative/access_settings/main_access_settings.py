@@ -10,7 +10,7 @@ from django.utils.translation import gettext as _
 
 from bot.filters import IsOwner
 from shared.enums import SettingsTarget
-from .utils.chat_settings_keyboards import get_settings_targets_keyboard, get_settings_keyboard
+from .utils.access_settings_keyboards import get_settings_targets_keyboard, get_settings_keyboard
 from bot.models import AccessSettings, Chat, AccessSettingsObject
 
 main_access_settings_router = Router()
@@ -29,7 +29,7 @@ async def chat_settings(callback: CallbackQuery, chat: Chat):
     _settings = await AccessSettings.objects.aget(chat=chat, target=SettingsTarget.CHAT.value, target_id=chat.id)
     settings_object = await sync_to_async(lambda: _settings.settings_object)()
 
-    await callback.message.edit_text(text=_("Global settings"),
+    await callback.message.edit_text(text=_("Global"),
                                      reply_markup=get_settings_keyboard(settings_object, 0))
     await callback.answer()
 
@@ -42,7 +42,7 @@ async def admins_settings(callback: CallbackQuery, chat: Chat):
         _settings = await AccessSettings.objects.aget(chat=chat, target=SettingsTarget.ADMINS.value, target_id=chat.id)
         settings_object_for_admins = await sync_to_async(lambda: _settings.settings_object)()
 
-    await callback.message.edit_text(text=_("Admins settings"),
+    await callback.message.edit_text(text=_("Admins"),
                                      reply_markup=get_settings_keyboard(settings_object_for_admins, 1))
     await callback.answer()
 

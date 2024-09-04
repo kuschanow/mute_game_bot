@@ -16,6 +16,5 @@ wrong_private_commands_router.message.filter(F.chat.type.is_(ChatType.PRIVATE))
 @wrong_private_commands_router.message(Command(settings.SHOW_CHAT_STATS_COMMAND))
 @wrong_private_commands_router.message(Command(settings.SHOW_USER_STATS_COMMAND))
 async def private_game_command(message: Message):
-    # Translators: wrong command answer
     await message.answer(text=_("Can't use this in private chat"))
 

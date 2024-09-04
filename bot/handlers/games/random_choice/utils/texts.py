@@ -7,7 +7,6 @@ from games.models import RandomChoiceGame, RandomChoiceGameResult
 
 @sync_to_async
 def get_players(game: RandomChoiceGame) -> str:
-    # Translators: game menu base text
     text = _("%(game_text)s\n\n"
              "Players:\n" % {"game_text": async_to_sync(game.get_string)()})
 
@@ -23,7 +22,6 @@ def get_losers(game_result: RandomChoiceGameResult) -> str:
     text = ""
     for player in game_result.game.players.annotate(join_at=F('randomchoicegameplayer__join_at')).order_by("join_at"):
         if game_result.losers.filter(chat_member=player).exists():
-            # Translators: loser
             text += _("%(player)s ◀️\n" % {"player": player.get_string(True)})
         else:
             text += f"{player.get_string(True)}\n"
