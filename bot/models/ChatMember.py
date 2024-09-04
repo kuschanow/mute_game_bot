@@ -58,3 +58,6 @@ class ChatMember(models.Model):
         await member.asave()
 
         return member
+
+    def __str__(self):
+        return f"[id: {self.id}] - [status: {self.status}] - [can_interact: {self.can_interact}]"

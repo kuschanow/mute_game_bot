@@ -26,4 +26,4 @@ class User(models.Model):
         return user
 
     def __str__(self):
-        return f"[id {self.id}] - [username {self.username}] - [name {self.first_name}{f' {self.last_name}' if self.last_name is not None else ''}]"
+        return f"[id: {self.id}] - [username: @{self.username}] - [name: {self.first_name}{f' {self.last_name}' if self.last_name is not None else ''}]"

@@ -8,5 +8,6 @@ admin.site.register(Chat)
 admin.site.register(ChatMember)
 admin.site.register(ChatSettings)
 admin.site.register(AccessSettings)
+admin.site.register(AccessGroup)
 admin.site.register(AccessSettingsObject)
 

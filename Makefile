@@ -15,6 +15,9 @@ build_no_cache:
 down:
 	docker compose down
 
+log:
+	docker compose logs bot
+
 psql:
 	docker compose exec postgres psql -U postgres postgres
 

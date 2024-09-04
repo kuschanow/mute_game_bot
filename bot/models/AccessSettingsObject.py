@@ -33,3 +33,8 @@ class AccessSettingsObject(models.Model):
             can_create_public_punishments=True,
             can_delete_public_punishments=True,
         ))[0]
+
+    def __str__(self):
+        return (f"[can_join_games: {self.can_join_games}] - [can_create_games: {self.can_create_games}] - [can_press_other_buttons: {self.can_press_other_buttons}]"
+                f" - [min_punish_time_for_rand_choice: {self.min_punish_time_for_rand_choice}] - [max_punish_time_for_rand_choice: {self.max_punish_time_for_rand_choice}]"
+                f" - [can_create_public_punishments: {self.can_create_public_punishments}] - [can_delete_public_punishments: {self.can_delete_public_punishments}]")

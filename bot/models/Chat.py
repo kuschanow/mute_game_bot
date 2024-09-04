@@ -38,3 +38,6 @@ class Chat(models.Model):
             )
 
         return chat
+
+    def __str__(self):
+        return f"[id: {self.id}] - [name: {self.name}] - [type: {self.type}]"
