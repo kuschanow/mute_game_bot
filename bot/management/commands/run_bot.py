@@ -12,6 +12,9 @@ from django_celery_beat.models import CrontabSchedule, PeriodicTask
 async def on_startup(bot: Bot):
     logger.info("Bot is running")
 
+    if settings.BASE_WEBHOOK_URL:
+        await bot.set_webhook(f"{settings.BASE_WEBHOOK_URL}{settings.WEBHOOK_PATH}", secret_token=settings.WEBHOOK_SECRET)
+
     from bot.commands import set_default_commands
     await set_default_commands(bot)
 
@@ -68,8 +71,6 @@ class Command(BaseCommand):
             webhook_requests_handler.register(app, path=settings.WEBHOOK_PATH)
 
             setup_application(app, dp, bot=bot)
-
-            asyncio.run(bot.set_webhook(f"{settings.BASE_WEBHOOK_URL}{settings.WEBHOOK_PATH}", secret_token=settings.WEBHOOK_SECRET))
 
             web.run_app(app, host=settings.WEB_SERVER_HOST, port=settings.WEB_SERVER_PORT)
         else:
