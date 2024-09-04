@@ -69,9 +69,9 @@ class Command(BaseCommand):
 
             setup_application(app, dp, bot=bot)
 
-            web.run_app(app, host=settings.WEB_SERVER_HOST, port=settings.WEB_SERVER_PORT)
-
             asyncio.run(bot.set_webhook(f"{settings.BASE_WEBHOOK_URL}{settings.WEBHOOK_PATH}", secret_token=settings.WEBHOOK_SECRET))
+
+            web.run_app(app, host=settings.WEB_SERVER_HOST, port=settings.WEB_SERVER_PORT)
         else:
             logger.info("Run via polling")
             asyncio.run(dp.start_polling(bot))
