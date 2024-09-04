@@ -56,7 +56,7 @@ async def choose_name(message: Message, user: User, state: FSMContext):
     new_message = await message.answer(user.get_string(True) +
                                        "\n\n" +
                                        _("Name: %(name)s\n\n"
-                                         "Now send the time of punishment" % {"name": message.text}) +
+                                         "Now send the time of punishment" ) % {"name": message.text} +
                                        _("Time can be specified in any of the following ways:") +
                                        _("<blockquote>"
                                          "5:30 – 5 hours and 30 minutes\n"
@@ -120,7 +120,7 @@ async def choose_privacy(callback: CallbackQuery, member: ChatMember, user: User
     data["dialogs"].pop(dialog_id)
     await redis.set_serialized(str(member.id), data)
 
-    await callback.message.answer(text=_("Punishment %(punishment)s successfully created" % {"punishment": punishment.get_string()}))
+    await callback.message.answer(text=_("Punishment %(punishment)s successfully created" ) % {"punishment": punishment.get_string()})
     await callback.message.delete()
 
 

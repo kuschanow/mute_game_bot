@@ -40,9 +40,9 @@ def get_top_stats_keyboard(chat: Chat, page: int, category: str) -> InlineKeyboa
     games_count_category_text = _("By games")
 
     if category == "time":
-        time_category_text = _("▶ %(text)s ◀" % {"text": time_category_text})
+        time_category_text = _("▶ %(text)s ◀" ) % {"text": time_category_text}
     else:
-        games_count_category_text = _("▶ %(text)s ◀" % {"text": games_count_category_text})
+        games_count_category_text = _("▶ %(text)s ◀" ) % {"text": games_count_category_text}
 
     buttons.append([
         InlineKeyboardButton(text=time_category_text, callback_data=f"stats:chat:top:{page}:time"),

@@ -35,6 +35,8 @@ async def on_startup(bot: Bot):
 async def on_shutdown(bot: Bot):
     logger.info("Bot is turned off")
 
+    await bot.delete_webhook()
+
     for admin_id in settings.ADMINS:
         await bot.send_message(text=_("Bot is turned off"), chat_id=admin_id)
 

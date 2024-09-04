@@ -39,7 +39,7 @@ async def start_game_command(message: Message, member: ChatMember, user: User, m
     dialog_message = await message.answer(text=user.get_string(True) +
                                                "\n\n" +
                                                _("Choose a punishment from the list below\n\n"
-                                                 "Category: %(category)s" % {"category": _("Public")}),
+                                                 "Category: %(category)s" ) % {"category": _("Public")},
                          reply_markup=keyboard)
     await message.delete()
 
@@ -54,7 +54,7 @@ async def select_punishments_category(callback: CallbackQuery, member: ChatMembe
     public_indicator = int(callback_data[0])
     keyboard = await get_punishments_keyboard(member, member_settings, public_indicator, page)
     await callback.message.edit_text(text=_("Choose a punishment from the list below\n\n"
-                                            "Category: %(category)s" % {"category": category[public_indicator]}),
+                                            "Category: %(category)s" ) % {"category": category[public_indicator]},
                                      reply_markup=keyboard)
 
 @game_creation_router.callback_query(F.data.contains("p_select"))

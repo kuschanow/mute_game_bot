@@ -32,7 +32,7 @@ async def delete_punishments_command(message: Message, member: ChatMember, user:
     dialog_message = await message.answer(text=user.get_string(True) +
                                               "\n\n" +
                                                _("Choose a punishment from the list below\n\n"
-                                              "Category: %(category)s" % {"category": _("Public")}), reply_markup=keyboard)
+                                              "Category: %(category)s" ) % {"category": _("Public")}, reply_markup=keyboard)
 
     data["dialogs"][str(dialog_message.message_id)] = {"datetime": str(datetime.utcnow()), "public_indicator": public_indicator, "page": 1}
     await redis.set_serialized(str(member.id), data)
@@ -58,7 +58,7 @@ async def select_punishments_category(callback: CallbackQuery, user: User, membe
     await callback.message.edit_text(text=user.get_string(True) +
                                           "\n\n" +
                                           _("Choose a punishment from the list below\n\n"
-                                            "Category: %(category)s" % {"category": category[public_indicator]}),
+                                            "Category: %(category)s" ) % {"category": category[public_indicator]},
                                      reply_markup=keyboard)
 
 
@@ -73,7 +73,7 @@ async def choose_privacy(callback: CallbackQuery, member: ChatMember, user: User
     dialog = data["dialogs"][dialog_id]
     deletion_message = await callback.message.reply(text=user.get_string(True) +
                                                          "\n\n" +
-                                                         _("Accept deletion for %(punishment)s" % {"punishment": (await Punishment.objects.aget(id=punishment_id)).get_string()}),
+                                                         _("Accept deletion for %(punishment)s" ) % {"punishment": (await Punishment.objects.aget(id=punishment_id)).get_string()},
                                                     reply_markup=get_acceptance_keyboard(punishment_id))
 
     if "deletion_message_id" in dialog:
@@ -121,7 +121,7 @@ async def accept(callback: CallbackQuery, user: User, member: ChatMember, member
                                 text=user.get_string(True) +
                                      "\n\n" +
                                      _("Choose a punishment from the list below\n\n"
-                                       "Category: %(category)s" % {"category": category[int(dialog["public_indicator"])]}),
+                                       "Category: %(category)s" ) % {"category": category[int(dialog["public_indicator"])]},
                                 reply_markup=keyboard)
 
     data["dialogs"][dialog_id] = dialog

@@ -65,7 +65,7 @@ def get_detailed_text(stats_list: List[tuple]) -> str:
 
 @sync_to_async
 def get_detailed_text_by_member(stats_list: List[tuple], member: ChatMember) -> str:
-    text = _("%(member)s random choice game stats:\n" % {"member": member.get_string(True)})
+    text = _("%(member)s random choice game stats:\n" ) % {"member": member.get_string(True)}
 
     for stat in stats_list:
         text += f"    {stat[0]}: <strong>{stat[1]}</strong>\n"

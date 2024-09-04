@@ -65,18 +65,18 @@ def get_punishments_keyboard(chat_member: ChatMember, member_settings: AccessSet
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
 def get_game_settings_keyboard(game: RandomChoiceGame, member_settings: AccessSettingsObject, highlight_this: str = "") -> InlineKeyboardMarkup:
-    min_max_text = _("Min-Max players: %(min)d - %(max)s" % {"min": game.min_players_count, "max": game.max_players_count or "♾"})
-    losers_text = _("Losers count: %(count)s" % {"count": game.losers_count})
+    min_max_text = _("Min-Max players: %(min)d - %(max)s" ) % {"min": game.min_players_count, "max": game.max_players_count or "♾"}
+    losers_text = _("Losers count: %(count)s" ) % {"count": game.losers_count}
 
     if highlight_this == "min_max":
-        min_max_text = _("▶ %(text)s ◀" % {"text": min_max_text})
+        min_max_text = _("▶ %(text)s ◀" ) % {"text": min_max_text}
     if highlight_this == "losers":
-        losers_text = _("▶ %(text)s ◀" % {"text": losers_text})
+        losers_text = _("▶ %(text)s ◀" ) % {"text": losers_text}
 
     buttons = [
         [
             InlineKeyboardButton(text=_("Add creator as player %(indicator)s"
-                                        % {"indicator": '🚫' if not member_settings.can_join_games else ('✅' if game.is_creator_playing else '☑️')}),
+                                        ) % {"indicator": '🚫' if not member_settings.can_join_games else ('✅' if game.is_creator_playing else '☑️')},
                                  callback_data=f"rcgs:is_creator_play:{game.id}")
         ],
         [
@@ -89,7 +89,7 @@ def get_game_settings_keyboard(game: RandomChoiceGame, member_settings: AccessSe
         ],
         [
             InlineKeyboardButton(text=_("Autostart when full %(indicator)s"
-                                        % {"indicator": '🚫' if game.max_players_count is None else ('✅' if game.autostart_at_max_players else '☑️')}),
+                                        ) % {"indicator": '🚫' if game.max_players_count is None else ('✅' if game.autostart_at_max_players else '☑️')},
                                  callback_data=f"rcgs:when_full:{game.id}"),
         ],
         [

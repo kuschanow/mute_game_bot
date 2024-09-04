@@ -11,7 +11,6 @@ start_router = Router()
 async def start_command(message: Message):
     text = _("Hi!\n"
              "I'm a bot that randomly gives out mutes in various games of luck.\n"
-             "You can find out more by entering the command /%(help)s." % { "help": settings.HELP_COMMAND }
-    )
+             "You can find out more by entering the command /%(help)s.") % { "help": settings.HELP_COMMAND }
     await message.answer(text=text)
 

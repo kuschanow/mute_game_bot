@@ -64,23 +64,23 @@ class RandomChoiceGame(models.Model):
             autostart_text = when_full
         elif self.autostart_at is not None:
             if self.autostart_at.date() == datetime.now().date():
-                at_time = _("%(time)s" % {"time": self.autostart_at.strftime("%H:%M:%S")})
+                at_time = _("%(time)s" ) % {"time": self.autostart_at.strftime("%H:%M:%S")}
             else:
-                at_time = _("%(time)s" % {"time": self.autostart_at.strftime("%Y-%m-%d %H:%M:%S")})
+                at_time = _("%(time)s" ) % {"time": self.autostart_at.strftime("%Y-%m-%d %H:%M:%S")}
 
             if not self.autostart_at_max_players:
-                autostart_text = _("at %(time)s" % {"time": at_time})
+                autostart_text = _("at %(time)s" ) % {"time": at_time}
             else:
                 if self.autostart_operator == "or":
-                    autostart_text = _("if time is %(time)s or %(full)s" % {"time": at_time, "full": when_full})
+                    autostart_text = _("if time is %(time)s or %(full)s" ) % {"time": at_time, "full": when_full}
                 else:
-                    autostart_text = _("if the time is greater than %(time)s and %(full)s" % {"time": at_time, "full": when_full})
+                    autostart_text = _("if the time is greater than %(time)s and %(full)s" ) % {"time": at_time, "full": when_full}
         return (_("<b>Random choice game</b>\n\n") +
                 f"👑 {self.creator.get_string(True)}\n\n" +
-                _("punishment: %(punishment)s\n" % {"punishment": self.punishment.get_string()}) +
-                _("👤: %(min)d - %(max)s\n" % {"min": self.min_players_count, "max": self.max_players_count or "♾"}) +
-                _("☠: %(losers)d\n\n" % {"losers": self.losers_count}) +
-                _("autostart: %(text)s" % {"text": autostart_text}))
+                _("punishment: %(punishment)s\n" ) % {"punishment": self.punishment.get_string()} +
+                _("👤: %(min)d - %(max)s\n" ) % {"min": self.min_players_count, "max": self.max_players_count or "♾"} +
+                _("☠: %(losers)d\n\n" ) % {"losers": self.losers_count} +
+                _("autostart: %(text)s" ) % {"text": autostart_text})
 
     def clean(self):
         players_count = self.players.count()

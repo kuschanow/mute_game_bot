@@ -41,27 +41,27 @@ def get_settings_keyboard(settings_object: AccessSettingsObject | None, _type: i
         buttons = [
             [
                 InlineKeyboardButton(
-                    text=_("Can play %(status)s" % {"status": '✅' if settings_object.can_join_games else '☑️'}),
+                    text=_("Can play %(status)s" ) % {"status": '✅' if settings_object.can_join_games else '☑️'},
                     callback_data=f"stgs:{_type}:join_games:{settings_object.id}")
             ],
             [
                 InlineKeyboardButton(
-                    text=_("Can create games %(status)s" % {"status": '✅' if settings_object.can_create_games else '☑️'}),
+                    text=_("Can create games %(status)s" ) % {"status": '✅' if settings_object.can_create_games else '☑️'},
                     callback_data=f"stgs:{_type}:create_games:{settings_object.id}")
             ],
             [
                 InlineKeyboardButton(
-                    text=_("Can press other buttons %(status)s" % {"status": '✅' if settings_object.can_press_other_buttons else '☑️'}),
+                    text=_("Can press other buttons %(status)s" ) % {"status": '✅' if settings_object.can_press_other_buttons else '☑️'},
                     callback_data=f"stgs:{_type}:press_other_buttons:{settings_object.id}")
             ],
             [
                 InlineKeyboardButton(
-                    text=_("Can create punishments %(status)s" % {"status": '✅' if settings_object.can_create_public_punishments else '☑️'}),
+                    text=_("Can create punishments %(status)s" ) % {"status": '✅' if settings_object.can_create_public_punishments else '☑️'},
                     callback_data=f"stgs:{_type}:create_punishments:{settings_object.id}")
             ],
             [
                 InlineKeyboardButton(
-                    text=_("Can delete punishments %(status)s" % {"status": '✅' if settings_object.can_delete_public_punishments else '☑️'}),
+                    text=_("Can delete punishments %(status)s" ) % {"status": '✅' if settings_object.can_delete_public_punishments else '☑️'},
                     callback_data=f"stgs:{_type}:delete_punishments:{settings_object.id}")
             ],
             [
