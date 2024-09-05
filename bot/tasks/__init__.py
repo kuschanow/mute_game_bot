@@ -1,0 +1,1 @@
+from .garbage_collector_task import collect_garbage
