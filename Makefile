@@ -25,7 +25,7 @@ backend_log:
 	docker compose logs backend
 
 migrate_log:
-	docker compose logs megrate
+	docker compose logs migrate
 
 celery_log:
 	docker compose logs celery-worker celery-beat
