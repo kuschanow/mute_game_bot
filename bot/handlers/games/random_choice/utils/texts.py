@@ -22,7 +22,7 @@ def get_losers(game_result: RandomChoiceGameResult) -> str:
     text = ""
     for player in game_result.game.players.annotate(join_at=F('randomchoicegameplayer__join_at')).order_by("join_at"):
         if game_result.losers.filter(chat_member=player).exists():
-            text += _("%(player)s ◀️\n" ) % {"player": player.get_string(True)}
+            text += _("▶ %(player)s\n" ) % {"player": player.get_string(True)}
         else:
             text += f"{player.get_string(True)}\n"
 
