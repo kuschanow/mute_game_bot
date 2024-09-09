@@ -105,6 +105,7 @@ async def set_losers(message: Message, game: RandomChoiceGame, member_settings: 
         game.max_players_count = number + 1
 
     game.losers_count = number
+    await game.asave()
 
     data = await state.get_data()
     await update_message(int(data["message_id"]), message.chat.id, game, member_settings)
