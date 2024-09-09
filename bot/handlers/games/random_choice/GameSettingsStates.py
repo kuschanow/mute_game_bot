@@ -7,7 +7,7 @@ class GameSettingsStates(StatesGroup):
     set_autostart_time = State()
 
     @staticmethod
-    def get_be_string(name: str):
+    def get_by_string(name: str):
         if name == "min_max":
             return GameSettingsStates.set_min_max
         if name == "losers":

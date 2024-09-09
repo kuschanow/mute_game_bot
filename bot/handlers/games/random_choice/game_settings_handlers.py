@@ -6,6 +6,7 @@ from aiogram.types import CallbackQuery, Message
 from django.utils.translation import gettext as _
 
 from bot.filters import DialogAccess
+from bot.generate_session import bot
 from bot.handlers.games.random_choice.GameSettingsStates import GameSettingsStates
 from bot.handlers.games.random_choice.utils.keyboards import get_game_settings_keyboard, get_game_menu_keyboard
 from bot.handlers.games.random_choice.utils.texts import get_players
@@ -19,9 +20,11 @@ game_settings_router.callback_query.filter(F.data.startswith("rcgs"), DialogAcce
 set_random_choice_game_middlewares(game_settings_router)
 
 
-async def update_message(message, game, member_settings):
+async def update_message(message_id, chat_id, game, member_settings):
     try:
-        await message.edit_text(
+        await bot.edit_message_text(
+            chat_id=chat_id,
+            message_id=message_id,
             text=await game.get_string(),
             reply_markup=get_game_settings_keyboard(game, member_settings)
         )
@@ -54,10 +57,10 @@ async def is_creator_play(callback: CallbackQuery, game: RandomChoiceGame, membe
 
     button = callback.data.split(":")[-2]
 
-    await state.set_state(GameSettingsStates.get_be_string(button))
+    await state.set_state(GameSettingsStates.get_by_string(button))
 
     try:
-        await callback.message.edit_text(text=callback.message.text, reply_markup=get_game_settings_keyboard(game, member_settings, button))
+        await callback.message.edit_reply_markup(reply_markup=get_game_settings_keyboard(game, member_settings, button))
     except:
         pass
 
@@ -83,8 +86,9 @@ async def set_min(message: Message, game: RandomChoiceGame, member_settings: Acc
     game.max_players_count = max_num
     await game.asave()
 
+    data = await state.get_data()
+    await update_message(int(data["message_id"]), message.chat.id, game, member_settings)
     await state.clear()
-    await update_message(message.reply_to_message, game, member_settings)
     await message.delete()
 
 
@@ -101,8 +105,10 @@ async def set_losers(message: Message, game: RandomChoiceGame, member_settings: 
         game.max_players_count = number + 1
 
     game.losers_count = number
-    await game.asave()
-    await update_message(message.reply_to_message, game, member_settings)
+
+    data = await state.get_data()
+    await update_message(int(data["message_id"]), message.chat.id, game, member_settings)
+    await state.clear()
     await state.clear()
 
     await message.delete()
