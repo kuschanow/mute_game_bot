@@ -63,7 +63,8 @@ async def select_punishment(callback: CallbackQuery, member: ChatMember, member_
     punishment_id = callback_data[0]
 
     game = RandomChoiceGame(punishment_id=punishment_id,
-                            creator=member)
+                            creator=member,
+                            autostart_at_max_players=True)
     await sync_to_async(lambda: game.clean())()
     await game.asave()
 
