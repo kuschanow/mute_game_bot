@@ -1,0 +1,8 @@
+from aiogram import Router
+
+from .games_menu import games_menu_router
+from .random_choice_game_access_settings import random_choice_game_access_settings_router
+
+games_settings_router = Router()
+
+games_settings_router.include_routers(random_choice_game_access_settings_router, games_menu_router)
