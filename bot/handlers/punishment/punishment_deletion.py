@@ -34,7 +34,7 @@ async def delete_punishments_command(message: Message, member: ChatMember, user:
                                                _("Choose a punishment from the list below\n\n"
                                               "Category: %(category)s" ) % {"category": _("Public")}, reply_markup=keyboard)
 
-    data["dialogs"][str(dialog_message.message_id)] = {"datetime": str(datetime.utcnow()), "public_indicator": public_indicator, "page": 1}
+    data["dialogs"][str(dialog_message.message_id)] = {"datetime": str(datetime.utcnow()), "public_indicator": public_indicator, "page": 0}
     await redis.set_serialized(str(member.id), data)
 
     await message.delete()
