@@ -58,12 +58,6 @@ def get_random_choice_game_detailed_stats(chat: Chat) -> List[tuple]:
             .annotate(punishment_time=F('punishment_seconds') / 1_000_000 * F('losers_count'))
             .aggregate(total_seconds=Sum('punishment_time'))['total_seconds']
             or 0
-    ) if settings.USE_SQLITE else (
-            games
-            .annotate(punishment_seconds=ExpressionWrapper(Extract('punishment__time', 'second'), output_field=fields.PositiveIntegerField()))
-            .annotate(punishment_time=F('punishment_seconds') * F('losers_count'))
-            .aggregate(total_seconds=Sum('punishment_time'))['total_seconds']
-            or 0
     )
     total_time = timedelta(seconds=total_time_seconds)
 
@@ -81,12 +75,6 @@ def get_random_choice_game_detailed_stats_by_user(member: ChatMember) -> List[tu
             games
             .annotate(punishment_seconds=ExpressionWrapper(F('game__punishment__time'), output_field=fields.PositiveIntegerField()))
             .annotate(punishment_time=F('punishment_seconds') / 1_000_000 * F('game__losers_count'))
-            .aggregate(total_seconds=Sum('punishment_time'))['total_seconds']
-            or 0
-    ) if settings.USE_SQLITE else (
-            games
-            .annotate(punishment_seconds=ExpressionWrapper(Extract('game__punishment__time', 'second'), output_field=fields.PositiveIntegerField()))
-            .annotate(punishment_time=F('punishment_seconds') * F('game__losers_count'))
             .aggregate(total_seconds=Sum('punishment_time'))['total_seconds']
             or 0
     )
