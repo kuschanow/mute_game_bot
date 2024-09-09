@@ -1,3 +1,4 @@
+import traceback
 from typing import Callable, Dict, Any, Awaitable
 
 from aiogram import Router
@@ -24,8 +25,9 @@ async def message_logger_middleware(
                 settings=data["member_settings"])
     try:
         return await handler(message, data)
-    except Exception as e:
-        logger.error(e,
+    except:
+        logger.error(traceback.format_exc(),
+                     message_text=message.text,
                      user=data["user"],
                      chat=data["chat"],
                      chat_member=data["member"],
@@ -44,8 +46,9 @@ async def callback_logger_middleware(
                 settings=data["member_settings"])
     try:
         return await handler(callback, data)
-    except Exception as e:
-        logger.error(e,
+    except:
+        logger.error(traceback.format_exc(),
+                     callback_data=callback.data,
                      user=data["user"],
                      chat=data["chat"],
                      chat_member=data["member"],
