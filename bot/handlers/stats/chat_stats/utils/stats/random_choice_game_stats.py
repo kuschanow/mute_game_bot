@@ -18,10 +18,16 @@ def get_random_choice_game_time_stats(chat: Chat) -> List[tuple[ChatMember, time
         .filter(player__chat_member__chat_id=chat.id)
         .values('player__chat_member_id')
         .annotate(total_time=Sum(F('game_result__game__punishment__time')))
+    ) if settings.USE_SQLITE else (
+        RandomChoiceGameLoser.objects
+        .filter(player__chat_member__chat_id=chat.id)
+        .values('player__chat_member_id')
+        .annotate(punishment_seconds=ExpressionWrapper(Extract('game_result__game__punishment__time', 'EPOCH'), output_field=fields.PositiveIntegerField()))
+        .annotate(total_time=Sum(F('punishment_seconds')))
     )
 
     result = [
-        (ChatMember.objects.get(id=stat['player__chat_member_id']), timedelta(seconds=stat['total_time'].total_seconds()))
+        (ChatMember.objects.get(id=stat['player__chat_member_id']), timedelta(seconds=stat['total_time']))
         for stat in members_stats
     ]
 
@@ -54,8 +60,7 @@ def get_random_choice_game_detailed_stats(chat: Chat) -> List[tuple]:
     total_games = games.count()
     total_time_seconds = (
             games
-            .annotate(punishment_seconds=ExpressionWrapper(F('punishment__time'), output_field=fields.PositiveIntegerField()))
-            .annotate(punishment_time=F('punishment_seconds') / 1_000_000 * F('losers_count'))
+            .annotate(punishment_time=F('punishment__time') / 1_000_000 * F('losers_count'))
             .aggregate(total_seconds=Sum('punishment_time'))['total_seconds']
             or 0
     ) if settings.USE_SQLITE else (
