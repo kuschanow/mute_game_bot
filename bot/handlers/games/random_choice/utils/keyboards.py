@@ -14,7 +14,7 @@ from games.models import Punishment, RandomChoiceGame
 @sync_to_async
 def get_punishments_keyboard(chat_member: ChatMember, member_settings: AccessSettingsObject, public_indicator: int, page: int) -> InlineKeyboardMarkup:
     start_index = page * settings.PAGE_SIZE
-    end_index = page + 1 * settings.PAGE_SIZE
+    end_index = (page + 1) * settings.PAGE_SIZE
 
     filters = {
         'is_deleted': False,
