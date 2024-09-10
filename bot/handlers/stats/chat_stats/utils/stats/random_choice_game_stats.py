@@ -17,13 +17,12 @@ def get_random_choice_game_time_stats(chat: Chat) -> List[tuple[ChatMember, time
         RandomChoiceGameLoser.objects
         .filter(player__chat_member__chat_id=chat.id)
         .values('player__chat_member_id')
-        .annotate(total_time=Sum(F('game_result__game__punishment__time')))
+        .annotate(total_time=Sum(F('game_result__game__punishment__time'), output_field=fields.PositiveIntegerField) / 1_000_000)
     ) if settings.USE_SQLITE else (
         RandomChoiceGameLoser.objects
         .filter(player__chat_member__chat_id=chat.id)
         .values('player__chat_member_id')
-        .annotate(punishment_seconds=ExpressionWrapper(Extract('game_result__game__punishment__time', 'EPOCH'), output_field=fields.PositiveIntegerField()))
-        .annotate(total_time=Sum(F('punishment_seconds')))
+        .annotate(total_time=Sum(Extract('game_result__game__punishment__time', 'EPOCH'), output_field=fields.PositiveIntegerField))
     )
 
     result = [
