@@ -102,8 +102,8 @@ def get_games_select_keyboard(target_id: str) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
 def get_random_choice_game_settings_keyboard(settings_object: AccessSettingsObject, target_id: str, highlight_this: str = "") -> InlineKeyboardMarkup:
-    min_time_text = _("Min time: %(time)s") % {"time": str(settings_object.min_punish_time_for_rand_choice).replace(' days,', '')[:-3]}
-    max_time_text = _("Max time: %(time)s") % {"time": str(settings_object.max_punish_time_for_rand_choice).replace(' days,', '')[:-3]}
+    min_time_text = _("Min time: %(time)s") % {"time": str(settings_object.min_punish_time_for_rand_choice).replace(' day,', '').replace(' days,', '')[:-3]}
+    max_time_text = _("Max time: %(time)s") % {"time": str(settings_object.max_punish_time_for_rand_choice).replace(' day,', '').replace(' days,', '')[:-3]}
 
     if highlight_this == "min_time":
         min_time_text = _("▶ %(text)s ◀") % {"text": min_time_text}

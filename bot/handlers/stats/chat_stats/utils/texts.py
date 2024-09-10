@@ -32,7 +32,7 @@ def get_top_time_text(stats_list: List[tuple[ChatMember, timedelta]], page: int)
         return text
 
     for i in range(len(places)):
-        text += f"    {page * settings.RATING_PAGE_SIZE + i + 1}) {places[i][0].get_string(True)}: {str(places[i][1]).replace(' days,', '')[:-3]}\n"
+        text += f"    {page * settings.RATING_PAGE_SIZE + i + 1}) {places[i][0].get_string(True)}: {str(places[i][1]).replace(' day,', '').replace(' days,', '')[:-3]}\n"
 
     return text
 

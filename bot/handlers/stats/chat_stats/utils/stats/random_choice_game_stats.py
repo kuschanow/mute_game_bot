@@ -68,7 +68,7 @@ def get_random_choice_game_detailed_stats(chat: Chat) -> List[tuple]:
     total_time = timedelta(seconds=total_time_seconds)
 
     return [(_("Total games count"), total_games),
-            (_("Total time in mute"), str(total_time).replace(' days,', '')[:-3])]
+            (_("Total time in mute"), str(total_time).replace(' day,', '').replace(' days,', '')[:-3])]
 
 
 @sync_to_async
@@ -95,4 +95,4 @@ def get_random_choice_game_detailed_stats_by_user(member: ChatMember) -> List[tu
     return [(_("Total games count"), total_games),
             (_("Lost games count"), lost_games), 
             (_("Created games count"), created_games),
-            (_("Total time in mute"), str(total_time).replace(' days,', '')[:-3])]
+            (_("Total time in mute"), str(total_time).replace(' day,', '').replace(' days,', '')[:-3])]
