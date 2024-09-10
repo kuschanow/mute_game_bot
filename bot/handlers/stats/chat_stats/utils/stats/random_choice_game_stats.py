@@ -85,14 +85,14 @@ def get_random_choice_game_detailed_stats_by_user(member: ChatMember) -> List[tu
             games
             .filter(randomchoicegameloser__isnull=False)
             .annotate(punishment_seconds=ExpressionWrapper(F('game__punishment__time'), output_field=fields.PositiveIntegerField()))
-            .annotate(punishment_time=F('punishment_seconds') / 1_000_000 * F('game__losers_count'))
+            .annotate(punishment_time=F('punishment_seconds') / 1_000_000)
             .aggregate(total_seconds=Sum('punishment_time'))['total_seconds']
             or 0
     ) if settings.USE_SQLITE else (
             games
             .filter(randomchoicegameloser__isnull=False)
             .annotate(punishment_seconds=ExpressionWrapper(Extract('game__punishment__time', 'EPOCH'), output_field=fields.PositiveIntegerField()))
-            .annotate(punishment_time=F('punishment_seconds') * F('game__losers_count'))
+            .annotate(punishment_time=F('punishment_seconds'))
             .aggregate(total_seconds=Sum('punishment_time'))['total_seconds']
             or 0
     )
