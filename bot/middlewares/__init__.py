@@ -15,4 +15,4 @@ def set_middlewares(router: Router):
     set_chat_middlewares(router)
     set_member_middlewares(router)
     set_settings_middlewares(router)
-    set_logger_middlewares(router)
+    #set_logger_middlewares(router)
