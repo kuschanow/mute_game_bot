@@ -25,8 +25,9 @@ async def message_logger_middleware(
                 settings=data["member_settings"])
     try:
         return await handler(message, data)
-    except:
-        logger.error(traceback.format_exc(),
+    except Exception as e:
+        logger.error(e,
+                     traceback=traceback.format_exc(),
                      message_text=message.text,
                      user=data["user"],
                      chat=data["chat"],
@@ -46,8 +47,9 @@ async def callback_logger_middleware(
                 settings=data["member_settings"])
     try:
         return await handler(callback, data)
-    except:
-        logger.error(traceback.format_exc(),
+    except Exception as e:
+        logger.error(e,
+                     traceback=traceback.format_exc(),
                      callback_data=callback.data,
                      user=data["user"],
                      chat=data["chat"],

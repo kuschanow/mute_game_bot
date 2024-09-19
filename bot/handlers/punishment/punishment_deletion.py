@@ -13,7 +13,7 @@ from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.utils.translation import gettext as _
 
-from bot.handlers.punishment.utils.keyboards import get_punishments_keyboard
+from bot.utils.punishment_selection_keyboard import get_punishments_keyboard
 from bot.models import ChatMember, AccessSettingsObject, User
 from games.models import Punishment
 from shared import category
@@ -32,7 +32,7 @@ async def delete_punishments_command(message: Message, state: FSMContext, user: 
     dialog.values["public_indicator"] = public_indicator
     dialog.values["category"] = category[public_indicator]
     dialog.values["page"] = 0
-    bot_message = await dialog.send_message("punishment_select", await get_punishments_keyboard(member, member_settings, public_indicator, dialog.values["page"]))
+    bot_message = await dialog.send_message("select", await get_punishments_keyboard(member, member_settings, public_indicator, dialog.values["page"]))
     dialog.values["main_message_id"] = bot_message.message_id
     await dialog_manager.save_dialog(dialog)
     await message.delete()
@@ -45,7 +45,7 @@ async def select_punishments_privacy(callback: CallbackQuery, dialog: DialogInst
     dialog.values["public_indicator"] = button_data["public_indicator"]
     dialog.values["category"] = category[button_data["public_indicator"]]
     dialog.values["page"] = 0
-    await dialog.edit_message(callback.message.message_id, "punishment_select", keyboard)
+    await dialog.edit_message(callback.message.message_id, "select", keyboard)
 
 
 @punishment_deletion_router.callback_query(ButtonFilter("change_page"))
@@ -53,7 +53,7 @@ async def select_page(callback: CallbackQuery, dialog: DialogInstance, button_da
     await callback.answer()
     keyboard = await get_punishments_keyboard(member, member_settings, dialog.values["public_indicator"], button_data["page"])
     dialog.values["page"] = button_data["page"]
-    await dialog.edit_message(callback.message.message_id, "punishment_select", keyboard)
+    await dialog.edit_message(callback.message.message_id, "select", keyboard)
 
 
 @punishment_deletion_router.callback_query(ButtonFilter("punishment"))

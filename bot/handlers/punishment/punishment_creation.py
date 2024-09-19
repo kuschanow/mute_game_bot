@@ -29,7 +29,7 @@ async def create_punishment_command(message: Message, user: User, state: FSMCont
     await state.clear()
     dialog: DialogInstance = dialog_manager.create_dialog(prototype_name="punishment_creation", user_id=user.id, chat_id=message.chat.id)
     dialog.values["prefix"] = _("Dialog with ") + user.get_string(True) + "\n\n"
-    await dialog.send_message("punishment_name", [["cancel"]])
+    await dialog.send_message("name", [["cancel"]])
     await dialog.set_state(PunishmentCreationStates.choosing_name, context=state)
     await dialog_manager.save_dialog(dialog)
     await message.delete()
@@ -40,7 +40,7 @@ async def choose_name(message: Message, state: FSMContext, dialog: DialogInstanc
     await dialog.remove_state(context=state)
     dialog.values["name"] = message.text
     await dialog.delete_all_messages()
-    await dialog.send_message("punishment_time", [["cancel"]])
+    await dialog.send_message("time", [["cancel"]])
     await dialog.set_state(PunishmentCreationStates.choosing_time, context=state)
     await message.delete()
 
@@ -58,7 +58,7 @@ async def choose_name(message: Message, member_settings: AccessSettingsObject, s
 
     dialog.values["time"] = time.total_seconds()
     await dialog.delete_all_messages()
-    await dialog.send_message("punishment_privacy",
+    await dialog.send_message("privacy",
                               [
                                   [("privacy", {"public_indicator": -1}), ("privacy", {"public_indicator": 0})],
                                   [("privacy", {"public_indicator": 1})] if member_settings.can_create_public_punishments else [],

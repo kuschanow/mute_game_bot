@@ -1,18 +1,20 @@
-from typing import Dict, Tuple, List, Any
-from uuid import uuid4
+from typing import Optional, Dict, Any, List, Tuple
 
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from asgiref.sync import sync_to_async
 from django.conf import settings
-from django.utils.translation import gettext as _
 
-from bot.models import ChatMember
-from bot.models.AccessSettingsObject import AccessSettingsObject
+from bot.models import ChatMember, AccessSettingsObject
 from games.models import Punishment
 
 
 @sync_to_async
-def get_punishments_keyboard(chat_member: ChatMember, member_settings: AccessSettingsObject, public_indicator: int, page: int) -> List[List[str|Tuple[str, Dict[str, Any]]]]:
+def get_punishments_keyboard(
+        chat_member: ChatMember,
+        member_settings: AccessSettingsObject,
+        public_indicator: int,
+        page: int,
+        time_filters: Optional[Dict[str, Any]] = None
+) -> List[List[str | Tuple[str, Dict[str, Any]]]]:
     start_index = page * settings.PAGE_SIZE
     end_index = (page + 1) * settings.PAGE_SIZE
 
@@ -25,8 +27,14 @@ def get_punishments_keyboard(chat_member: ChatMember, member_settings: AccessSet
         filters['created_in'] = chat_member.chat
     else:
         filters['created_in__isnull'] = True
+
     if public_indicator < 1:
         filters['created_by'] = chat_member.user
+
+    if time_filters:
+        filters.update(time_filters)
+
+    filters = {k: v for k, v in filters.items() if v}
 
     query = Punishment.objects.filter(**filters).order_by("time")
 
