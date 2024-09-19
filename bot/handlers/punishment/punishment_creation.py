@@ -70,7 +70,7 @@ async def choose_name(message: Message, member_settings: AccessSettingsObject, s
 @punishment_creation_router.callback_query(ButtonFilter("privacy"))
 async def choose_privacy(callback: CallbackQuery, user: User, chat: Chat, dialog_manager: DialogManager, dialog: DialogInstance, button_data: Dict):
     await callback.answer()
-    public_indicator = button_data["data"]["public_indicator"]
+    public_indicator = button_data["public_indicator"]
 
     punishment = Punishment(name=dialog.values["name"],
                             time=timedelta(seconds=int(dialog.values["time"])),

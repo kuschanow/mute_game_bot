@@ -1,3 +1,4 @@
 from .punishment_creation_dialog_prototype import punishment_creation
+from .punishment_deletion_dialog_prototype import punishment_deletion
 
-prototypes = [punishment_creation]
+prototypes = [punishment_creation, punishment_deletion]

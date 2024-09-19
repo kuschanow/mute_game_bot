@@ -1,102 +1,71 @@
-from datetime import datetime
+from typing import Dict, Any
 
 from aiogram import Router, F
 from aiogram.enums import ChatType
 from aiogram.filters import MagicData, Command
+from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 from aiogram.types import Message
+from aiogram_dialog_manager import DialogInstance, DialogManager
+from aiogram_dialog_manager.filter import ButtonFilter, DialogFilter
+from aiogram_dialog_manager.filter.access import DialogAccessFilter
 from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.utils.translation import gettext as _
 
-from bot.filters import DialogAccess
-from bot.generate_session import bot
-from bot.handlers.punishment.utils.keyboards import get_punishments_keyboard, get_acceptance_keyboard
+from bot.handlers.punishment.utils.keyboards import get_punishments_keyboard
 from bot.models import ChatMember, AccessSettingsObject, User
 from games.models import Punishment
-from shared import redis, category
+from shared import category
 
 punishment_deletion_router = Router()
 punishment_deletion_router.message.filter(MagicData(F.chat.type.is_not(ChatType.PRIVATE)))
-punishment_deletion_router.callback_query.filter(F.data.startswith("pd"), DialogAccess())
+punishment_deletion_router.callback_query.filter(DialogAccessFilter(), DialogFilter("punishment_deletion"))
 
 
 @punishment_deletion_router.message(Command(settings.DELETE_PUNISHMENT_COMMAND))
-async def delete_punishments_command(message: Message, member: ChatMember, user: User, member_settings: AccessSettingsObject):
-    data = await redis.get_deserialized(str(member.id))
-    if "dialogs" not in data:
-        data["dialogs"] = {}
+async def delete_punishments_command(message: Message, state: FSMContext, user: User, dialog_manager: DialogManager, member, member_settings: AccessSettingsObject):
+    await state.clear()
+    dialog: DialogInstance = dialog_manager.create_dialog(prototype_name="punishment_deletion", user_id=user.id, chat_id=message.chat.id)
+    dialog.values["prefix"] = _("Dialog with ") + user.get_string(True) + "\n\n"
     public_indicator = 1 if member_settings.can_delete_public_punishments else 0
-    keyboard = await get_punishments_keyboard(member, member_settings, public_indicator, 0)
-
-    dialog_message = await message.answer(text=user.get_string(True) +
-                                              "\n\n" +
-                                               _("Choose a punishment from the list below\n\n"
-                                              "Category: %(category)s" ) % {"category": _("Public")}, reply_markup=keyboard)
-
-    data["dialogs"][str(dialog_message.message_id)] = {"datetime": str(datetime.utcnow()), "public_indicator": public_indicator, "page": 0}
-    await redis.set_serialized(str(member.id), data)
-
+    dialog.values["public_indicator"] = public_indicator
+    dialog.values["category"] = category[public_indicator]
+    dialog.values["page"] = 0
+    bot_message = await dialog.send_message("punishment_select", await get_punishments_keyboard(member, member_settings, public_indicator, dialog.values["page"]))
+    dialog.values["main_message_id"] = bot_message.message_id
+    await dialog_manager.save_dialog(dialog)
     await message.delete()
 
 
-@punishment_deletion_router.callback_query(F.data.contains("p_category"))
-async def select_punishments_category(callback: CallbackQuery, user: User, member: ChatMember, member_settings: AccessSettingsObject):
-    callback_data = callback.data.split(':')[2:]
-    page = int(callback_data[1])
-    public_indicator = int(callback_data[0])
-    keyboard = await get_punishments_keyboard(member, member_settings, public_indicator, page)
-    dialog_id = str(callback.message.message_id)
-
-    data = await redis.get_deserialized(str(member.id))
-    dialog = data["dialogs"][dialog_id]
-    dialog["public_indicator"] = public_indicator
-    dialog["page"] = page
-    data["dialogs"][dialog_id] = dialog
-    await redis.set_serialized(str(member.id), data)
-
-    await callback.message.edit_text(text=user.get_string(True) +
-                                          "\n\n" +
-                                          _("Choose a punishment from the list below\n\n"
-                                            "Category: %(category)s" ) % {"category": category[public_indicator]},
-                                     reply_markup=keyboard)
-
-
-@punishment_deletion_router.callback_query(F.data.contains("p_select"))
-async def choose_privacy(callback: CallbackQuery, member: ChatMember, user: User):
-    callback_data = callback.data.split(':')[2:]
-    punishment_id = callback_data[0]
-
-    dialog_id = str(callback.message.message_id)
-
-    data = await redis.get_deserialized(str(member.id))
-    dialog = data["dialogs"][dialog_id]
-    deletion_message = await callback.message.reply(text=user.get_string(True) +
-                                                         "\n\n" +
-                                                         _("Accept deletion for %(punishment)s" ) % {"punishment": (await Punishment.objects.aget(id=punishment_id)).get_string()},
-                                                    reply_markup=get_acceptance_keyboard(punishment_id))
-
-    if "deletion_message_id" in dialog:
-        try:
-            await bot.delete_message(chat_id=callback.message.chat.id, message_id=dialog["deletion_message_id"])
-        except:
-            pass
-    dialog["deletion_message_id"] = deletion_message.message_id
-    data["dialogs"][dialog_id] = dialog
-    data["dialogs"][deletion_message.message_id] = {"datetime": str(datetime.utcnow())}
-    await redis.set_serialized(str(member.id), data)
+@punishment_deletion_router.callback_query(ButtonFilter("privacy"))
+async def select_punishments_privacy(callback: CallbackQuery, dialog: DialogInstance, button_data: Dict[str, Any], member, member_settings):
     await callback.answer()
+    keyboard = await get_punishments_keyboard(member, member_settings, button_data["public_indicator"], 0)
+    dialog.values["public_indicator"] = button_data["public_indicator"]
+    dialog.values["category"] = category[button_data["public_indicator"]]
+    dialog.values["page"] = 0
+    await dialog.edit_message(callback.message.message_id, "punishment_select", keyboard)
 
 
-@punishment_deletion_router.callback_query(F.data.contains("accept"))
-async def accept(callback: CallbackQuery, user: User, member: ChatMember, member_settings: AccessSettingsObject):
-    callback_data = callback.data.split(':')[2:]
-    punishment_id = callback_data[0]
+@punishment_deletion_router.callback_query(ButtonFilter("change_page"))
+async def select_page(callback: CallbackQuery, dialog: DialogInstance, button_data: Dict[str, Any], member, member_settings):
+    await callback.answer()
+    keyboard = await get_punishments_keyboard(member, member_settings, dialog.values["public_indicator"], button_data["page"])
+    dialog.values["page"] = button_data["page"]
+    await dialog.edit_message(callback.message.message_id, "punishment_select", keyboard)
 
-    dialog_id = str(callback.message.reply_to_message.message_id)
 
-    data = await redis.get_deserialized(str(member.id))
-    dialog = data["dialogs"][dialog_id]
+@punishment_deletion_router.callback_query(ButtonFilter("punishment"))
+async def select_punishment(callback: CallbackQuery, dialog: DialogInstance, button_data: Dict[str, Any], user: User):
+    await callback.answer()
+    dialog.values["punishment_name"] = button_data["name"]
+    await dialog.send_message("accept", [[("accept", {"id": button_data["id"]})], ["refuse"]])
+
+
+@punishment_deletion_router.callback_query(ButtonFilter("accept"))
+async def accept(callback: CallbackQuery, member: ChatMember, dialog: DialogInstance, button_data: Dict[str, Any], member_settings: AccessSettingsObject):
+    punishment_id = button_data["id"]
 
     punishment = await Punishment.objects.aget(id=punishment_id)
 
@@ -106,50 +75,26 @@ async def accept(callback: CallbackQuery, user: User, member: ChatMember, member
     else:
         await punishment.adelete()
 
-    dialog.pop("deletion_message_id")
-
     await callback.answer(_("Deleted"))
-    await callback.message.delete()
+    await dialog.delete_message(callback.message.message_id)
 
     try:
-        keyboard = await get_punishments_keyboard(member, member_settings, int(dialog["public_indicator"]), int(dialog["page"]))
+        keyboard = await get_punishments_keyboard(member, member_settings, dialog.values["public_indicator"], dialog.values["page"])
     except:
-        keyboard = await get_punishments_keyboard(member, member_settings, int(dialog["public_indicator"]), int(dialog["page"]) - 1)
-        dialog["page"] = int(dialog["page"]) - 1
+        dialog.values["page"] = dialog.values["page"] - 1
+        keyboard = await get_punishments_keyboard(member, member_settings, dialog.values["public_indicator"], dialog.values["page"])
 
-    await bot.edit_message_text(chat_id=member.chat_id, message_id=callback.message.reply_to_message.message_id,
-                                text=user.get_string(True) +
-                                     "\n\n" +
-                                     _("Choose a punishment from the list below\n\n"
-                                       "Category: %(category)s" ) % {"category": category[int(dialog["public_indicator"])]},
-                                reply_markup=keyboard)
-
-    data["dialogs"][dialog_id] = dialog
-    data["dialogs"].pop(str(callback.message.message_id))
-    await redis.set_serialized(str(member.id), data)
+    await dialog.edit_keyboard(dialog.values["main_message_id"], keyboard)
 
 
-@punishment_deletion_router.callback_query(F.data.contains("refuse"))
-async def cancel_deletion(callback: CallbackQuery, member: ChatMember):
-    dialog_id = str(callback.message.reply_to_message.message_id)
-
-    data = await redis.get_deserialized(str(member.id))
-    dialog = data["dialogs"][dialog_id]
-    dialog.pop("deletion_message_id")
-    data["dialogs"][dialog_id] = dialog
-    data["dialogs"].pop(str(callback.message.message_id))
-    await redis.set_serialized(str(member.id), data)
-
+@punishment_deletion_router.callback_query(ButtonFilter("refuse"))
+async def refuse_deletion(callback: CallbackQuery, dialog: DialogInstance):
     await callback.answer(_("Ok"))
-    await callback.message.delete()
+    await dialog.delete_message(callback.message.message_id)
 
 
-@punishment_deletion_router.callback_query(F.data.contains("cancel"))
-async def cancel(callback: CallbackQuery, member: ChatMember):
-    user_data = await redis.get_deserialized(str(member.id))
-    user_data["dialogs"].pop(str(callback.message.message_id))
-
-    await redis.set_serialized(str(member.id), user_data)
-
+@punishment_deletion_router.callback_query(ButtonFilter("cancel"))
+async def cancel(callback: CallbackQuery, dialog: DialogInstance, dialog_manager: DialogManager):
     await callback.answer(_("Ok"))
-    await callback.message.delete()
+    await dialog.delete_all_messages()
+    await dialog_manager.delete_dialog(dialog)
