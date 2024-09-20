@@ -1,1 +1,2 @@
 from .garbage_collector import collect_garbage
+from .punishment_selection_keyboard import get_punishments_keyboard

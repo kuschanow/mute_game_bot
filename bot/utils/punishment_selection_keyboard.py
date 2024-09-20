@@ -1,20 +1,24 @@
 from typing import Optional, Dict, Any, List, Tuple
 
+from aiogram_dialog_manager.instance import Dialog
 from asgiref.sync import sync_to_async
 from django.conf import settings
 
 from bot.models import ChatMember, AccessSettingsObject
 from games.models import Punishment
 
+from bot.utils.dialog_buttons import cancel, privacy, punishment, change_page
+
 
 @sync_to_async
 def get_punishments_keyboard(
+        dialog: Dialog,
         chat_member: ChatMember,
-        member_settings: AccessSettingsObject,
-        public_indicator: int,
-        page: int,
-        time_filters: Optional[Dict[str, Any]] = None
+        member_settings: AccessSettingsObject
 ) -> List[List[str | Tuple[str, Dict[str, Any]]]]:
+    page = dialog.values["page"]
+    public_indicator = dialog.values["public_indicator"]
+
     start_index = page * settings.PAGE_SIZE
     end_index = (page + 1) * settings.PAGE_SIZE
 
@@ -31,8 +35,8 @@ def get_punishments_keyboard(
     if public_indicator < 1:
         filters['created_by'] = chat_member.user
 
-    if time_filters:
-        filters.update(time_filters)
+    if "time_filters" in dialog.values:
+        filters.update(dialog.values["time_filters"])
 
     filters = {k: v for k, v in filters.items() if v}
 
@@ -42,31 +46,32 @@ def get_punishments_keyboard(
     punishments_count = query.count()
 
     if len(punishments) == 0 and page > 0:
-        raise Exception("Invalid page number")
+        dialog.values["page"] = (query.count() - 1) // settings.PAGE_SIZE
 
     buttons = []
     for p in punishments:
-        buttons.append([("punishment", {"id": str(p.id), "name": p.get_string()})])
+        buttons.append([punishment.get_instance({"id": str(p.id), "name": p.get_string()})])
 
-    privacy = [
-        ("privacy", {"public_indicator": -1}),
-        ("privacy", {"public_indicator": 0})
+    privacy_block = [
+        privacy.get_instance({"public_indicator": -1}),
+        privacy.get_instance({"public_indicator": 0})
     ]
 
     if member_settings.can_delete_public_punishments:
-        privacy.append(("privacy", {"public_indicator": 1}))
+        privacy_block.append(privacy.get_instance({"public_indicator": 1})
+    )
 
-    privacy.pop(public_indicator + 1)
+    privacy_block.pop(public_indicator + 1)
 
     navigation = []
 
     if page > 0:
-        navigation.append(("change_page", {"to_page": "prev", "page": page - 1}))
+        navigation.append(change_page.get_instance({"to_page": "prev", "page": page - 1}))
     if punishments_count - (page + 1) * settings.PAGE_SIZE > 0:
-        navigation.append(("change_page", {"to_page": "next", "page": page + 1}))
+        navigation.append(change_page.get_instance({"to_page": "next", "page": page + 1}))
 
     buttons.append(navigation)
-    buttons.append(privacy)
-    buttons.append(["cancel"])
+    buttons.append(privacy_block)
+    buttons.append([cancel.get_instance()])
 
     return buttons

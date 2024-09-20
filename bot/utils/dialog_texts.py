@@ -1,8 +1,7 @@
-from aiogram_dialog_manager import DialogPrototype
 from django.utils.translation import gettext as _
-from bot.dialog_buttons import cancel, privacy
 
-texts = {
+
+punishment_creation_texts = {
     "name": "%(prefix)s" +
             _("To create a punishment, you need to write the name of the new punishment"),
 
@@ -24,7 +23,26 @@ texts = {
                _("Now select the privacy of the new punishment"),
 }
 
-punishment_creation = DialogPrototype(type_name="punishment_creation",
-                            texts=texts,
-                            buttons=[cancel, privacy],
-                            get_state_from_reply=True)
+punishment_deletion_texts = {
+    "select": "%(prefix)s" +
+              _("Choose a punishment from the list below\n\n"
+                "Category: %(category)s"),
+
+    "accept": "%(prefix)s" +
+              _("Accept deletion for %(punishment_name)s"),
+}
+
+random_choice_game_creation_texts = {
+    "punishment": "%(prefix)s" +
+                  _("Choose a punishment from the list below\n\n"
+                    "Category: %(category)s"),
+
+    "settings": "%(game_text)s"
+}
+
+random_choice_game_texts = {
+    "game": "%(game_text)s\n\n"
+            "%(game_players)s",
+
+    "results": "%(game_losers)s"
+}
