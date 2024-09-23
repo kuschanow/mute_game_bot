@@ -6,10 +6,10 @@ from aiogram.enums import ChatType
 from aiogram.filters import Command, MagicData
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
+from aiogram_dialog_manager import Dialog
 from aiogram_dialog_manager import DialogManager
-from aiogram_dialog_manager.filter import DialogFilter, ButtonFilter, StateFilter
-from aiogram_dialog_manager.filter.access import DialogAccessFilter
-from aiogram_dialog_manager.instance import Dialog, ButtonInstance
+from aiogram_dialog_manager.filter import DialogFilter, ButtonFilter, StateFilter, DialogAccessFilter
+from aiogram_dialog_manager.instance import ButtonInstance
 from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.utils.translation import gettext as _
@@ -47,10 +47,13 @@ async def start_game_command(message: Message, member: ChatMember, user: User, m
     dialog.data["category"] = category[1]
     dialog.data["page"] = 0
 
-    bot_message = await dialog.send_message(random_choice_game_creation_texts["punishment"], punishments,
-                                            menu_data={"chat_member": member, "member_settings": member_settings, "time_filters":
-                                                {"time__lte": member_settings.max_punish_time_for_rand_choice,
-                                                 "time__gte": member_settings.min_punish_time_for_rand_choice}})
+    menu_data = {
+        "chat_member": member,
+        "member_settings": member_settings,
+        "time_filters": member_settings.time_filters
+    }
+
+    bot_message = await dialog.send_message(random_choice_game_creation_texts["punishment"], punishments, menu_data=menu_data)
     dialog.data["main_message_id"] = bot_message.message_id
     await dialog_manager.save_dialog(dialog)
     await message.delete()
@@ -63,20 +66,28 @@ async def select_punishments_privacy(callback: CallbackQuery, dialog: Dialog, bu
     dialog.data["public_indicator"] = button.data["public_indicator"]
     dialog.data["category"] = category[button.data["public_indicator"]]
     dialog.data["page"] = 0
-    await dialog.edit_message(callback.message.message_id, random_choice_game_creation_texts["punishment"], punishments,
-                              menu_data={"chat_member": member, "member_settings": member_settings, "time_filters":
-                                  {"time__lte": member_settings.max_punish_time_for_rand_choice,
-                                   "time__gte": member_settings.min_punish_time_for_rand_choice}})
+
+    menu_data = {
+        "chat_member": member,
+        "member_settings": member_settings,
+        "time_filters": member_settings.time_filters
+    }
+
+    await dialog.edit_message(callback.message.message_id, random_choice_game_creation_texts["punishment"], punishments, menu_data=menu_data)
 
 
 @game_creation_router.callback_query(ButtonFilter("change_page"))
 async def select_page(callback: CallbackQuery, dialog: Dialog, button_data: Dict[str, Any], member, member_settings):
     await callback.answer()
     dialog.data["page"] = button_data["page"]
-    await dialog.edit_message(callback.message.message_id, random_choice_game_creation_texts["punishment"], punishments,
-                              menu_data={"chat_member": member, "member_settings": member_settings, "time_filters":
-                                  {"time__lte": member_settings.max_punish_time_for_rand_choice,
-                                   "time__gte": member_settings.min_punish_time_for_rand_choice}})
+
+    menu_data = {
+        "chat_member": member,
+        "member_settings": member_settings,
+        "time_filters": member_settings.time_filters
+    }
+
+    await dialog.edit_message(callback.message.message_id, random_choice_game_creation_texts["punishment"], punishments, menu_data=menu_data)
 
 
 @game_creation_router.callback_query(ButtonFilter("punishment"))
@@ -105,9 +116,7 @@ async def is_creator_play(callback: CallbackQuery, game: RandomChoiceGame, dialo
     await game.asave()
 
     await dialog.edit_message(dialog.data["main_message_id"], random_choice_game_creation_texts["settings"], random_choice_settings,
-                              menu_data={"game": game, "member_settings": member_settings, "time_filters":
-                                  {"time__lte": member_settings.max_punish_time_for_rand_choice,
-                                   "time__gte": member_settings.min_punish_time_for_rand_choice}})
+                              menu_data={"game": game, "member_settings": member_settings})
 
 
 @game_creation_router.callback_query(ButtonFilter("min_max"))
@@ -120,10 +129,7 @@ async def is_creator_play(callback: CallbackQuery, dialog: Dialog, state: FSMCon
 
     try:
         await dialog.edit_keyboard(dialog.data["main_message_id"], random_choice_settings,
-                                   menu_data={"game": game, "member_settings": member_settings, f"{button.type_name}_state": "selected",
-                                              "time_filters":
-                                                  {"time__lte": member_settings.max_punish_time_for_rand_choice,
-                                                   "time__gte": member_settings.min_punish_time_for_rand_choice}})
+                                   menu_data={"game": game, "member_settings": member_settings, f"{button.type_name}_state": "selected"})
     except:
         pass
 
@@ -154,9 +160,7 @@ async def set_min(message: Message, game: RandomChoiceGame, member_settings: Acc
     dialog.data["game_text"] = await game.get_string()
 
     await dialog.edit_message(dialog.data["main_message_id"], random_choice_game_creation_texts["settings"], random_choice_settings,
-                              menu_data={"game": game, "member_settings": member_settings, "time_filters":
-                                  {"time__lte": member_settings.max_punish_time_for_rand_choice,
-                                   "time__gte": member_settings.min_punish_time_for_rand_choice}})
+                              menu_data={"game": game, "member_settings": member_settings})
     await message.delete()
 
 
@@ -182,9 +186,7 @@ async def set_losers(message: Message, game: RandomChoiceGame, member_settings: 
     dialog.data["game_text"] = await game.get_string()
 
     await dialog.edit_message(dialog.data["main_message_id"], random_choice_game_creation_texts["settings"], random_choice_settings,
-                              menu_data={"game": game, "member_settings": member_settings, "time_filters":
-                                  {"time__lte": member_settings.max_punish_time_for_rand_choice,
-                                   "time__gte": member_settings.min_punish_time_for_rand_choice}})
+                              menu_data={"game": game, "member_settings": member_settings})
     await message.delete()
 
 
@@ -198,9 +200,7 @@ async def is_creator_play(callback: CallbackQuery, game: RandomChoiceGame, dialo
     dialog.data["game_text"] = await game.get_string()
 
     await dialog.edit_message(dialog.data["main_message_id"], random_choice_game_creation_texts["settings"], random_choice_settings,
-                              menu_data={"game": game, "member_settings": member_settings, "time_filters":
-                                  {"time__lte": member_settings.max_punish_time_for_rand_choice,
-                                   "time__gte": member_settings.min_punish_time_for_rand_choice}})
+                              menu_data={"game": game, "member_settings": member_settings})
 
 
 @game_creation_router.callback_query(ButtonFilter("create"))

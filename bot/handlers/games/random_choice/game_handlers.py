@@ -1,8 +1,7 @@
 from aiogram import Router, F
 from aiogram.filters import MagicData
 from aiogram.types import CallbackQuery
-from aiogram_dialog_manager import DialogManager
-from aiogram_dialog_manager.instance import Dialog
+from aiogram_dialog_manager import DialogManager, Dialog
 from aiogram_dialog_manager.filter import DialogFilter, ButtonFilter
 from aiogram_dialog_manager.filter.access import DialogAccessFilter
 from asgiref.sync import sync_to_async

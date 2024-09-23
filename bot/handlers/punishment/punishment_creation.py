@@ -8,7 +8,8 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
 from aiogram_dialog_manager import DialogManager
 from aiogram_dialog_manager.filter import StateFilter, ButtonFilter, DialogFilter, DialogAccessFilter
-from aiogram_dialog_manager.instance import Dialog, ButtonInstance
+from aiogram_dialog_manager.instance import ButtonInstance
+from aiogram_dialog_manager import Dialog
 from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.utils.translation import gettext as _

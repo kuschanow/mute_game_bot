@@ -1,6 +1,7 @@
+from datetime import timedelta
 from typing import Optional, Dict, Any, List, Tuple
 
-from aiogram_dialog_manager.instance import Dialog
+from aiogram_dialog_manager import Dialog
 from asgiref.sync import sync_to_async
 from django.conf import settings
 
@@ -14,7 +15,8 @@ from bot.utils.dialog_buttons import cancel, privacy, punishment, change_page
 def get_punishments_keyboard(
         dialog: Dialog,
         chat_member: ChatMember,
-        member_settings: AccessSettingsObject
+        member_settings: AccessSettingsObject,
+        time_filters: Optional[Dict[str, Any]] = None
 ) -> List[List[str | Tuple[str, Dict[str, Any]]]]:
     page = dialog.values["page"]
     public_indicator = dialog.values["public_indicator"]
@@ -35,8 +37,8 @@ def get_punishments_keyboard(
     if public_indicator < 1:
         filters['created_by'] = chat_member.user
 
-    if "time_filters" in dialog.values:
-        filters.update(dialog.values["time_filters"])
+    if time_filters:
+        filters.update(time_filters)
 
     filters = {k: v for k, v in filters.items() if v}
 
