@@ -31,7 +31,7 @@ async def create_punishment_command(message: Message, user: User, state: FSMCont
     await state.clear()
 
     dialog = Dialog.create("punishment_creation", user_id=user.id, chat_id=message.chat.id, bot=bot)
-    dialog.values["prefix"] = _("Dialog with ") + user.get_string(True) + "\n\n"
+    dialog.data["prefix"] = _("Dialog with ") + user.get_string(True) + "\n\n"
     await dialog.send_message(punishment_creation_texts["name"], cancel_menu)
     await dialog.set_state(PunishmentCreationStates.choosing_name, context=state)
     await dialog_manager.save_dialog(dialog)
@@ -41,7 +41,7 @@ async def create_punishment_command(message: Message, user: User, state: FSMCont
 @punishment_creation_router.message(StateFilter(PunishmentCreationStates.choosing_name), DialogAccessFilter(), F.content_type == ContentType.TEXT)
 async def choose_name(message: Message, state: FSMContext, dialog: Dialog):
     await dialog.remove_state(context=state)
-    dialog.values["name"] = message.text
+    dialog.data["name"] = message.text
     await dialog.delete_all_messages()
     await dialog.send_message(punishment_creation_texts["time"], cancel_menu)
     await dialog.set_state(PunishmentCreationStates.choosing_time, context=state)
@@ -59,7 +59,7 @@ async def choose_name(message: Message, member_settings: AccessSettingsObject, s
     days, hours, minutes = (0,) * (3 - len(matches)) + tuple(map(int, matches))
     time = timedelta(days=days, hours=hours, minutes=minutes)
 
-    dialog.values["time"] = time.total_seconds()
+    dialog.data["time"] = time.total_seconds()
     await dialog.delete_all_messages()
     await dialog.send_message(punishment_creation_texts["privacy"], privacy, menu_data={"settings": member_settings})
     await message.delete()
@@ -70,8 +70,8 @@ async def choose_privacy(callback: CallbackQuery, user: User, chat: Chat, dialog
     await callback.answer()
     public_indicator = button.data["public_indicator"]
 
-    punishment = Punishment(name=dialog.values["name"],
-                            time=timedelta(seconds=int(dialog.values["time"])),
+    punishment = Punishment(name=dialog.data["name"],
+                            time=timedelta(seconds=int(dialog.data["time"])),
                             created_by=user,
                             created_in=chat if public_indicator > -1 else None,
                             is_public=public_indicator == 1)

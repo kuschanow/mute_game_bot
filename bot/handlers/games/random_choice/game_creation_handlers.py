@@ -42,16 +42,16 @@ async def start_game_command(message: Message, member: ChatMember, user: User, m
         return
 
     dialog = Dialog.create("random_choice_game_creation", user_id=user.id, chat_id=message.chat.id, bot=bot)
-    dialog.values["prefix"] = _("Dialog with ") + user.get_string(True) + "\n\n"
-    dialog.values["public_indicator"] = 1
-    dialog.values["category"] = category[1]
-    dialog.values["page"] = 0
+    dialog.data["prefix"] = _("Dialog with ") + user.get_string(True) + "\n\n"
+    dialog.data["public_indicator"] = 1
+    dialog.data["category"] = category[1]
+    dialog.data["page"] = 0
 
     bot_message = await dialog.send_message(random_choice_game_creation_texts["punishment"], punishments,
                                             menu_data={"chat_member": member, "member_settings": member_settings, "time_filters":
                                                 {"time__lte": member_settings.max_punish_time_for_rand_choice,
                                                  "time__gte": member_settings.min_punish_time_for_rand_choice}})
-    dialog.values["main_message_id"] = bot_message.message_id
+    dialog.data["main_message_id"] = bot_message.message_id
     await dialog_manager.save_dialog(dialog)
     await message.delete()
 
@@ -60,9 +60,9 @@ async def start_game_command(message: Message, member: ChatMember, user: User, m
 async def select_punishments_privacy(callback: CallbackQuery, dialog: Dialog, button: ButtonInstance, member, member_settings):
     await callback.answer()
 
-    dialog.values["public_indicator"] = button.data["public_indicator"]
-    dialog.values["category"] = category[button.data["public_indicator"]]
-    dialog.values["page"] = 0
+    dialog.data["public_indicator"] = button.data["public_indicator"]
+    dialog.data["category"] = category[button.data["public_indicator"]]
+    dialog.data["page"] = 0
     await dialog.edit_message(callback.message.message_id, random_choice_game_creation_texts["punishment"], punishments,
                               menu_data={"chat_member": member, "member_settings": member_settings, "time_filters":
                                   {"time__lte": member_settings.max_punish_time_for_rand_choice,
@@ -72,7 +72,7 @@ async def select_punishments_privacy(callback: CallbackQuery, dialog: Dialog, bu
 @game_creation_router.callback_query(ButtonFilter("change_page"))
 async def select_page(callback: CallbackQuery, dialog: Dialog, button_data: Dict[str, Any], member, member_settings):
     await callback.answer()
-    dialog.values["page"] = button_data["page"]
+    dialog.data["page"] = button_data["page"]
     await dialog.edit_message(callback.message.message_id, random_choice_game_creation_texts["punishment"], punishments,
                               menu_data={"chat_member": member, "member_settings": member_settings, "time_filters":
                                   {"time__lte": member_settings.max_punish_time_for_rand_choice,
@@ -87,11 +87,11 @@ async def select_punishment(callback: CallbackQuery, member: ChatMember, member_
                             autostart_at_max_players=True)
     await sync_to_async(lambda: game.clean())()
     await game.asave()
-    dialog.values["game_id"] = str(game.id)
-    dialog.values["game_text"] = await game.get_string()
-    dialog.values["min"] = game.min_players_count
-    dialog.values["max"] = game.max_players_count
-    dialog.values["losers"] = game.losers_count
+    dialog.data["game_id"] = str(game.id)
+    dialog.data["game_text"] = await game.get_string()
+    dialog.data["min"] = game.min_players_count
+    dialog.data["max"] = game.max_players_count
+    dialog.data["losers"] = game.losers_count
 
     await dialog.edit_message(callback.message.message_id, random_choice_game_creation_texts["settings"], random_choice_settings,
                               menu_data={"game": game, "member_settings": member_settings})
@@ -104,7 +104,7 @@ async def is_creator_play(callback: CallbackQuery, game: RandomChoiceGame, dialo
     game.is_creator_playing = not game.is_creator_playing
     await game.asave()
 
-    await dialog.edit_message(dialog.values["main_message_id"], random_choice_game_creation_texts["settings"], random_choice_settings,
+    await dialog.edit_message(dialog.data["main_message_id"], random_choice_game_creation_texts["settings"], random_choice_settings,
                               menu_data={"game": game, "member_settings": member_settings, "time_filters":
                                   {"time__lte": member_settings.max_punish_time_for_rand_choice,
                                    "time__gte": member_settings.min_punish_time_for_rand_choice}})
@@ -119,7 +119,7 @@ async def is_creator_play(callback: CallbackQuery, dialog: Dialog, state: FSMCon
     await dialog.set_state(state=GameSettingsStates.get_by_string(button.type_name), context=state)
 
     try:
-        await dialog.edit_keyboard(dialog.values["main_message_id"], random_choice_settings,
+        await dialog.edit_keyboard(dialog.data["main_message_id"], random_choice_settings,
                                    menu_data={"game": game, "member_settings": member_settings, f"{button.type_name}_state": "selected",
                                               "time_filters":
                                                   {"time__lte": member_settings.max_punish_time_for_rand_choice,
@@ -148,12 +148,12 @@ async def set_min(message: Message, game: RandomChoiceGame, member_settings: Acc
     game.max_players_count = max_num
     await game.asave()
 
-    dialog.values["min"] = game.min_players_count
-    dialog.values["max"] = game.max_players_count
-    dialog.values["losers"] = game.losers_count
-    dialog.values["game_text"] = await game.get_string()
+    dialog.data["min"] = game.min_players_count
+    dialog.data["max"] = game.max_players_count
+    dialog.data["losers"] = game.losers_count
+    dialog.data["game_text"] = await game.get_string()
 
-    await dialog.edit_message(dialog.values["main_message_id"], random_choice_game_creation_texts["settings"], random_choice_settings,
+    await dialog.edit_message(dialog.data["main_message_id"], random_choice_game_creation_texts["settings"], random_choice_settings,
                               menu_data={"game": game, "member_settings": member_settings, "time_filters":
                                   {"time__lte": member_settings.max_punish_time_for_rand_choice,
                                    "time__gte": member_settings.min_punish_time_for_rand_choice}})
@@ -176,12 +176,12 @@ async def set_losers(message: Message, game: RandomChoiceGame, member_settings: 
     game.losers_count = number
     await game.asave()
 
-    dialog.values["min"] = game.min_players_count
-    dialog.values["max"] = game.max_players_count
-    dialog.values["losers"] = game.losers_count
-    dialog.values["game_text"] = await game.get_string()
+    dialog.data["min"] = game.min_players_count
+    dialog.data["max"] = game.max_players_count
+    dialog.data["losers"] = game.losers_count
+    dialog.data["game_text"] = await game.get_string()
 
-    await dialog.edit_message(dialog.values["main_message_id"], random_choice_game_creation_texts["settings"], random_choice_settings,
+    await dialog.edit_message(dialog.data["main_message_id"], random_choice_game_creation_texts["settings"], random_choice_settings,
                               menu_data={"game": game, "member_settings": member_settings, "time_filters":
                                   {"time__lte": member_settings.max_punish_time_for_rand_choice,
                                    "time__gte": member_settings.min_punish_time_for_rand_choice}})
@@ -195,9 +195,9 @@ async def is_creator_play(callback: CallbackQuery, game: RandomChoiceGame, dialo
     game.autostart_at_max_players = not game.autostart_at_max_players
     await game.asave()
 
-    dialog.values["game_text"] = await game.get_string()
+    dialog.data["game_text"] = await game.get_string()
 
-    await dialog.edit_message(dialog.values["main_message_id"], random_choice_game_creation_texts["settings"], random_choice_settings,
+    await dialog.edit_message(dialog.data["main_message_id"], random_choice_game_creation_texts["settings"], random_choice_settings,
                               menu_data={"game": game, "member_settings": member_settings, "time_filters":
                                   {"time__lte": member_settings.max_punish_time_for_rand_choice,
                                    "time__gte": member_settings.min_punish_time_for_rand_choice}})
@@ -219,13 +219,13 @@ async def create(callback: CallbackQuery, game: RandomChoiceGame, member: ChatMe
 
     dialog = Dialog.create("random_choice_game", user_id=member.user_id, chat_id=member.chat_id, bot=bot)
 
-    dialog.values["game_id"] = str(game.id)
-    dialog.values["game_text"] = await game.get_string()
-    dialog.values["game_players"] = await get_players(game)
+    dialog.data["game_id"] = str(game.id)
+    dialog.data["game_text"] = await game.get_string()
+    dialog.data["game_players"] = await get_players(game)
 
     bot_message = await dialog.send_message(random_choice_game_texts["game"], random_choice_game, menu_data={"game": game})
 
-    dialog.values["main_message_id"] = bot_message.message_id
+    dialog.data["main_message_id"] = bot_message.message_id
     await dialog_manager.save_dialog(dialog)
 
 

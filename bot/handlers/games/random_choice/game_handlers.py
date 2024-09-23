@@ -43,8 +43,8 @@ async def join_game(callback: CallbackQuery, game: RandomChoiceGame, member: Cha
             await callback.answer(_("The game already has the maximum number of players"))
             return
 
-    dialog.values["game_text"] = await game.get_string()
-    dialog.values["game_players"] = await get_players(game)
+    dialog.data["game_text"] = await game.get_string()
+    dialog.data["game_players"] = await get_players(game)
 
     await dialog.edit_message(callback.message.message_id, random_choice_game_texts["game"], random_choice_game, menu_data={"game": game})
 
@@ -54,7 +54,7 @@ async def join_game(callback: CallbackQuery, game: RandomChoiceGame, member: Cha
         await mute_losers(game, result, chat)
 
         await dialog.edit_message(callback.message.message_id, random_choice_game_texts["game"])
-        dialog.values["game_losers"] = await get_losers(result)
+        dialog.data["game_losers"] = await get_losers(result)
         await dialog.send_message(random_choice_game_texts["results"], reply_to_message_id=callback.message.message_id)
         await dialog_manager.delete_dialog(dialog)
 
@@ -71,7 +71,7 @@ async def start_game(callback: CallbackQuery, game: RandomChoiceGame, chat: Chat
     await mute_losers(game, result, chat)
 
     await dialog.edit_message(callback.message.message_id, random_choice_game_texts["game"])
-    dialog.values["game_losers"] = await get_losers(result)
+    dialog.data["game_losers"] = await get_losers(result)
     await dialog.send_message(random_choice_game_texts["results"], reply_to_message_id=callback.message.message_id)
     await dialog_manager.delete_dialog(dialog)
 

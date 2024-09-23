@@ -32,14 +32,14 @@ async def delete_punishments_command(message: Message, state: FSMContext, user: 
     await state.clear()
 
     dialog: Dialog = Dialog.create("punishment_deletion", user_id=user.id, chat_id=message.chat.id, bot=bot)
-    dialog.values["prefix"] = _("Dialog with ") + user.get_string(True) + "\n\n"
+    dialog.data["prefix"] = _("Dialog with ") + user.get_string(True) + "\n\n"
     public_indicator = 1 if member_settings.can_delete_public_punishments else 0
-    dialog.values["public_indicator"] = public_indicator
-    dialog.values["category"] = category[public_indicator]
-    dialog.values["page"] = 0
+    dialog.data["public_indicator"] = public_indicator
+    dialog.data["category"] = category[public_indicator]
+    dialog.data["page"] = 0
     
     bot_message = await dialog.send_message(punishment_deletion_texts["select"], punishments, menu_data={"chat_member": member, "member_settings": member_settings})
-    dialog.values["main_message_id"] = bot_message.message_id
+    dialog.data["main_message_id"] = bot_message.message_id
     await dialog_manager.save_dialog(dialog)
     await message.delete()
 
@@ -48,9 +48,9 @@ async def delete_punishments_command(message: Message, state: FSMContext, user: 
 async def select_punishments_privacy(callback: CallbackQuery, dialog: Dialog, button: ButtonInstance, member,
                                      member_settings):
     await callback.answer()
-    dialog.values["public_indicator"] = button.data["public_indicator"]
-    dialog.values["category"] = category[button.data["public_indicator"]]
-    dialog.values["page"] = 0
+    dialog.data["public_indicator"] = button.data["public_indicator"]
+    dialog.data["category"] = category[button.data["public_indicator"]]
+    dialog.data["page"] = 0
 
     await dialog.edit_message(callback.message.message_id, punishment_deletion_texts["select"], punishments, menu_data={"chat_member": member, "member_settings": member_settings})
 
@@ -59,14 +59,14 @@ async def select_punishments_privacy(callback: CallbackQuery, dialog: Dialog, bu
 async def select_page(callback: CallbackQuery, dialog: Dialog, button_data: Dict[str, Any], member,
                       member_settings):
     await callback.answer()
-    dialog.values["page"] = button_data["page"]
+    dialog.data["page"] = button_data["page"]
     await dialog.edit_message(callback.message.message_id, punishment_deletion_texts["select"], punishments, menu_data={"chat_member": member, "member_settings": member_settings})
 
 
 @punishment_deletion_router.callback_query(ButtonFilter("punishment"))
 async def select_punishment(callback: CallbackQuery, dialog: Dialog, button: ButtonInstance):
     await callback.answer()
-    dialog.values["punishment_name"] = button.data["name"]
+    dialog.data["punishment_name"] = button.data["name"]
     await dialog.send_message(punishment_deletion_texts["accept"], accept_menu, menu_data={"p_id": button.data["id"]})
 
 
@@ -86,7 +86,7 @@ async def accept(callback: CallbackQuery, member: ChatMember, dialog: Dialog, bu
     await callback.answer(_("Deleted"))
     await dialog.delete_message(callback.message.message_id)
 
-    await dialog.edit_keyboard(dialog.values["main_message_id"], punishments, menu_data={"chat_member": member, "member_settings": member_settings})
+    await dialog.edit_keyboard(dialog.data["main_message_id"], punishments, menu_data={"chat_member": member, "member_settings": member_settings})
 
 
 @punishment_deletion_router.callback_query(ButtonFilter("refuse"))
