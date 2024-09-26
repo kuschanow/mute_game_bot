@@ -57,9 +57,10 @@ def get_random_choice_game_count_stats(chat: Chat) -> List[tuple[ChatMember, int
 def get_random_choice_game_detailed_stats(chat: Chat) -> List[tuple]:
     games = RandomChoiceGame.objects.filter(creator__chat=chat, result__isnull=False)
     total_games = games.count()
+
     total_time_seconds = (
             games
-            .annotate(punishment_time=F('punishment__time') / 1_000_000 * F('losers_count'))
+            .annotate(punishment_time=ExpressionWrapper((F('punishment__time') / 1000000) * F('losers_count'), output_field=fields.FloatField()))
             .aggregate(total_seconds=Sum('punishment_time'))['total_seconds']
             or 0
     ) if settings.USE_SQLITE else (

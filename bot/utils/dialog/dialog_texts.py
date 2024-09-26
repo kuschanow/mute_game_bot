@@ -1,6 +1,8 @@
 from django.utils.translation import gettext as _
 
 
+base_dialog_text = "%(prefix)s" + "%(text)s"
+
 punishment_creation_texts = {
     "name": "%(prefix)s" +
             _("To create a punishment, you need to write the name of the new punishment"),
@@ -45,4 +47,10 @@ random_choice_game_texts = {
             "%(game_players)s",
 
     "results": "%(game_losers)s"
+}
+
+access_settings_texts = {
+    "target": _("Select target"),
+    "base_settings": _("%(target_name)s"),
+    "game_settings": _("%(target_name)s -> %(game_name)s")
 }

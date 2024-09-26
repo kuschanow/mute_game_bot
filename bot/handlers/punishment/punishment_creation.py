@@ -6,21 +6,22 @@ from aiogram.enums import ChatType, ContentType
 from aiogram.filters import Command, MagicData
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
+from aiogram_dialog_manager import Dialog
 from aiogram_dialog_manager import DialogManager
 from aiogram_dialog_manager.filter import StateFilter, ButtonFilter, DialogFilter, DialogAccessFilter
 from aiogram_dialog_manager.instance import ButtonInstance
-from aiogram_dialog_manager import Dialog
 from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.utils.translation import gettext as _
 
 from bot.models import User, Chat
-from bot.utils.dialog_menus import cancel as cancel_menu, privacy
+from bot.utils.dialog.dialog_buttons import privacy
+from bot.utils.dialog.dialog_menus import cancel as cancel_menu, privacy
+from bot.utils.dialog.dialog_texts import punishment_creation_texts
 from games.models import Punishment
 from .PunishmentCreationStates import PunishmentCreationStates
 from ...generate_session import bot
 from ...models.AccessSettingsObject import AccessSettingsObject
-from ...utils.dialog_texts import punishment_creation_texts
 
 punishment_creation_router = Router()
 punishment_creation_router.message.filter(MagicData(F.chat.type.is_not(ChatType.PRIVATE)))
@@ -66,7 +67,7 @@ async def choose_name(message: Message, member_settings: AccessSettingsObject, s
     await message.delete()
 
 
-@punishment_creation_router.callback_query(ButtonFilter("privacy"))
+@punishment_creation_router.callback_query(ButtonFilter(privacy))
 async def choose_privacy(callback: CallbackQuery, user: User, chat: Chat, dialog_manager: DialogManager, dialog: Dialog, button: ButtonInstance):
     await callback.answer()
     public_indicator = button.data["public_indicator"]

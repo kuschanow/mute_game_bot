@@ -1,4 +1,3 @@
-from datetime import timedelta
 from typing import Optional, Dict, Any, List, Tuple
 
 from aiogram_dialog_manager import Dialog
@@ -8,7 +7,7 @@ from django.conf import settings
 from bot.models import ChatMember, AccessSettingsObject
 from games.models import Punishment
 
-from bot.utils.dialog_buttons import cancel, privacy, punishment, change_page
+from bot.utils.dialog.dialog_buttons import cancel, privacy, punishment, change_page
 
 
 @sync_to_async
