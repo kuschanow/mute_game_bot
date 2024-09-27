@@ -7,8 +7,7 @@ from games.models import RandomChoiceGame, RandomChoiceGameResult
 
 @sync_to_async
 def get_players(game: RandomChoiceGame) -> str:
-    text = _("%(game_text)s\n\n"
-             "Players:\n" ) % {"game_text": async_to_sync(game.get_string)()}
+    text = _("Players:\n" )
 
     player_index = 1
     for player in game.players.annotate(join_at=F('randomchoicegameplayer__join_at')).order_by("join_at"):

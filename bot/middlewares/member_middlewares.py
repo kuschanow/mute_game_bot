@@ -17,7 +17,7 @@ async def message_member_middleware(
         data: Dict[str, Any]
 ) -> Any:
     data["member"] = await ChatMember.get_or_create_member(data["user"], message.chat)
-    await redis.get_or_set(str(data["member"].id))
+    #await redis.get_or_set(str(data["member"].id))
     return await handler(message, data)
 
 async def callback_member_middleware(
@@ -26,6 +26,6 @@ async def callback_member_middleware(
         data: Dict[str, Any]
 ) -> Any:
     data["member"] = await ChatMember.get_or_create_member(data["user"], callback.message.chat)
-    await redis.get_or_set(str(data["member"].id))
+    #await redis.get_or_set(str(data["member"].id))
     return await handler(callback, data)
 

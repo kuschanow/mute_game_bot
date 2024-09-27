@@ -199,7 +199,7 @@ STATICFILES_FINDERS = (
 REDIS_HOST = env('REDIS_HOST', default=None)
 REDIS_PORT = env.int('REDIS_PORT', default=6379)
 REDIS_FSM_DB = env.int('REDIS_FSM_DB', default=0)
-REDIS_DB = env.int('REDIS_DB', default=1)
+REDIS_DIALOG_DB = env.int('REDIS_DIALOG_DB', default=1)
 REDIS_CELERY_DB = env.int('REDIS_CELERY_DB', default=2)
 
 CELERY_BROKER_URL = env('CELERY_BROKER_URL', default=f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_CELERY_DB}")

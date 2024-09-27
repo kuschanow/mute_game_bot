@@ -1,146 +1,86 @@
 import re
-from datetime import timedelta, datetime
+from datetime import timedelta
 
 from aiogram import Router, F
 from aiogram.enums import ChatType, ContentType
 from aiogram.filters import Command, MagicData
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
+from aiogram_dialog_manager import Dialog
+from aiogram_dialog_manager import DialogManager
+from aiogram_dialog_manager.filter import StateFilter, ButtonFilter, DialogFilter, DialogAccessFilter
+from aiogram_dialog_manager.instance import ButtonInstance
 from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.utils.translation import gettext as _
 
-from bot.generate_session import bot
-from bot.models import ChatMember, User, Chat
+from bot.models import User, Chat
+from bot.utils.dialog.dialog_buttons import privacy
+from bot.utils.dialog.dialog_menus import cancel as cancel_menu, privacy
+from bot.utils.dialog.dialog_texts import punishment_creation_texts
 from games.models import Punishment
-from shared import redis
 from .PunishmentCreationStates import PunishmentCreationStates
-from .utils.keyboards import get_punishment_privacy_selection_keyboard, get_cancel_keyboard
-from ...filters import DialogAccess, ReplyToCorrectMessage
+from ...generate_session import bot
 from ...models.AccessSettingsObject import AccessSettingsObject
 
 punishment_creation_router = Router()
 punishment_creation_router.message.filter(MagicData(F.chat.type.is_not(ChatType.PRIVATE)))
-punishment_creation_router.callback_query.filter(F.data.startswith("pc"))
+punishment_creation_router.callback_query.filter(DialogAccessFilter(), DialogFilter("punishment_creation"))
 
 
 @punishment_creation_router.message(Command(settings.CREATE_PUNISHMENT_COMMAND))
-async def create_punishment_command(message: Message, user: User, state: FSMContext):
-    data = await state.get_data()
-    if "message_id" in data:
-        try:
-            await bot.delete_message(message_id=data["message_id"], chat_id=message.chat.id)
-        except:
-            pass
-
+async def create_punishment_command(message: Message, user: User, state: FSMContext, dialog_manager: DialogManager):
     await state.clear()
-    await state.set_state(PunishmentCreationStates.choosing_name)
-    data = await state.get_data()
-    bot_message = await message.answer(text=user.get_string(True) +
-                                            "\n\n" +
-                                            _("To create a punishment, you need to write the name of the new punishment"),
-                                       reply_markup=get_cancel_keyboard())
-    data["message_id"] = bot_message.message_id
-    await state.set_data(data)
 
+    dialog = Dialog.create("punishment_creation", user_id=user.id, chat_id=message.chat.id, bot=bot)
+    dialog.data["prefix"] = _("Dialog with ") + user.get_string(True) + "\n\n"
+    await dialog.send_message(punishment_creation_texts["name"], cancel_menu)
+    await dialog.set_state(PunishmentCreationStates.choosing_name, context=state)
+    await dialog_manager.save_dialog(dialog)
     await message.delete()
 
 
-@punishment_creation_router.message(PunishmentCreationStates.choosing_name, F.content_type == ContentType.TEXT)
-async def choose_name(message: Message, user: User, state: FSMContext):
-    await state.set_state(PunishmentCreationStates.choosing_time)
-    data = await state.get_data()
-
-    data["name"] = message.text
-    await bot.delete_message(chat_id=message.chat.id, message_id=data["message_id"])
-    new_message = await message.answer(user.get_string(True) +
-                                       "\n\n" +
-                                       _("Name: %(name)s\n\n"
-                                         "Now send the time of punishment" ) % {"name": message.text} +
-                                       _("Time can be specified in any of the following ways:") +
-                                       _("<blockquote>"
-                                         "5:30 – 5 hours and 30 minutes\n"
-                                         "30 – 30 minutes\n"
-                                         "5 30 – the same as first\n"
-                                         "1:0:0 – 1 day\n"
-                                         "1 5 0 – 1 day and 5 hours\n"
-                                         "40:00 – 40 hours\n"
-                                         "100 – 100 minutes"
-                                         "</blockquote>"),
-                                       reply_markup=get_cancel_keyboard()
-                                       )
-
-    data["message_id"] = new_message.message_id
-    await state.set_data(data)
-
+@punishment_creation_router.message(StateFilter(PunishmentCreationStates.choosing_name), DialogAccessFilter(), F.content_type == ContentType.TEXT)
+async def choose_name(message: Message, state: FSMContext, dialog: Dialog):
+    await dialog.remove_state(context=state)
+    dialog.data["name"] = message.text
+    await dialog.delete_all_messages()
+    await dialog.send_message(punishment_creation_texts["time"], cancel_menu)
+    await dialog.set_state(PunishmentCreationStates.choosing_time, context=state)
     await message.delete()
 
 
-@punishment_creation_router.message(PunishmentCreationStates.choosing_time,
+@punishment_creation_router.message(StateFilter(PunishmentCreationStates.choosing_time),
+                                    DialogAccessFilter(),
                                     F.text.regexp(r"\d+"),
                                     F.content_type == ContentType.TEXT)
-async def choose_name(message: Message, member: ChatMember, member_settings: AccessSettingsObject, state: FSMContext):
-    data = await state.get_data()
-    await state.clear()
+async def choose_name(message: Message, member_settings: AccessSettingsObject, state: FSMContext, dialog: Dialog):
+    await dialog.remove_state(context=state)
 
     matches = re.findall(r"\d+", message.text)
     days, hours, minutes = (0,) * (3 - len(matches)) + tuple(map(int, matches))
     time = timedelta(days=days, hours=hours, minutes=minutes)
 
-    new_data = await redis.get_deserialized(str(member.id))
-    if "dialogs" not in new_data:
-        new_data["dialogs"] = {}
-    await bot.delete_message(chat_id=member.chat_id, message_id=int(data["message_id"]))
-    privacy_selection_message = await message.answer(text=_("Now select the privacy of the new punishment"),
-                         reply_markup=get_punishment_privacy_selection_keyboard("pc", member_settings.can_create_public_punishments))
-
-    new_data["dialogs"][privacy_selection_message.message_id] = {"date": str(datetime.utcnow()), "name": data["name"], "time": time.total_seconds()}
-    await redis.set_serialized(str(member.id), new_data)
-
+    dialog.data["time"] = time.total_seconds()
+    await dialog.delete_all_messages()
+    await dialog.send_message(punishment_creation_texts["privacy"], privacy, menu_data={"settings": member_settings})
     await message.delete()
 
 
-@punishment_creation_router.callback_query(F.data.not_contains("cancel"), DialogAccess())
-async def choose_privacy(callback: CallbackQuery, member: ChatMember, user: User, chat: Chat):
-    callback_data = callback.data.split(':')[1:]
-    public_indicator = int(callback_data[0])
+@punishment_creation_router.callback_query(ButtonFilter(privacy))
+async def choose_privacy(callback: CallbackQuery, user: User, chat: Chat, dialog_manager: DialogManager, dialog: Dialog, button: ButtonInstance):
+    await callback.answer()
+    public_indicator = button.data["public_indicator"]
 
-    data = await redis.get_deserialized(str(member.id))
-
-    dialog_id = str(callback.message.message_id)
-
-    punishment = Punishment(name=data["dialogs"][dialog_id]["name"],
-                            time=timedelta(seconds=int(data["dialogs"][dialog_id]["time"])),
+    punishment = Punishment(name=dialog.data["name"],
+                            time=timedelta(seconds=int(dialog.data["time"])),
                             created_by=user,
                             created_in=chat if public_indicator > -1 else None,
                             is_public=public_indicator == 1)
     await sync_to_async(lambda: punishment.clean())()
     await punishment.asave()
 
-    data["dialogs"].pop(dialog_id)
-    await redis.set_serialized(str(member.id), data)
+    await callback.message.answer(text=_("Punishment %(punishment)s successfully created") % {"punishment": punishment.get_string()})
 
-    await callback.message.answer(text=_("Punishment %(punishment)s successfully created" ) % {"punishment": punishment.get_string()})
-    await callback.message.delete()
-
-
-@punishment_creation_router.callback_query(PunishmentCreationStates.choosing_name, F.data.contains("cancel"))
-@punishment_creation_router.callback_query(PunishmentCreationStates.choosing_time, F.data.contains("cancel"))
-async def cancel(callback: CallbackQuery, state: FSMContext):
-    data = await state.get_data()
-    if "message_id" in data and data["message_id"] == callback.message.message_id:
-        await callback.message.delete()
-        await state.clear()
-        return
-
-    await callback.answer()
-
-
-@punishment_creation_router.callback_query(F.data.contains("cancel"), DialogAccess())
-async def cancel_creation(callback: CallbackQuery, member: ChatMember):
-    user_data = await redis.get_deserialized(str(member.id))
-    user_data["dialogs"].pop(str(callback.message.message_id))
-
-    await redis.set_serialized(str(member.id), user_data)
-    await callback.answer(_("Ok"))
-    await callback.message.delete()
+    await dialog_manager.delete_dialog(dialog)
+    await dialog.delete_all_messages()

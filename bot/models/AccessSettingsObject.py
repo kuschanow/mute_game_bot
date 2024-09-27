@@ -1,5 +1,6 @@
 import uuid
 from datetime import timedelta
+from typing import Dict
 
 from django.db import models
 
@@ -17,6 +18,11 @@ class AccessSettingsObject(models.Model):
 
     can_create_public_punishments = models.BooleanField(default=False, null=False)
     can_delete_public_punishments = models.BooleanField(default=False, null=False)
+
+    @property
+    def time_filters(self) -> Dict[str, timedelta]:
+        return {"time__lte": self.max_punish_time_for_rand_choice,
+                "time__gte": self.min_punish_time_for_rand_choice}
 
     @staticmethod
     async def get_owner_settings():
