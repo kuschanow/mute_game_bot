@@ -13,7 +13,7 @@ def get_random_choice_game_access_settings_keyboard(settings_object: AccessSetti
     buttons = [
         [access_time_settings.get_instance(min_time_data)],
         [access_time_settings.get_instance(max_time_data)],
-        [back.get_instance()]
+        [back.get_instance({"page": "game_menu"})]
     ]
 
     return buttons

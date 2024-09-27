@@ -34,7 +34,7 @@ access_settings = MenuPrototype(get_access_settings_keyboard)
 
 game_settings_select = MenuPrototype(lambda: [
     [game_access_settings.get_instance({"game": "random_choice_game"})],
-    [back.get_instance()]
+    [back.get_instance({"page": "main_settings"})]
 ])
 
 random_choice_game_access_settings = MenuPrototype(get_random_choice_game_access_settings_keyboard)

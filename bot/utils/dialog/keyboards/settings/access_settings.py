@@ -26,6 +26,6 @@ def get_access_settings_keyboard(dialog: Dialog, settings_object: Optional[Acces
         if dialog.values["target"] != "chat":
             buttons.append([reset_to_global.get_instance()])
 
-    buttons.append([back.get_instance()])
+    buttons.append([back.get_instance({"page": "target"})])
 
     return buttons

@@ -13,7 +13,7 @@ from aiogram_dialog_manager.instance import ButtonInstance, MessageInstance
 from bot.filters import IsOwner
 from bot.models import AccessSettingsObject
 from bot.utils.dialog.dialog_buttons import access_time_settings
-from bot.utils.dialog.dialog_menus import game_settings_select
+from bot.utils.dialog.dialog_menus import random_choice_game_access_settings
 from .RandomChoiceGameAccessSettingsStates import RandomChoiceGameAccessSettingsStates
 
 random_choice_game_access_settings_router = Router()
@@ -25,13 +25,13 @@ random_choice_game_access_settings_router.message.filter(MagicData(F.chat.type.i
 async def select_option(callback: CallbackQuery, state: FSMContext, dialog: Dialog, button: ButtonInstance):
     await callback.answer()
     await dialog.remove_state(context=state)
-    await state.set_state(RandomChoiceGameAccessSettingsStates.get_by_string(button.data["type"]))
+    await dialog.set_state(RandomChoiceGameAccessSettingsStates.get_by_string(button.data["type"]), context=state)
 
     settings_object: AccessSettingsObject = await AccessSettingsObject.objects.aget(id=dialog.values["settings_object_id"])
 
     try:
         await dialog.edit_keyboard(callback.message.message_id,
-                                   game_settings_select,
+                                   random_choice_game_access_settings,
                                    menu_data={"settings_object": settings_object, "highlight_this": button.data["type"]},
                                    message_marks={"target_time": button.data["type"]})
     except:
@@ -40,7 +40,7 @@ async def select_option(callback: CallbackQuery, state: FSMContext, dialog: Dial
 
 @random_choice_game_access_settings_router.message(StateFilter(RandomChoiceGameAccessSettingsStates.set_min_time), F.text.regexp(r"\d+"))
 @random_choice_game_access_settings_router.message(StateFilter(RandomChoiceGameAccessSettingsStates.set_max_time), F.text.regexp(r"\d+"))
-async def set_min_time(message: Message, dialog_message: MessageInstance, state: FSMContext, dialog: Dialog):
+async def set_min_time(message: Message, state: FSMContext, dialog: Dialog):
     await dialog.remove_state(context=state)
     
     matches = re.findall(r"\d+", message.text)
@@ -51,16 +51,20 @@ async def set_min_time(message: Message, dialog_message: MessageInstance, state:
 
     settings_object: AccessSettingsObject = await AccessSettingsObject.objects.aget(id=dialog.values["settings_object_id"])
 
+    dialog_message = dialog.messages[max(dialog.messages)]
+
     if dialog_message.marks["target_time"] == "min_time":
         settings_object.min_punish_time_for_rand_choice = time
     elif dialog_message.marks["target_time"] == "max_time":
         settings_object.max_punish_time_for_rand_choice = time
 
+    dialog_message.marks.pop("target_time")
+
     await settings_object.asave()
 
     try:
-        await dialog.edit_keyboard(dialog.values[""],
-                                   game_settings_select,
+        await dialog.edit_keyboard(dialog.values["main_message_id"],
+                                   random_choice_game_access_settings,
                                    menu_data={"settings_object": settings_object})
     except:
         pass

@@ -3,8 +3,6 @@ from typing import Any, Dict
 from aiogram_dialog_manager.prototype import ButtonPrototype
 from django.utils.translation import gettext as _
 
-from bot.handlers.administrative.access_settings.games_settings.games_menu import random_choice_game
-
 
 def set_indicator(data: Dict[str, Any]):
     data["indicator"] = '✅' if data["value"] else '☑️'
