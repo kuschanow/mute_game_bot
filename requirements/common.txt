@@ -12,6 +12,5 @@ celery~=5.3.4
 django-celery-results==2.5.1
 django-celery-beat==2.6.0
 future==1.0.0
-
-asgiref~=3.8.1
-redis~=5.0.3
+aiogram-dialog-manager==1.0.0
+asgiref==3.8.1
