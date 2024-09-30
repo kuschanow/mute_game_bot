@@ -4,8 +4,8 @@ from aiogram import Router
 from aiogram.types import TelegramObject
 from asgiref.sync import sync_to_async
 
-from bot.models.AccessSettings import AccessSettings
-from bot.models.AccessSettingsObject import AccessSettingsObject
+from bot.models.access_settings import AccessSettings
+from bot.models.access_settings_object import AccessSettingsObject
 from shared.enums import SettingsTarget
 
 

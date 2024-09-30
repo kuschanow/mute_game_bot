@@ -9,7 +9,7 @@ from django.utils.translation import gettext as _
 
 from bot.middlewares import set_random_choice_game_middlewares
 from bot.models import ChatMember, Chat
-from bot.models.AccessSettingsObject import AccessSettingsObject
+from bot.models.access_settings_object import AccessSettingsObject
 from bot.utils.dialog.dialog_buttons import join, start, delete
 from bot.utils.dialog.dialog_menus import random_choice_game
 from bot.utils.dialog.dialog_texts import random_choice_game_texts

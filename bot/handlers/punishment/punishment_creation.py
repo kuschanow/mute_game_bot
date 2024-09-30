@@ -21,7 +21,7 @@ from bot.utils.dialog.dialog_texts import punishment_creation_texts
 from games.models import Punishment
 from .PunishmentCreationStates import PunishmentCreationStates
 from ...generate_session import bot
-from ...models.AccessSettingsObject import AccessSettingsObject
+from ...models.access_settings_object import AccessSettingsObject
 
 punishment_creation_router = Router()
 punishment_creation_router.message.filter(MagicData(F.chat.type.is_not(ChatType.PRIVATE)))

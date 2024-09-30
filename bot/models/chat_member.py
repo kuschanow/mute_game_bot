@@ -5,9 +5,12 @@ from aiogram.types import Chat as TeleChat, ChatMemberAdministrator, ChatMemberM
 from django.conf import settings
 from django.db import models
 
-from bot.models import User
 from shared.enums import MemberStatus
 from shared.utils import enum_to_choices
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from bot.models import User
 
 
 class ChatMember(models.Model):
@@ -42,7 +45,7 @@ class ChatMember(models.Model):
         return f"{status_mark[self.status]}{user_name}"
 
     @staticmethod
-    async def get_or_create_member(user: User, tele_chat: TeleChat):
+    async def get_or_create_member(user: 'User', tele_chat: TeleChat):
         from bot.models import Chat
         chat = await Chat.objects.aget(id=tele_chat.id)
         member = (await ChatMember.objects.aget_or_create(user=user, chat=chat))[0]
