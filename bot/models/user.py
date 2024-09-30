@@ -1,4 +1,4 @@
-from uuid import uuid4
+import uuid
 
 from aiogram.types import User as TeleUser
 from django.db import models
@@ -20,15 +20,16 @@ class User(models.Model):
 
     @staticmethod
     async def get_or_create_user(tele_user: TeleUser):
-        user, created = await User.objects.aget_or_create(id=tele_user.id)
+        if await User.objects.filter(id=tele_user.id).aexists():
+            user = await User.objects.aget(id=tele_user.id)
+        else:
+            from bot.models import UserSettingsObject
+            settings = await UserSettingsObject.objects.acreate()
+            user = User(id=tele_user.id, global_settings=settings)
 
         user.username = tele_user.username
         user.first_name = tele_user.first_name
         user.last_name = tele_user.last_name
-
-        if created:
-            from bot.models import UserSettingsObject
-            user.global_settings = await UserSettingsObject.objects.acreate()
 
         await user.asave()
 

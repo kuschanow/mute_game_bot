@@ -28,6 +28,10 @@ class ChatMember(models.Model):
 
     local_settings = models.ForeignKey("UserSettingsObject", on_delete=models.SET_NULL, null=True, blank=False, default=None)
 
+    @property
+    def settings(self):
+        return self.local_settings if self.local_settings else self.user.global_settings
+
     def is_admin(self) -> bool:
         return self.is_owner() or self.status == MemberStatus.ADMIN.value
 

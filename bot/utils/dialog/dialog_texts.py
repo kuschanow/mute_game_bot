@@ -54,3 +54,8 @@ access_settings_texts = {
     "base_settings": _("%(target_name)s"),
     "game_settings": _("%(target_name)s -> %(game_name)s")
 }
+
+user_settings_texts = {
+    "global": _("Global user settings (for local ones, go to the group chat of interest)"),
+    "local": _("Local user settings (for global ones, go to private chat with the bot)")
+}

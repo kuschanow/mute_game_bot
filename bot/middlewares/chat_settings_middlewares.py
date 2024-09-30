@@ -9,11 +9,11 @@ from bot.models.access_settings_object import AccessSettingsObject
 from shared.enums import SettingsTarget
 
 
-def set_settings_middlewares(router: Router):
-    router.message.outer_middleware.register(settings_middleware)
-    router.callback_query.outer_middleware.register(settings_middleware)
+def set_chat_settings_middlewares(router: Router):
+    router.message.outer_middleware.register(chat_settings_middleware)
+    router.callback_query.outer_middleware.register(chat_settings_middleware)
 
-async def settings_middleware(
+async def chat_settings_middleware(
         handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
         event: TelegramObject,
         data: Dict[str, Any]

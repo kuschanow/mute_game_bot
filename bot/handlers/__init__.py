@@ -7,6 +7,7 @@ from .games import games_router
 from .punishment import punishment_router
 from .stats import stats_router
 from .unhandled import unhandled_router
+from .user_settings import user_settings_router
 from ..filters import IsRestricted
 
 handlers_router = Router()
@@ -14,6 +15,6 @@ handlers_router.message.filter(invert_f(IsRestricted()))
 handlers_router.callback_query.filter(invert_f(IsRestricted()))
 
 
-handlers_router.include_routers(administrative_router, games_router, punishment_router, stats_router, common_router, unhandled_router)
+handlers_router.include_routers(administrative_router, user_settings_router, games_router, punishment_router, stats_router, common_router, unhandled_router)
 
 
