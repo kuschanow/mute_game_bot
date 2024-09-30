@@ -26,13 +26,13 @@ def get_top_time_text(stats_list: List[tuple[ChatMember, timedelta]], page: int)
     if len(stats_list) == 0:
         return text
 
-    places = get_places(stats_list, page)
+    places: List[tuple[ChatMember, timedelta]] = get_places(stats_list, page)
 
     if places is None:
         return text
 
     for i in range(len(places)):
-        text += f"    {page * settings.RATING_PAGE_SIZE + i + 1}) {places[i][0].get_string(True)}: {str(places[i][1]).replace(' day,', '').replace(' days,', '')[:-3]}\n"
+        text += f"    {page * settings.RATING_PAGE_SIZE + i + 1}) {places[i][0].get_string(places[i][0].settings.ping_in_stats)}: {str(places[i][1]).replace(' day,', '').replace(' days,', '')[:-3]}\n"
 
     return text
 
@@ -50,7 +50,7 @@ def get_top_count_text(stats_list: List[tuple[ChatMember, int, int]], page: int)
     death_char = _("☠")
 
     for i in range(len(places)):
-        text += f"    {page * settings.RATING_PAGE_SIZE + i + 1}) {places[i][0].get_string(True)}: {places[i][1]} ({death_char} {places[i][2]})\n"
+        text += f"    {page * settings.RATING_PAGE_SIZE + i + 1}) {places[i][0].get_string(places[i][0].settings.ping_in_stats)}: {places[i][1]} ({death_char} {places[i][2]})\n"
 
     return text
 
@@ -65,7 +65,7 @@ def get_detailed_text(stats_list: List[tuple]) -> str:
 
 @sync_to_async
 def get_detailed_text_by_member(stats_list: List[tuple], member: ChatMember) -> str:
-    text = _("%(member)s random choice game stats:\n" ) % {"member": member.get_string(True)}
+    text = _("%(member)s random choice game stats:\n" ) % {"member": member.get_string(member.settings.ping_in_stats)}
 
     for stat in stats_list:
         text += f"    {stat[0]}: <strong>{stat[1]}</strong>\n"

@@ -2,7 +2,6 @@ from uuid import uuid4
 
 from django.db import models
 
-from bot.models.AccessSettingsObject import AccessSettingsObject
 from shared.enums import SettingsTarget
 from shared.utils import enum_to_choices
 

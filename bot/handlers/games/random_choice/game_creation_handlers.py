@@ -19,7 +19,7 @@ from bot.handlers.games.random_choice.GameSettingsStates import GameSettingsStat
 from bot.handlers.games.random_choice.utils.texts import get_players
 from bot.middlewares import set_random_choice_game_middlewares
 from bot.models import ChatMember, User
-from bot.models.AccessSettingsObject import AccessSettingsObject
+from bot.models.access_settings_object import AccessSettingsObject
 from bot.utils.dialog.dialog_buttons import privacy, change_page, punishment, is_creator_play, min_max, losers, autostart_when_full, create, cancel
 from bot.utils.dialog.dialog_menus import punishments, random_choice_settings, random_choice_game
 from bot.utils.dialog.dialog_texts import random_choice_game_creation_texts, random_choice_game_texts

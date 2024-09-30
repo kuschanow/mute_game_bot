@@ -1,9 +1,7 @@
 from aiogram.enums.chat_type import ChatType
 from aiogram.types import Chat as TeleChat
-from asgiref.sync import sync_to_async
 from django.db import models
 
-from bot.models.AccessSettings import AccessSettings
 from shared.enums import SettingsTarget
 from shared.utils import enum_to_choices
 
@@ -30,6 +28,7 @@ class Chat(models.Model):
             settings_object = AccessSettingsObject()
             await settings_object.asave()
 
+            from bot.models.access_settings import AccessSettings
             await AccessSettings.objects.acreate(
                 chat=chat,
                 target=SettingsTarget.CHAT.value,

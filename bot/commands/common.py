@@ -10,6 +10,7 @@ commands = [
     BotCommand(command=f"/{settings.CREATE_PUNISHMENT_COMMAND}", description=_("Create new punishment")),
     BotCommand(command=f"/{settings.SHOW_USER_STATS_COMMAND}", description=_("Display user statistics")),
     BotCommand(command=f"/{settings.SHOW_CHAT_STATS_COMMAND}", description=_("Display current chat statistics")),
+    BotCommand(command=f"/{settings.USER_SETTINGS_COMMAND}", description=_("Change private bot settings")),
     BotCommand(command=f"/{settings.DELETE_PUNISHMENT_COMMAND}", description=_("Delete punishments")),
     BotCommand(command=f"/{settings.ACCESS_SETTINGS_COMMAND}", description=_("Change access settings for current chat")),
     # # Translators: chat settings command hint

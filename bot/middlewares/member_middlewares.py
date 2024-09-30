@@ -4,7 +4,6 @@ from aiogram import Router
 from aiogram.types import Message, CallbackQuery
 
 from bot.models import ChatMember
-from shared import redis
 
 
 def set_member_middlewares(router: Router):

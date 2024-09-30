@@ -117,3 +117,5 @@ access_time_settings = ButtonPrototype("access_time_settings",
                                            "max_time_selected": _("▶ %(max_time)s ◀"),
                                        },
                                        lambda data: f"{data['type']}_{'selected' if data['selected'] else ''}".strip("_"))
+
+ping_in_stats = ButtonPrototype("ping_in_stats", {"": _("Ping in stats %(status)s")})

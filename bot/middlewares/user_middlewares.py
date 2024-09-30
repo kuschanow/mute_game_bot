@@ -15,7 +15,7 @@ async def message_user_middleware(
         message: Message,
         data: Dict[str, Any]
 ) -> Any:
-    data["user"] = await User.get_or_create_user(message.from_user, message.chat)
+    data["user"] = await User.get_or_create_user(message.from_user)
     return await handler(message, data)
 
 async def callback_user_middleware(
@@ -23,6 +23,6 @@ async def callback_user_middleware(
         callback: CallbackQuery,
         data: Dict[str, Any]
 ) -> Any:
-    data["user"] = await User.get_or_create_user(callback.from_user, callback.message.chat)
+    data["user"] = await User.get_or_create_user(callback.from_user)
     return await handler(callback, data)
 
