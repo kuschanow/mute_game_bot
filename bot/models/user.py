@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 from aiogram.types import User as TeleUser
 from django.db import models
 

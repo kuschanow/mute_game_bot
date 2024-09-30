@@ -26,6 +26,8 @@ class ChatMember(models.Model):
 
     updated_at = models.DateTimeField(auto_now=True)
 
+    local_settings = models.ForeignKey("UserSettingsObject", on_delete=models.SET_NULL, null=True, blank=False, default=None)
+
     def is_admin(self) -> bool:
         return self.is_owner() or self.status == MemberStatus.ADMIN.value
 
