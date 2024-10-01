@@ -22,7 +22,7 @@ async def message_logger_middleware(
                 user=data["user"],
                 chat=data["chat"],
                 chat_member=data["member"],
-                settings=data["member_settings"])
+                settings=data["member"].assecc_settings)
     try:
         return await handler(message, data)
     except Exception as e:
@@ -32,7 +32,7 @@ async def message_logger_middleware(
                      user=data["user"],
                      chat=data["chat"],
                      chat_member=data["member"],
-                     settings=data["member_settings"])
+                     settings=data["member"].assecc_settings)
 
 async def callback_logger_middleware(
         handler: Callable[[CallbackQuery, Dict[str, Any]], Awaitable[Any]],
@@ -44,7 +44,7 @@ async def callback_logger_middleware(
                 user=data["user"],
                 chat=data["chat"],
                 chat_member=data["member"],
-                settings=data["member_settings"])
+                settings=data["member"].assecc_settings)
     try:
         return await handler(callback, data)
     except Exception as e:
@@ -54,5 +54,5 @@ async def callback_logger_middleware(
                      user=data["user"],
                      chat=data["chat"],
                      chat_member=data["member"],
-                     settings=data["member_settings"])
+                     settings=data["member"].assecc_settings)
 

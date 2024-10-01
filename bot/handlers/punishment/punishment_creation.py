@@ -14,14 +14,13 @@ from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.utils.translation import gettext as _
 
-from bot.models import User, Chat
+from bot.models import User, Chat, ChatMember
 from bot.utils.dialog.dialog_buttons import privacy
 from bot.utils.dialog.dialog_menus import cancel as cancel_menu, privacy
 from bot.utils.dialog.dialog_texts import punishment_creation_texts
 from games.models import Punishment
 from .PunishmentCreationStates import PunishmentCreationStates
 from ...generate_session import bot
-from ...models.access_settings_object import AccessSettingsObject
 
 punishment_creation_router = Router()
 punishment_creation_router.message.filter(MagicData(F.chat.type.is_not(ChatType.PRIVATE)))
@@ -54,7 +53,7 @@ async def choose_name(message: Message, state: FSMContext, dialog: Dialog):
                                     DialogAccessFilter(),
                                     F.text.regexp(r"\d+"),
                                     F.content_type == ContentType.TEXT)
-async def choose_name(message: Message, member_settings: AccessSettingsObject, state: FSMContext, dialog: Dialog):
+async def choose_name(message: Message, member: ChatMember, state: FSMContext, dialog: Dialog):
     await dialog.remove_state(context=state)
 
     matches = re.findall(r"\d+", message.text)
@@ -63,7 +62,7 @@ async def choose_name(message: Message, member_settings: AccessSettingsObject, s
 
     dialog.data["time"] = time.total_seconds()
     await dialog.delete_all_messages()
-    await dialog.send_message(punishment_creation_texts["privacy"], privacy, menu_data={"settings": member_settings})
+    await dialog.send_message(punishment_creation_texts["privacy"], privacy, menu_data={"settings": member.access_settings})
     await message.delete()
 
 

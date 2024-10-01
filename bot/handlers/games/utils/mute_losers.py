@@ -15,6 +15,9 @@ async def mute_losers(game, result, chat: Chat):
         if user_id in settings.ADMINS:
             continue
 
+        if loser.chat_member.access_settings.is_invulnerable:
+            continue
+
         try:
             await bot.restrict_chat_member(
                 chat_id=chat.id,

@@ -4,7 +4,7 @@ from aiogram_dialog_manager import Dialog
 from asgiref.sync import sync_to_async
 from django.conf import settings
 
-from bot.models import ChatMember, AccessSettingsObject
+from bot.models import ChatMember
 from games.models import Punishment
 
 from bot.utils.dialog.dialog_buttons import cancel, privacy, punishment, change_page
@@ -14,7 +14,6 @@ from bot.utils.dialog.dialog_buttons import cancel, privacy, punishment, change_
 def get_punishments_keyboard(
         dialog: Dialog,
         chat_member: ChatMember,
-        member_settings: AccessSettingsObject,
         time_filters: Optional[Dict[str, Any]] = None
 ) -> List[List[str | Tuple[str, Dict[str, Any]]]]:
     page = dialog.values["page"]
@@ -58,7 +57,7 @@ def get_punishments_keyboard(
         privacy.get_instance({"public_indicator": 0})
     ]
 
-    if member_settings.can_delete_public_punishments:
+    if chat_member.access_settings.can_delete_public_punishments:
         privacy_block.append(privacy.get_instance({"public_indicator": 1})
     )
 
