@@ -5,7 +5,7 @@ from aiogram_dialog_manager.instance import ButtonInstance
 
 from bot.models import AccessSettingsObject
 from bot.utils.dialog.dialog_buttons import make_diff, back, can_join_games, can_create_games, can_press_other_buttons, can_create_punishments, \
-    can_delete_punishments, games_settings, reset_to_global
+    can_delete_punishments, games_settings, reset_to_global, is_invulnerable, hide_in_stats
 
 
 def get_access_settings_keyboard(dialog: Dialog, settings_object: Optional[AccessSettingsObject]) -> List[List[ButtonInstance]]:
@@ -20,6 +20,8 @@ def get_access_settings_keyboard(dialog: Dialog, settings_object: Optional[Acces
             [can_press_other_buttons.get_instance({"status": '✅' if settings_object.can_press_other_buttons else '☑️'})],
             [can_create_punishments.get_instance({"status": '✅' if settings_object.can_create_public_punishments else '☑️'})],
             [can_delete_punishments.get_instance({"status": '✅' if settings_object.can_delete_public_punishments else '☑️'})],
+            [is_invulnerable.get_instance({{"status": '✅' if settings_object.is_invulnerable else '☑️'}})]
+            [hide_in_stats.get_instance({{"status": '✅' if settings_object.hide_in_stats else '☑️'}})]
             [games_settings.get_instance()],
         ]
 

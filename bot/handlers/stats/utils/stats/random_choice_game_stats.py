@@ -1,7 +1,7 @@
 from datetime import timedelta
 from typing import List
 
-from asgiref.sync import sync_to_async
+from asgiref.sync import sync_to_async, async_to_sync
 from django.conf import settings
 from django.db.models import Sum, F, Count, Case, When, IntegerField, ExpressionWrapper, fields
 from django.db.models.functions import Extract
@@ -30,6 +30,8 @@ def get_random_choice_game_time_stats(chat: Chat) -> List[tuple[ChatMember, time
         for stat in members_stats
     ]
 
+    result = [(unit[0], unit[1]) for unit in result if not unit[0].access_settings.hide_in_stats]
+
     return sorted(result, key=lambda x: x[1], reverse=True)
 
 
@@ -50,6 +52,8 @@ def get_random_choice_game_count_stats(chat: Chat) -> List[tuple[ChatMember, int
         for stat in members_stats
     ]
 
+    result = [(unit[0], unit[1], unit[2]) for unit in result if not unit[0].access_settings.hide_in_stats]
+
     return sorted(result, key=lambda x: x[1], reverse=True)
 
 
@@ -58,18 +62,7 @@ def get_random_choice_game_detailed_stats(chat: Chat) -> List[tuple]:
     games = RandomChoiceGame.objects.filter(creator__chat=chat, result__isnull=False)
     total_games = games.count()
 
-    total_time_seconds = (
-            games
-            .annotate(punishment_time=ExpressionWrapper((F('punishment__time') / 1000000) * F('losers_count'), output_field=fields.FloatField()))
-            .aggregate(total_seconds=Sum('punishment_time'))['total_seconds']
-            or 0
-    ) if settings.USE_SQLITE else (
-            games
-            .annotate(punishment_seconds=ExpressionWrapper(Extract('punishment__time', 'EPOCH'), output_field=fields.PositiveIntegerField()))
-            .annotate(punishment_time=F('punishment_seconds') * F('losers_count'))
-            .aggregate(total_seconds=Sum('punishment_time'))['total_seconds']
-            or 0
-    )
+    total_time_seconds = sum([unit[1].total_seconds() for unit in async_to_sync(get_random_choice_game_time_stats)(chat)])
     total_time = timedelta(seconds=total_time_seconds)
 
     return [(_("Total games count"), total_games),

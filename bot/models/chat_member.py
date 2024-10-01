@@ -29,8 +29,33 @@ class ChatMember(models.Model):
     local_settings = models.ForeignKey("UserSettingsObject", on_delete=models.SET_NULL, null=True, blank=False, default=None)
 
     @property
-    def settings(self):
+    def private_settings(self):
         return self.local_settings if self.local_settings else self.user.global_settings
+
+    @property
+    def access_settings(self):
+        from bot.models import AccessSettings, AccessSettingsObject
+        from shared.enums import SettingsTarget
+
+        if self.is_owner():
+            return AccessSettingsObject.get_owner_settings()
+
+        filters = [
+            (SettingsTarget.MEMBER.value, self.id),
+            (SettingsTarget.GROUP.value, self.settings_group_id),
+            (SettingsTarget.ADMINS.value, self.chat.id),
+            (SettingsTarget.CHAT.value, self.chat.id),
+        ]
+
+        for target, target_id in filters:
+            if target == SettingsTarget.GROUP.value and self.settings_group_id is None:
+                continue
+            if target == SettingsTarget.ADMINS.value and not self.is_admin():
+                continue
+            if AccessSettings.objects.filter(chat=self.chat, target=target).exists():
+                return AccessSettings.objects.get(chat=self.chat, target=target, target_id=target_id).settings_object
+
+        return None
 
     def is_admin(self) -> bool:
         return self.is_owner() or self.status == MemberStatus.ADMIN.value

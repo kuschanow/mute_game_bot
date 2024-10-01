@@ -99,6 +99,10 @@ can_create_punishments = ButtonPrototype("can_create_punishments", {"": _("Can c
 
 can_delete_punishments = ButtonPrototype("can_delete_punishments", {"": _("Can delete punishments %(status)s")})
 
+is_invulnerable = ButtonPrototype("is_invulnerable", {"": _("Invulnerable %(status)s")})
+
+hide_in_stats = ButtonPrototype("hide_in_stats", {"": _("Hide in stats %(status)s")})
+
 games_settings = ButtonPrototype("games_settings", {"": _("Games settings")})
 
 reset_to_global = ButtonPrototype("reset_to_global", {"": _("Reset to global")})
