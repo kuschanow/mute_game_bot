@@ -1,13 +1,13 @@
 from typing import Optional, Dict, Any, List, Tuple
 
 from aiogram_dialog_manager import Dialog
-from asgiref.sync import sync_to_async
+from asgiref.sync import sync_to_async, async_to_sync
 from django.conf import settings
 
 from bot.models import ChatMember
 from games.models import Punishment
 
-from bot.utils.dialog.dialog_buttons import cancel, privacy, punishment, change_page
+from bot.dialogs.dialog_buttons import cancel, privacy, punishment, change_page
 
 
 @sync_to_async
@@ -46,7 +46,8 @@ def get_punishments_keyboard(
     punishments_count = query.count()
 
     if len(punishments) == 0 and page > 0:
-        dialog.values["page"] = (query.count() - 1) // settings.PAGE_SIZE
+        dialog.data["page"] = (query.count() - 1) // settings.PAGE_SIZE
+        return async_to_sync(get_punishments_keyboard)(dialog, chat_member, time_filters)
 
     buttons = []
     for p in punishments:

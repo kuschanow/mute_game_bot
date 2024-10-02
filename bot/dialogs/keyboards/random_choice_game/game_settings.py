@@ -3,7 +3,7 @@ from typing import List
 from aiogram_dialog_manager.instance import ButtonInstance
 
 from bot.models import AccessSettingsObject
-from bot.utils.dialog.dialog_buttons import is_creator_play, min_max, losers, autostart_when_full, create, cancel
+from bot.dialogs.dialog_buttons import is_creator_play, min_max, losers, autostart_when_full, create, cancel
 from games.models import RandomChoiceGame
 
 

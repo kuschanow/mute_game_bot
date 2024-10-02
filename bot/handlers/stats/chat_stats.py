@@ -11,9 +11,9 @@ from django.utils.translation import gettext as _
 
 from bot.generate_session import bot
 from bot.models import Chat, User
-from bot.utils.dialog.dialog_buttons import stats_format, stats_category, change_page
-from bot.utils.dialog.dialog_menus import stats
-from bot.utils.dialog.dialog_texts import base_dialog_text
+from bot.dialogs.dialog_buttons import stats_format, stats_category, change_page
+from bot.dialogs.dialog_menus import stats
+from bot.dialogs.dialog_texts import base_dialog_text
 from .utils.stats import get_random_choice_game_time_stats, get_random_choice_game_detailed_stats, get_random_choice_game_count_stats
 from .utils.texts import get_top_time_text, get_detailed_text, get_top_count_text
 

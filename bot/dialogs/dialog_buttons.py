@@ -123,3 +123,9 @@ access_time_settings = ButtonPrototype("access_time_settings",
                                        lambda data: f"{data['type']}_{'selected' if data['selected'] else ''}".strip("_"))
 
 ping_in_stats = ButtonPrototype("ping_in_stats", {"": _("Ping in stats %(status)s")})
+
+add = ButtonPrototype("add", {"": _("Add")})
+
+access_group = ButtonPrototype("access_group", {"": "%(name)s"})
+
+update = ButtonPrototype("update", {"": _("Update")})

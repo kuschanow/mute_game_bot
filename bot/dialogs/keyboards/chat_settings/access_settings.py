@@ -4,7 +4,7 @@ from aiogram_dialog_manager import Dialog
 from aiogram_dialog_manager.instance import ButtonInstance
 
 from bot.models import AccessSettingsObject
-from bot.utils.dialog.dialog_buttons import make_diff, back, can_join_games, can_create_games, can_press_other_buttons, can_create_punishments, \
+from bot.dialogs.dialog_buttons import make_diff, back, can_join_games, can_create_games, can_press_other_buttons, can_create_punishments, \
     can_delete_punishments, games_settings, reset_to_global, is_invulnerable, hide_in_stats
 
 

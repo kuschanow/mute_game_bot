@@ -6,9 +6,9 @@ from django.utils.translation import gettext as _
 
 from bot.filters import IsOwner
 from bot.models import AccessSettingsObject
-from bot.utils.dialog.dialog_buttons import game_access_settings
-from bot.utils.dialog.dialog_menus import random_choice_game_access_settings
-from bot.utils.dialog.dialog_texts import access_settings_texts
+from bot.dialogs.dialog_buttons import game_access_settings
+from bot.dialogs.dialog_menus import random_choice_game_access_settings
+from bot.dialogs.dialog_texts import access_settings_texts
 
 games_menu_router = Router()
 games_menu_router.callback_query.filter(DialogFilter("access_settings"), IsOwner())

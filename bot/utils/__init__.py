@@ -1,1 +1,2 @@
 from .garbage_collector import collect_garbage
+from .get_member_from_message import get_member_from_message

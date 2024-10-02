@@ -15,9 +15,8 @@ from django.conf import settings
 from django.utils.translation import gettext as _
 
 from bot.models import User, Chat, ChatMember
-from bot.utils.dialog.dialog_buttons import privacy
-from bot.utils.dialog.dialog_menus import cancel as cancel_menu, privacy
-from bot.utils.dialog.dialog_texts import punishment_creation_texts
+from bot.dialogs.dialog_menus import cancel as cancel_menu, privacy
+from bot.dialogs.dialog_texts import punishment_creation_texts
 from games.models import Punishment
 from .PunishmentCreationStates import PunishmentCreationStates
 from ...generate_session import bot

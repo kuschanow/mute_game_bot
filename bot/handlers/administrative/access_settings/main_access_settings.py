@@ -13,11 +13,10 @@ from django.utils.translation import gettext as _
 from bot.filters import IsOwner
 from bot.generate_session import bot
 from bot.models import AccessSettings, Chat, AccessSettingsObject, ChatMember
-from bot.utils.dialog.dialog_buttons import games_settings, can_join_games, can_create_games, can_press_other_buttons, can_create_punishments, \
-    can_delete_punishments
-from bot.utils.dialog.dialog_buttons import settings_target as settings_target_button, make_diff, reset_to_global
-from bot.utils.dialog.dialog_menus import settings_target, access_settings, game_settings_select
-from bot.utils.dialog.dialog_texts import access_settings_texts
+from bot.dialogs.dialog_buttons import games_settings, can_join_games, can_create_games, can_press_other_buttons, can_create_punishments, \
+    can_delete_punishments, settings_target as settings_target_button, make_diff, reset_to_global
+from bot.dialogs.dialog_menus import settings_target, access_settings, game_settings_select, access_groups
+from bot.dialogs.dialog_texts import access_settings_texts
 from shared.enums import SettingsTarget
 
 main_access_settings_router = Router()
@@ -75,6 +74,20 @@ async def admins_settings(callback: CallbackQuery, chat: Chat, dialog: Dialog):
                               access_settings_texts["base_settings"],
                               access_settings,
                               menu_data={"settings_object": settings_object_for_admins})
+
+
+@main_access_settings_router.callback_query(ButtonFilter(settings_target_button, target="group"))
+async def group_selection(callback: CallbackQuery, dialog: Dialog):
+    await callback.answer()
+
+    dialog.data["target"] = "group"
+    dialog.data["target_name"] = _("Group")
+
+    dialog.data["page"] = 0
+
+    await dialog.edit_message(callback.message.message_id,
+                              access_settings_texts["base_settings"],
+                              access_groups)
 
 
 @main_access_settings_router.callback_query(ButtonFilter(reset_to_global))

@@ -3,7 +3,7 @@ from typing import List
 from aiogram_dialog_manager.instance import ButtonInstance
 
 from bot.models import AccessSettingsObject
-from bot.utils.dialog.dialog_buttons import access_time_settings, back
+from bot.dialogs.dialog_buttons import access_time_settings, back
 
 
 def get_random_choice_game_access_settings_keyboard(settings_object: AccessSettingsObject, highlight_this: str = "") -> List[List[ButtonInstance]]:

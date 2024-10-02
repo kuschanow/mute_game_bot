@@ -22,7 +22,7 @@ class ChatMember(models.Model):
     is_anon = models.BooleanField(default=False, null=False)
     can_interact = models.BooleanField(default=True, null=False)
 
-    settings_group = models.ForeignKey("AccessGroup", on_delete=models.SET_NULL, null=True, default=None)
+    access_group = models.ForeignKey("AccessGroup", on_delete=models.SET_NULL, null=True, default=None)
 
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -42,13 +42,13 @@ class ChatMember(models.Model):
 
         filters = [
             (SettingsTarget.MEMBER.value, self.id),
-            (SettingsTarget.GROUP.value, self.settings_group_id),
+            (SettingsTarget.GROUP.value, self.access_group_id),
             (SettingsTarget.ADMINS.value, self.chat.id),
             (SettingsTarget.CHAT.value, self.chat.id),
         ]
 
         for target, target_id in filters:
-            if target == SettingsTarget.GROUP.value and self.settings_group_id is None:
+            if target == SettingsTarget.GROUP.value and self.access_group_id is None:
                 continue
             if target == SettingsTarget.ADMINS.value and not self.is_admin():
                 continue

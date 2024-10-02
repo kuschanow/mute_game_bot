@@ -55,4 +55,15 @@ class Migration(migrations.Migration):
             name='global_settings',
             field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='bot.usersettingsobject'),
         ),
+        migrations.RenameField(
+            model_name='chatmember',
+            old_name='settings_group',
+            new_name='access_group',
+        ),
+        migrations.AddField(
+            model_name='accessgroup',
+            name='created_at',
+            field=models.DateTimeField(auto_now_add=True, default=None),
+            preserve_default=False,
+        ),
     ]

@@ -2,7 +2,7 @@ from typing import List
 
 from aiogram_dialog_manager.instance.button import ButtonInstance
 
-from bot.utils.dialog.dialog_buttons import join, delete, start
+from bot.dialogs.dialog_buttons import join, delete, start
 from games.models import RandomChoiceGame
 
 

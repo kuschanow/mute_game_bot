@@ -19,10 +19,9 @@ from bot.handlers.games.random_choice.GameSettingsStates import GameSettingsStat
 from bot.handlers.games.random_choice.utils.texts import get_players
 from bot.middlewares import set_random_choice_game_middlewares
 from bot.models import ChatMember, User
-from bot.models.access_settings_object import AccessSettingsObject
-from bot.utils.dialog.dialog_buttons import privacy, change_page, punishment, is_creator_play, min_max, losers, autostart_when_full, create, cancel
-from bot.utils.dialog.dialog_menus import punishments, random_choice_settings, random_choice_game
-from bot.utils.dialog.dialog_texts import random_choice_game_creation_texts, random_choice_game_texts
+from bot.dialogs.dialog_buttons import privacy, change_page, punishment, is_creator_play, min_max, losers, autostart_when_full, create, cancel
+from bot.dialogs.dialog_menus import punishments, random_choice_settings, random_choice_game
+from bot.dialogs.dialog_texts import random_choice_game_creation_texts, random_choice_game_texts
 from games.models import RandomChoiceGame, RandomChoiceGamePlayer
 from shared import category
 
@@ -76,9 +75,9 @@ async def select_punishments_privacy(callback: CallbackQuery, dialog: Dialog, bu
 
 
 @game_creation_router.callback_query(ButtonFilter(change_page))
-async def select_page(callback: CallbackQuery, dialog: Dialog, button_data: Dict[str, Any], member: ChatMember):
+async def select_page(callback: CallbackQuery, dialog: Dialog, button: ButtonInstance, member: ChatMember):
     await callback.answer()
-    dialog.data["page"] = button_data["page"]
+    dialog.data["page"] = button.data["page"]
 
     menu_data = {
         "chat_member": member,

@@ -8,12 +8,12 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 from aiogram_dialog_manager import Dialog
 from aiogram_dialog_manager.filter import DialogFilter, ButtonFilter, StateFilter
-from aiogram_dialog_manager.instance import ButtonInstance, MessageInstance
+from aiogram_dialog_manager.instance import ButtonInstance
 
 from bot.filters import IsOwner
 from bot.models import AccessSettingsObject
-from bot.utils.dialog.dialog_buttons import access_time_settings
-from bot.utils.dialog.dialog_menus import random_choice_game_access_settings
+from bot.dialogs.dialog_buttons import access_time_settings
+from bot.dialogs.dialog_menus import random_choice_game_access_settings
 from .RandomChoiceGameAccessSettingsStates import RandomChoiceGameAccessSettingsStates
 
 random_choice_game_access_settings_router = Router()

@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.utils.translation import gettext as _
 
 
@@ -52,7 +53,12 @@ random_choice_game_texts = {
 access_settings_texts = {
     "target": _("Select target"),
     "base_settings": _("%(target_name)s"),
-    "game_settings": _("%(target_name)s -> %(game_name)s")
+    "game_settings": _("%(target_name)s -> %(game_name)s"),
+    "access_group": _("%(group_name)s\n\n"
+                      "%(group_members)s\n\n"
+                      "To add a user to a group, use one of these commands:\n"
+                      "<code>%(add_to_group_command)s %(group_id)</code> (in response to a user message)\n"
+                      "<code>%(add_to_group_command)s %(group_id) \<user_id or username\></code>")
 }
 
 user_settings_texts = {
