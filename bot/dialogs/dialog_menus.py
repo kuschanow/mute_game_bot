@@ -27,7 +27,9 @@ random_choice_game = MenuPrototype(get_random_choice_game_menu_keyboard)
 
 stats = MenuPrototype(get_stats_keyboard)
 
-settings_target = MenuPrototype(lambda: [
+settings_target = MenuPrototype(lambda is_super_admin: [
+    [settings_target_button.get_instance({"target": "super_admin"})] if is_super_admin else []
+    [settings_target_button.get_instance({"target": "owner"})]
     [settings_target_button.get_instance({"target": "chat"})],
     [settings_target_button.get_instance({"target": "admins"})],
     [settings_target_button.get_instance({"target": "group"})],

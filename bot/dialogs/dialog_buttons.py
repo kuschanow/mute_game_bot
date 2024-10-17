@@ -101,7 +101,7 @@ can_delete_punishments = ButtonPrototype("can_delete_punishments", {"": _("Can d
 
 is_invulnerable = ButtonPrototype("is_invulnerable", {"": _("Invulnerable %(status)s")})
 
-hide_in_stats = ButtonPrototype("hide_in_stats", {"": _("Hide in stats %(status)s")})
+show_in_stats = ButtonPrototype("show_in_stats", {"": _("Show in stats %(status)s")})
 
 games_settings = ButtonPrototype("games_settings", {"": _("Games settings")})
 

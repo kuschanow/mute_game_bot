@@ -42,8 +42,8 @@ class Migration(migrations.Migration):
         migrations.RunPython(populate_new_field),
         migrations.AddField(
             model_name='accesssettingsobject',
-            name='hide_in_stats',
-            field=models.BooleanField(default=False),
+            name='show_in_stats',
+            field=models.BooleanField(default=True),
         ),
         migrations.AddField(
             model_name='accesssettingsobject',

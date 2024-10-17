@@ -1,12 +1,13 @@
 import asyncio
+import uuid
 
 from aiogram import Bot
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.utils.translation import gettext as _
+from django_celery_beat.models import CrontabSchedule, PeriodicTask
 
 from bot.logger import logger
-from django_celery_beat.models import CrontabSchedule, PeriodicTask
 
 
 async def on_startup(bot: Bot):
@@ -21,6 +22,11 @@ async def on_startup(bot: Bot):
     for admin_id in settings.ADMINS:
         await bot.send_message(text=_("Bot is running"), chat_id=admin_id)
 
+    from bot.models import AccessSettingsObject
+    s: AccessSettingsObject = AccessSettingsObject.objects.filter(id=uuid.UUID(int=0, version=4)).first()
+    if s:
+        s.delete()
+
     schedule, result = await CrontabSchedule.objects.aget_or_create(
         minute="0",
         hour="0"
@@ -32,6 +38,7 @@ async def on_startup(bot: Bot):
         task='bot.tasks.collect_garbage',
     )
 
+
 async def on_shutdown(bot: Bot):
     logger.info("Bot is turned off")
 
@@ -39,6 +46,7 @@ async def on_shutdown(bot: Bot):
 
     for admin_id in settings.ADMINS:
         await bot.send_message(text=_("Bot is turned off"), chat_id=admin_id)
+
 
 class Command(BaseCommand):
     help = "Start telegram bot"

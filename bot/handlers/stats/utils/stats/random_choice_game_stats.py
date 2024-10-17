@@ -30,7 +30,7 @@ def get_random_choice_game_time_stats(chat: Chat) -> List[tuple[ChatMember, time
         for stat in members_stats
     ]
 
-    result = [(unit[0], unit[1]) for unit in result if not unit[0].access_settings.hide_in_stats]
+    result = [(unit[0], unit[1]) for unit in result if not unit[0].access_settings.show_in_stats]
 
     return sorted(result, key=lambda x: x[1], reverse=True)
 
@@ -52,7 +52,7 @@ def get_random_choice_game_count_stats(chat: Chat) -> List[tuple[ChatMember, int
         for stat in members_stats
     ]
 
-    result = [(unit[0], unit[1], unit[2]) for unit in result if not unit[0].access_settings.hide_in_stats]
+    result = [(unit[0], unit[1], unit[2]) for unit in result if not unit[0].access_settings.show_in_stats]
 
     return sorted(result, key=lambda x: x[1], reverse=True)
 

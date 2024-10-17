@@ -37,8 +37,17 @@ class ChatMember(models.Model):
         from bot.models import AccessSettings, AccessSettingsObject
         from shared.enums import SettingsTarget
 
-        if self.is_owner():
-            return AccessSettingsObject.get_owner_settings()
+        target = None
+
+        if self.is_super_admin():
+            target = SettingsTarget.SUPER_ADMIN.value
+        elif self.is_owner():
+            target = SettingsTarget.OWNER.value
+
+        if target and self.chat.accesssettings_set.filter(target=target).exists():
+            return self.chat.accesssettings_set.filter(target=target).get()
+        else:
+            AccessSettingsObject.get_full_access_settings()
 
         filters = [
             (SettingsTarget.MEMBER.value, self.id),
@@ -53,7 +62,11 @@ class ChatMember(models.Model):
             if target == SettingsTarget.ADMINS.value and not self.is_admin():
                 continue
             if AccessSettings.objects.filter(chat=self.chat, target=target).exists():
-                return AccessSettings.objects.get(chat=self.chat, target=target, target_id=target_id).settings_object
+                access_settings: AccessSettings = AccessSettings.objects.filter(chat=self.chat, target=target, target_id=target_id).first()
+                if access_settings:
+                    return access_settings.settings_object
+                else:
+                    continue
 
         return None
 
@@ -61,7 +74,7 @@ class ChatMember(models.Model):
         return self.is_owner() or self.status == MemberStatus.ADMIN.value
 
     def is_owner(self) -> bool:
-        return self.is_super_admin() or self.status == MemberStatus.OWNER.value
+        return self.status == MemberStatus.OWNER.value
 
     def is_super_admin(self) -> bool:
         return self.user_id in settings.ADMINS
