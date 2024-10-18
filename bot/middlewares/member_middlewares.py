@@ -10,14 +10,16 @@ def set_member_middlewares(router: Router):
     router.message.outer_middleware.register(message_member_middleware)
     router.callback_query.outer_middleware.register(callback_member_middleware)
 
+
 async def message_member_middleware(
         handler: Callable[[Message, Dict[str, Any]], Awaitable[Any]],
         message: Message,
         data: Dict[str, Any]
 ) -> Any:
     data["member"] = await ChatMember.get_or_create_member(data["user"], message.chat)
-    #await redis.get_or_set(str(data["member"].id))
+    data["access_settings"] = await data["member"].access_settings
     return await handler(message, data)
+
 
 async def callback_member_middleware(
         handler: Callable[[CallbackQuery, Dict[str, Any]], Awaitable[Any]],
@@ -25,6 +27,5 @@ async def callback_member_middleware(
         data: Dict[str, Any]
 ) -> Any:
     data["member"] = await ChatMember.get_or_create_member(data["user"], callback.message.chat)
-    #await redis.get_or_set(str(data["member"].id))
+    data["access_settings"] = await data["member"].access_settings
     return await handler(callback, data)
-

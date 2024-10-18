@@ -23,9 +23,9 @@ async def on_startup(bot: Bot):
         await bot.send_message(text=_("Bot is running"), chat_id=admin_id)
 
     from bot.models import AccessSettingsObject
-    s: AccessSettingsObject = AccessSettingsObject.objects.filter(id=uuid.UUID(int=0, version=4)).first()
+    s: AccessSettingsObject = await AccessSettingsObject.objects.filter(id=uuid.UUID(int=0, version=4)).afirst()
     if s:
-        s.delete()
+        await s.adelete()
 
     schedule, result = await CrontabSchedule.objects.aget_or_create(
         minute="0",

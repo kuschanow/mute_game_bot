@@ -56,7 +56,9 @@ autostart_when_full = ButtonPrototype("autostart_when_full",
                                       {"": _("Autostart when full %(indicator)s")},
                                       set_indicator)
 
-create = ButtonPrototype("create", {"": _("Create")})
+create = ButtonPrototype("create",
+                         {"normal": _("Create"), "selected": _("▶ %(normal)s ◀")},
+                         lambda data: data.get("state", "normal"))
 
 join = ButtonPrototype("join", {"": _("Join/Left")})
 
@@ -65,23 +67,26 @@ start = ButtonPrototype("start", {"": _("Start")})
 delete = ButtonPrototype("delete", {"": _("Delete")})
 
 stats_format = ButtonPrototype("stats_format",
-                            {
-                                "normal": _("%(format_name)s"),
-                                "selected": _("▶ %(normal)s ◀")
-                            },
-                            lambda data: data["state"])
+                               {
+                                   "normal": _("%(format_name)s"),
+                                   "selected": _("▶ %(normal)s ◀")
+                               },
+                               lambda data: data["state"])
 
 stats_category = ButtonPrototype("stats_category",
-                            {
-                                "normal": _("%(category_name)s"),
-                                "selected": _("▶ %(normal)s ◀")
-                            },
-                            lambda data: data["state"])
+                                 {
+                                     "normal": _("%(category_name)s"),
+                                     "selected": _("▶ %(normal)s ◀")
+                                 },
+                                 lambda data: data["state"])
 
 settings_target = ButtonPrototype("settings_target",
                                   {
+                                      "super_admin": _("Super admin"),
+                                      "owner": _("Owner"),
                                       "chat": _("Global"),
-                                      "admins": _("Admins")
+                                      "admins": _("Admins"),
+                                      "group": _("Group")
                                   },
                                   lambda data: data["target"])
 
@@ -129,3 +134,9 @@ add = ButtonPrototype("add", {"": _("Add")})
 access_group = ButtonPrototype("access_group", {"": "%(name)s"})
 
 update = ButtonPrototype("update", {"": _("Update")})
+
+change_name = ButtonPrototype("change_page",
+                              {"normal": _("Change name"), "selected": _("▶ %(normal)s ◀")},
+                              lambda data: data.get("state", "normal"))
+
+group_access_settings = ButtonPrototype("group_access_settings", {"": _("Change settings")})

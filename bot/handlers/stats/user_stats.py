@@ -20,7 +20,7 @@ async def chat_stats_command(message: Message, member: ChatMember):
     member_for_stats = member
 
     pattern = r"(\d+)| @(\w+)?$"
-    match = re.match(pattern, message.text)
+    match = re.search(pattern, message.text)
 
     if match:
         user_id, username = match.groups()

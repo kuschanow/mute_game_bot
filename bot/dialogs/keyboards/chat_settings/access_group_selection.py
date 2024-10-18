@@ -5,12 +5,12 @@ from aiogram_dialog_manager.instance import ButtonInstance
 from asgiref.sync import sync_to_async, async_to_sync
 from django.conf import settings
 
-from bot.dialogs.dialog_buttons import cancel, back, change_page, access_group
+from bot.dialogs.dialog_buttons import cancel, back, change_page, access_group, create
 from bot.models import AccessGroup
 
 
 @sync_to_async
-def get_access_group_selection_keyboard(dialog: Dialog) -> List[List[ButtonInstance]]:
+def get_access_group_selection_keyboard(dialog: Dialog, creating: bool = False) -> List[List[ButtonInstance]]:
     page = dialog.values["page"]
 
     start_index = page * settings.PAGE_SIZE
@@ -38,7 +38,8 @@ def get_access_group_selection_keyboard(dialog: Dialog) -> List[List[ButtonInsta
         navigation.append(change_page.get_instance({"to_page": "next", "page": page + 1}))
 
     buttons.append(navigation)
-    buttons.append(back.get_instance({"page": "target"}))
+    buttons.append([create.get_instance({"state": "selected"} if creating else {})])
+    buttons.append([back.get_instance({"page": "target"})])
     buttons.append([cancel.get_instance()])
 
     return buttons

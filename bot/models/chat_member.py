@@ -1,13 +1,14 @@
+from typing import TYPE_CHECKING
 from uuid import uuid4
 
 from aiogram.enums.chat_type import ChatType
 from aiogram.types import Chat as TeleChat, ChatMemberAdministrator, ChatMemberMember, ChatMemberOwner, ChatMemberRestricted, ChatMemberLeft
+from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.db import models
 
 from shared.enums import MemberStatus
 from shared.utils import enum_to_choices
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from bot.models import User
@@ -33,7 +34,7 @@ class ChatMember(models.Model):
         return self.local_settings if self.local_settings else self.user.global_settings
 
     @property
-    def access_settings(self):
+    async def access_settings(self):
         from bot.models import AccessSettings, AccessSettingsObject
         from shared.enums import SettingsTarget
 
@@ -44,16 +45,18 @@ class ChatMember(models.Model):
         elif self.is_owner():
             target = SettingsTarget.OWNER.value
 
-        if target and self.chat.accesssettings_set.filter(target=target).exists():
-            return self.chat.accesssettings_set.filter(target=target).get()
-        else:
-            AccessSettingsObject.get_full_access_settings()
+        if target:
+            if await AccessSettings.objects.filter(chat__id=self.chat_id, target=target).aexists():
+                _settings: AccessSettings = await AccessSettings.objects.filter(chat__id=self.chat_id, target=target).aget()
+                return await sync_to_async(lambda: _settings.settings_object)()
+            else:
+                return await AccessSettingsObject.get_full_access_settings()
 
         filters = [
             (SettingsTarget.MEMBER.value, self.id),
             (SettingsTarget.GROUP.value, self.access_group_id),
-            (SettingsTarget.ADMINS.value, self.chat.id),
-            (SettingsTarget.CHAT.value, self.chat.id),
+            (SettingsTarget.ADMINS.value, self.chat_id),
+            (SettingsTarget.CHAT.value, self.chat_id),
         ]
 
         for target, target_id in filters:
@@ -61,10 +64,11 @@ class ChatMember(models.Model):
                 continue
             if target == SettingsTarget.ADMINS.value and not self.is_admin():
                 continue
-            if AccessSettings.objects.filter(chat=self.chat, target=target).exists():
-                access_settings: AccessSettings = AccessSettings.objects.filter(chat=self.chat, target=target, target_id=target_id).first()
+            if await AccessSettings.objects.filter(chat__id=self.chat_id, target=target).aexists():
+                access_settings: AccessSettings = await AccessSettings.objects.filter(chat__id=self.chat_id, target=target,
+                                                                                      target_id=target_id).afirst()
                 if access_settings:
-                    return access_settings.settings_object
+                    return await sync_to_async(lambda: access_settings.settings_object)()
                 else:
                     continue
 
@@ -79,7 +83,7 @@ class ChatMember(models.Model):
     def is_super_admin(self) -> bool:
         return self.user_id in settings.ADMINS
 
-    def get_string(self, with_link = False) -> str:
+    def get_string(self, with_link=False) -> str:
         status_mark = {MemberStatus.MEMBER.value: "",
                        MemberStatus.RESTRICTED.value: "",
                        MemberStatus.LEFT.value: "",

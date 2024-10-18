@@ -2,6 +2,7 @@ import uuid
 from datetime import timedelta
 from typing import Dict
 
+from asgiref.sync import async_to_sync
 from django.db import models
 
 
@@ -27,8 +28,8 @@ class AccessSettingsObject(models.Model):
                 "time__gte": self.min_punish_time_for_rand_choice}
 
     @staticmethod
-    def get_full_access_settings():
-        return AccessSettingsObject.objects.create(
+    async def get_full_access_settings():
+        return (await AccessSettingsObject.objects.aget_or_create(
             id=uuid.UUID(int=0, version=4),
 
             can_join_games=True,
@@ -43,7 +44,7 @@ class AccessSettingsObject(models.Model):
 
             is_invulnerable=True,
             show_in_stats=True,
-        )
+        ))[0]
 
     def __str__(self):
         return (

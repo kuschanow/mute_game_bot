@@ -30,7 +30,7 @@ def get_random_choice_game_time_stats(chat: Chat) -> List[tuple[ChatMember, time
         for stat in members_stats
     ]
 
-    result = [(unit[0], unit[1]) for unit in result if not unit[0].access_settings.show_in_stats]
+    result = [(unit[0], unit[1]) for unit in result if async_to_sync(lambda: unit[0].access_settings)().show_in_stats]
 
     return sorted(result, key=lambda x: x[1], reverse=True)
 
@@ -52,17 +52,16 @@ def get_random_choice_game_count_stats(chat: Chat) -> List[tuple[ChatMember, int
         for stat in members_stats
     ]
 
-    result = [(unit[0], unit[1], unit[2]) for unit in result if not unit[0].access_settings.show_in_stats]
+    result = [(unit[0], unit[1], unit[2]) for unit in result if async_to_sync(lambda: unit[0].access_settings)().show_in_stats]
 
     return sorted(result, key=lambda x: x[1], reverse=True)
 
 
-@sync_to_async
-def get_random_choice_game_detailed_stats(chat: Chat) -> List[tuple]:
+async def get_random_choice_game_detailed_stats(chat: Chat) -> List[tuple]:
     games = RandomChoiceGame.objects.filter(creator__chat=chat, result__isnull=False)
-    total_games = games.count()
+    total_games = await games.acount()
 
-    total_time_seconds = sum([unit[1].total_seconds() for unit in async_to_sync(get_random_choice_game_time_stats)(chat)])
+    total_time_seconds = sum([unit[1].total_seconds() for unit in await get_random_choice_game_time_stats(chat)])
     total_time = timedelta(seconds=total_time_seconds)
 
     return [(_("Total games count"), total_games),

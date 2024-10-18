@@ -5,12 +5,12 @@ from aiogram import Router
 from aiogram.types import Message, CallbackQuery
 
 from bot.logger import logger
-from bot.models import User
 
 
 def set_logger_middlewares(router: Router):
     router.message.outer_middleware.register(message_logger_middleware)
     router.callback_query.outer_middleware.register(callback_logger_middleware)
+
 
 async def message_logger_middleware(
         handler: Callable[[Message, Dict[str, Any]], Awaitable[Any]],
@@ -22,7 +22,7 @@ async def message_logger_middleware(
                 user=data["user"],
                 chat=data["chat"],
                 chat_member=data["member"],
-                settings=data["member"].assecc_settings)
+                settings=data["access_settings"])
     try:
         return await handler(message, data)
     except Exception as e:
@@ -32,7 +32,8 @@ async def message_logger_middleware(
                      user=data["user"],
                      chat=data["chat"],
                      chat_member=data["member"],
-                     settings=data["member"].assecc_settings)
+                     settings=data["access_settings"])
+
 
 async def callback_logger_middleware(
         handler: Callable[[CallbackQuery, Dict[str, Any]], Awaitable[Any]],
@@ -44,7 +45,7 @@ async def callback_logger_middleware(
                 user=data["user"],
                 chat=data["chat"],
                 chat_member=data["member"],
-                settings=data["member"].assecc_settings)
+                settings=data["access_settings"])
     try:
         return await handler(callback, data)
     except Exception as e:
@@ -54,5 +55,4 @@ async def callback_logger_middleware(
                      user=data["user"],
                      chat=data["chat"],
                      chat_member=data["member"],
-                     settings=data["member"].assecc_settings)
-
+                     settings=data["access_settings"])

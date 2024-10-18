@@ -8,8 +8,6 @@ from bot.models import Chat, AccessSettings
 
 
 async def select_settings_target(callback: CallbackQuery, chat: Chat, dialog: Dialog, target_id: str, target: str, target_name: str):
-    await callback.answer()
-
     query = AccessSettings.objects.filter(chat=chat, target=target, target_id=target_id)
 
     if not await query.aexists():

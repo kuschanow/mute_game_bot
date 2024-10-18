@@ -11,7 +11,7 @@ from django.conf import settings
 from django.utils.translation import gettext as _
 
 from bot.dialogs.dialog_buttons import games_settings, can_join_games, can_create_games, can_press_other_buttons, can_create_punishments, \
-    can_delete_punishments, settings_target as settings_target_button, make_diff, reset_to_global
+    can_delete_punishments, settings_target as settings_target_button, make_diff, reset_to_global, show_in_stats, is_invulnerable
 from bot.dialogs.dialog_menus import settings_target, access_settings, game_settings_select, access_groups
 from bot.dialogs.dialog_texts import access_settings_texts
 from bot.filters import IsOwner, IsSuperAdmin
@@ -31,6 +31,8 @@ async def access_settings_command(message: Message, member: ChatMember, dialog_m
 
     dialog = Dialog.create("access_settings", user_id=member.user_id, chat_id=member.chat_id, bot=bot)
 
+    dialog.data["is_super_admin"] = member.is_super_admin()
+
     bot_message = await dialog.send_message(access_settings_texts["target"], settings_target)
     dialog.data["main_message_id"] = bot_message.message_id
     await dialog_manager.save_dialog(dialog)
@@ -40,11 +42,13 @@ async def access_settings_command(message: Message, member: ChatMember, dialog_m
 
 @main_access_settings_router.callback_query(ButtonFilter(settings_target_button, target="super_admin"), IsSuperAdmin())
 async def super_admin_settings(callback: CallbackQuery, member: ChatMember, chat: Chat, dialog: Dialog):
+    await callback.answer()
     await select_settings_target(callback, chat, dialog, str(member.id), SettingsTarget.SUPER_ADMIN.value, _("Super admin"))
 
 
 @main_access_settings_router.callback_query(ButtonFilter(settings_target_button, target="owner"))
 async def owner_settings(callback: CallbackQuery, chat: Chat, dialog: Dialog):
+    await callback.answer()
     await select_settings_target(callback, chat, dialog, str(chat.id), SettingsTarget.OWNER.value, _("Owner"))
 
 
@@ -67,6 +71,7 @@ async def chat_settings(callback: CallbackQuery, chat: Chat, dialog: Dialog):
 
 @main_access_settings_router.callback_query(ButtonFilter(settings_target_button, target="admins"))
 async def admins_settings(callback: CallbackQuery, chat: Chat, dialog: Dialog):
+    await callback.answer()
     await select_settings_target(callback, chat, dialog, str(chat.id), SettingsTarget.ADMINS.value, _("Admins"))
 
 
@@ -76,6 +81,8 @@ async def group_selection(callback: CallbackQuery, dialog: Dialog):
 
     dialog.data["target"] = "group"
     dialog.data["target_name"] = _("Group")
+    dialog.data["add_to_group_command"] = settings.ADD_TO_GROUP_COMMAND
+    dialog.data["remove_from_group_command"] = settings.REMOVE_FROM_GROUP_COMMAND
 
     dialog.data["page"] = 0
 
@@ -103,26 +110,25 @@ async def clear_settings(callback: CallbackQuery, dialog: Dialog):
 async def make_diff(callback: CallbackQuery, chat: Chat, member: ChatMember, dialog: Dialog):
     await callback.answer()
 
-    reference = None
-    target = None
+    reference = await sync_to_async(
+            lambda: AccessSettings.objects.get(chat=chat, target=SettingsTarget.CHAT.value, target_id=chat.id).settings_object)()
     target_id = None
 
-    if dialog.data["target"] == "super_admin":
-        reference = await sync_to_async(AccessSettingsObject.get_full_access_settings)()
-        target = SettingsTarget.SUPER_ADMIN.value
+    if dialog.data["target"] == SettingsTarget.SUPER_ADMIN.value:
+        reference = await AccessSettingsObject.get_full_access_settings()
         target_id = member.id
 
-    if dialog.data["target"] == "admins":
-        reference = await sync_to_async(
-            lambda: AccessSettings.objects.get(chat=chat, target=SettingsTarget.CHAT.value, target_id=chat.id).settings_object)()
-        target = SettingsTarget.ADMINS.value
+    if dialog.data["target"] == SettingsTarget.ADMINS.value:
         target_id = chat.id
+
+    if dialog.data["target"] == SettingsTarget.GROUP.value:
+        target_id = dialog.data["group_id"]
 
     settings_object = reference
     settings_object.pk = None
     await settings_object.asave()
 
-    await AccessSettings(chat=chat, target=target, target_id=target_id, settings_object=settings_object).asave()
+    await AccessSettings(chat=chat, target=dialog.data["target"], target_id=target_id, settings_object=settings_object).asave()
 
     dialog.data["settings_object_id"] = str(settings_object.id)
 
@@ -137,6 +143,8 @@ async def make_diff(callback: CallbackQuery, chat: Chat, member: ChatMember, dia
 @main_access_settings_router.callback_query(ButtonFilter(can_press_other_buttons))
 @main_access_settings_router.callback_query(ButtonFilter(can_create_punishments))
 @main_access_settings_router.callback_query(ButtonFilter(can_delete_punishments))
+@main_access_settings_router.callback_query(ButtonFilter(is_invulnerable))
+@main_access_settings_router.callback_query(ButtonFilter(show_in_stats))
 async def main_settings(callback: CallbackQuery, dialog: Dialog, button: ButtonInstance):
     await callback.answer()
 

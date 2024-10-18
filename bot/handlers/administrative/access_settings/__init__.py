@@ -1,4 +1,5 @@
 from aiogram import Router
+from aiogram.filters import or_f
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 from aiogram_dialog_manager import DialogManager, Dialog
@@ -7,14 +8,17 @@ from aiogram_dialog_manager.instance import ButtonInstance
 
 from bot.dialogs.dialog_menus import settings_target, access_settings, game_settings_select, access_groups
 from bot.dialogs.dialog_texts import access_settings_texts
-from .games_settings import games_settings_router
-from .main_access_settings import main_access_settings_router
+from bot.filters import IsOwner, IsSuperAdmin
 from bot.models import AccessSettingsObject
+from .games_settings import games_settings_router
+from .groups_settings import group_access_settings_router
+from .main_access_settings import main_access_settings_router
 
 access_settings_router = Router()
-access_settings_router.callback_query.filter(DialogFilter("access_settings"))
+access_settings_router.callback_query.filter(DialogFilter("access_settings"), or_f(IsOwner(), IsSuperAdmin()))
 
-access_settings_router.include_routers(games_settings_router, main_access_settings_router)
+access_settings_router.include_routers(games_settings_router, group_access_settings_router, main_access_settings_router)
+
 
 @access_settings_router.callback_query(ButtonFilter("cancel"))
 async def cancel(callback: CallbackQuery, state: FSMContext, dialog: Dialog, dialog_manager: DialogManager):

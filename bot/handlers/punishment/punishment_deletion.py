@@ -34,7 +34,7 @@ async def delete_punishments_command(message: Message, state: FSMContext, user: 
 
     dialog: Dialog = Dialog.create("punishment_deletion", user_id=user.id, chat_id=message.chat.id, bot=bot)
     dialog.data["prefix"] = _("Dialog with ") + user.get_string(True) + "\n\n"
-    public_indicator = 1 if member.access_settings.can_delete_public_punishments else 0
+    public_indicator = 1 if (await member.access_settings).can_delete_public_punishments else 0
     dialog.data["public_indicator"] = public_indicator
     dialog.data["category"] = category[public_indicator]
     dialog.data["page"] = 0

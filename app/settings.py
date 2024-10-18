@@ -212,6 +212,7 @@ BOT_TOKEN = env('BOT_TOKEN', default=None)
 ADMINS = env.list('ADMINS', cast=int, default=[])
 PAGE_SIZE = env.int('PAGE_SIZE', default=10)
 RATING_PAGE_SIZE = env.int('RATING_PAGE_SIZE', default=10)
+USE_LOGGING_MIDDLEWARE = env.bool('USE_LOGGING_MIDDLEWARE', False)
 
 WEB_SERVER_HOST=env('WEB_SERVER_HOST', default="localhost")
 WEB_SERVER_PORT=env.int('WEB_SERVER_PORT', default=8080)
@@ -235,4 +236,4 @@ ACCESS_SETTINGS_COMMAND = env('ACCESS_SETTINGS_COMMAND', default="access_setting
 CHAT_SETTINGS_COMMAND = env('CHAT_SETTINGS_COMMAND', default="chat_settings")
 USER_SETTINGS_COMMAND = env('USER_SETTINGS_COMMAND', default="user_settings")
 ADD_TO_GROUP_COMMAND = env('ADD_TO_GROUP_COMMAND', default="add_to_group")
-DELETE_FROM_GROUP_COMMAND = env('DELETE_FROM_GROUP_COMMAND', default="delete_from_group")
+REMOVE_FROM_GROUP_COMMAND = env('REMOVE_FROM_GROUP_COMMAND', default="delete_from_group")
