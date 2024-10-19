@@ -3,22 +3,22 @@ from datetime import timedelta
 
 from aiogram import Router, F
 from aiogram.enums import ChatType
-from aiogram.filters import MagicData
+from aiogram.filters import MagicData, or_f
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 from aiogram_dialog_manager import Dialog
 from aiogram_dialog_manager.filter import DialogFilter, ButtonFilter, StateFilter
-from aiogram_dialog_manager.instance import ButtonInstance, MessageInstance
+from aiogram_dialog_manager.instance import ButtonInstance
 
-from bot.filters import IsOwner
+from bot.filters import IsOwner, IsSuperAdmin
 from bot.models import AccessSettingsObject
-from bot.utils.dialog.dialog_buttons import access_time_settings
-from bot.utils.dialog.dialog_menus import random_choice_game_access_settings
-from .RandomChoiceGameAccessSettingsStates import RandomChoiceGameAccessSettingsStates
+from bot.dialogs.dialog_buttons import access_time_settings
+from bot.dialogs.dialog_menus import random_choice_game_access_settings
+from .random_choice_game_access_settings_states import RandomChoiceGameAccessSettingsStates
 
 random_choice_game_access_settings_router = Router()
-random_choice_game_access_settings_router.callback_query.filter(DialogFilter("access_settings"), IsOwner())
-random_choice_game_access_settings_router.message.filter(MagicData(F.chat.type.is_not(ChatType.PRIVATE)), IsOwner())
+random_choice_game_access_settings_router.callback_query.filter(DialogFilter("access_settings"), or_f(IsOwner(), IsSuperAdmin()))
+random_choice_game_access_settings_router.message.filter(MagicData(F.chat.type.is_not(ChatType.PRIVATE)), or_f(IsOwner(), IsSuperAdmin()))
 
 
 @random_choice_game_access_settings_router.callback_query(ButtonFilter(access_time_settings))

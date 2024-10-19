@@ -1,4 +1,5 @@
 from aiogram import Router
+from django.conf import settings
 
 from bot.middlewares.games_middleware.random_choice_game_middleware import set_random_choice_game_middlewares
 from .chat_middlewares import set_chat_middlewares
@@ -14,4 +15,5 @@ def set_middlewares(router: Router):
     set_chat_middlewares(router)
     set_member_middlewares(router)
 
-    set_logger_middlewares(router)
+    if settings.USE_LOGGING_MIDDLEWARE:
+        set_logger_middlewares(router)

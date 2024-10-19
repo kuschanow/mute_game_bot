@@ -14,13 +14,11 @@ from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.utils.translation import gettext as _
 
+from bot.dialogs.dialog_menus import cancel as cancel_menu, privacy
+from bot.dialogs.dialog_texts import punishment_creation_texts
 from bot.models import User, Chat, ChatMember
-from bot.utils.dialog.dialog_buttons import privacy
-from bot.utils.dialog.dialog_menus import cancel as cancel_menu, privacy
-from bot.utils.dialog.dialog_texts import punishment_creation_texts
 from games.models import Punishment
-from .PunishmentCreationStates import PunishmentCreationStates
-from ...generate_session import bot
+from .punishment_creation_states import PunishmentCreationStates
 
 punishment_creation_router = Router()
 punishment_creation_router.message.filter(MagicData(F.chat.type.is_not(ChatType.PRIVATE)))
@@ -28,7 +26,7 @@ punishment_creation_router.callback_query.filter(DialogAccessFilter(), DialogFil
 
 
 @punishment_creation_router.message(Command(settings.CREATE_PUNISHMENT_COMMAND))
-async def create_punishment_command(message: Message, user: User, state: FSMContext, dialog_manager: DialogManager):
+async def create_punishment_command(message: Message, user: User, state: FSMContext, dialog_manager: DialogManager, bot):
     await state.clear()
 
     dialog = Dialog.create("punishment_creation", user_id=user.id, chat_id=message.chat.id, bot=bot)
@@ -53,7 +51,7 @@ async def choose_name(message: Message, state: FSMContext, dialog: Dialog):
                                     DialogAccessFilter(),
                                     F.text.regexp(r"\d+"),
                                     F.content_type == ContentType.TEXT)
-async def choose_name(message: Message, member: ChatMember, state: FSMContext, dialog: Dialog):
+async def choose_time(message: Message, member: ChatMember, state: FSMContext, dialog: Dialog):
     await dialog.remove_state(context=state)
 
     matches = re.findall(r"\d+", message.text)
@@ -62,11 +60,11 @@ async def choose_name(message: Message, member: ChatMember, state: FSMContext, d
 
     dialog.data["time"] = time.total_seconds()
     await dialog.delete_all_messages()
-    await dialog.send_message(punishment_creation_texts["privacy"], privacy, menu_data={"settings": member.access_settings})
+    await dialog.send_message(punishment_creation_texts["privacy"], privacy, menu_data={"settings": await member.access_settings})
     await message.delete()
 
 
-@punishment_creation_router.callback_query(ButtonFilter(privacy))
+@punishment_creation_router.callback_query(ButtonFilter("privacy"))
 async def choose_privacy(callback: CallbackQuery, user: User, chat: Chat, dialog_manager: DialogManager, dialog: Dialog, button: ButtonInstance):
     await callback.answer()
     public_indicator = button.data["public_indicator"]

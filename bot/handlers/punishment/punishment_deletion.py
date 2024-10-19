@@ -1,5 +1,3 @@
-from typing import Dict, Any
-
 from aiogram import Router, F
 from aiogram.enums import ChatType
 from aiogram.filters import MagicData, Command
@@ -15,11 +13,10 @@ from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.utils.translation import gettext as _
 
-from bot.generate_session import bot
-from bot.models import ChatMember, AccessSettingsObject, User
-from bot.utils.dialog.dialog_buttons import privacy, change_page, punishment, accept, refuse
-from bot.utils.dialog.dialog_menus import punishments, accept as accept_menu
-from bot.utils.dialog.dialog_texts import punishment_deletion_texts
+from bot.dialogs.dialog_buttons import privacy, change_page, punishment, accept, refuse
+from bot.dialogs.dialog_menus import punishments, accept as accept_menu
+from bot.dialogs.dialog_texts import punishment_deletion_texts
+from bot.models import ChatMember, User
 from games.models import Punishment
 from shared import category
 
@@ -29,12 +26,12 @@ punishment_deletion_router.callback_query.filter(DialogAccessFilter(), DialogFil
 
 
 @punishment_deletion_router.message(Command(settings.DELETE_PUNISHMENT_COMMAND))
-async def delete_punishments_command(message: Message, state: FSMContext, user: User, dialog_manager: DialogManager, member: ChatMember):
+async def delete_punishments_command(message: Message, state: FSMContext, user: User, dialog_manager: DialogManager, member: ChatMember, bot):
     await state.clear()
 
     dialog: Dialog = Dialog.create("punishment_deletion", user_id=user.id, chat_id=message.chat.id, bot=bot)
     dialog.data["prefix"] = _("Dialog with ") + user.get_string(True) + "\n\n"
-    public_indicator = 1 if member.access_settings.can_delete_public_punishments else 0
+    public_indicator = 1 if (await member.access_settings).can_delete_public_punishments else 0
     dialog.data["public_indicator"] = public_indicator
     dialog.data["category"] = category[public_indicator]
     dialog.data["page"] = 0
@@ -56,9 +53,9 @@ async def select_punishments_privacy(callback: CallbackQuery, dialog: Dialog, bu
 
 
 @punishment_deletion_router.callback_query(ButtonFilter(change_page))
-async def select_page(callback: CallbackQuery, dialog: Dialog, button_data: Dict[str, Any], member: ChatMember):
+async def select_page(callback: CallbackQuery, dialog: Dialog, button: ButtonInstance, member: ChatMember):
     await callback.answer()
-    dialog.data["page"] = button_data["page"]
+    dialog.data["page"] = button.data["page"]
 
     await dialog.edit_message(callback.message.message_id, punishment_deletion_texts["select"], punishments, menu_data={"chat_member": member})
 
@@ -92,4 +89,3 @@ async def accept(callback: CallbackQuery, member: ChatMember, dialog: Dialog, bu
 async def refuse_deletion(callback: CallbackQuery, dialog: Dialog):
     await callback.answer(_("Ok"))
     await dialog.delete_message(callback.message.message_id)
-

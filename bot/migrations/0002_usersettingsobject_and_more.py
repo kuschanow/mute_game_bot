@@ -42,8 +42,8 @@ class Migration(migrations.Migration):
         migrations.RunPython(populate_new_field),
         migrations.AddField(
             model_name='accesssettingsobject',
-            name='hide_in_stats',
-            field=models.BooleanField(default=False),
+            name='show_in_stats',
+            field=models.BooleanField(default=True),
         ),
         migrations.AddField(
             model_name='accesssettingsobject',
@@ -54,5 +54,16 @@ class Migration(migrations.Migration):
             model_name='user',
             name='global_settings',
             field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='bot.usersettingsobject'),
+        ),
+        migrations.RenameField(
+            model_name='chatmember',
+            old_name='settings_group',
+            new_name='access_group',
+        ),
+        migrations.AddField(
+            model_name='accessgroup',
+            name='created_at',
+            field=models.DateTimeField(auto_now_add=True, default=None),
+            preserve_default=False,
         ),
     ]

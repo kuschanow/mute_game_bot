@@ -1,13 +1,14 @@
+from typing import TYPE_CHECKING
 from uuid import uuid4
 
 from aiogram.enums.chat_type import ChatType
 from aiogram.types import Chat as TeleChat, ChatMemberAdministrator, ChatMemberMember, ChatMemberOwner, ChatMemberRestricted, ChatMemberLeft
+from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.db import models
 
 from shared.enums import MemberStatus
 from shared.utils import enum_to_choices
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from bot.models import User
@@ -22,7 +23,7 @@ class ChatMember(models.Model):
     is_anon = models.BooleanField(default=False, null=False)
     can_interact = models.BooleanField(default=True, null=False)
 
-    settings_group = models.ForeignKey("AccessGroup", on_delete=models.SET_NULL, null=True, default=None)
+    access_group = models.ForeignKey("AccessGroup", on_delete=models.SET_NULL, null=True, default=None)
 
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -33,27 +34,43 @@ class ChatMember(models.Model):
         return self.local_settings if self.local_settings else self.user.global_settings
 
     @property
-    def access_settings(self):
+    async def access_settings(self):
         from bot.models import AccessSettings, AccessSettingsObject
         from shared.enums import SettingsTarget
 
-        if self.is_owner():
-            return AccessSettingsObject.get_owner_settings()
+        target = None
+
+        if self.is_super_admin():
+            target = SettingsTarget.SUPER_ADMIN.value
+        elif self.is_owner():
+            target = SettingsTarget.OWNER.value
+
+        if target:
+            if await AccessSettings.objects.filter(chat__id=self.chat_id, target=target).aexists():
+                _settings: AccessSettings = await AccessSettings.objects.filter(chat__id=self.chat_id, target=target).aget()
+                return await sync_to_async(lambda: _settings.settings_object)()
+            else:
+                return await AccessSettingsObject.get_full_access_settings()
 
         filters = [
             (SettingsTarget.MEMBER.value, self.id),
-            (SettingsTarget.GROUP.value, self.settings_group_id),
-            (SettingsTarget.ADMINS.value, self.chat.id),
-            (SettingsTarget.CHAT.value, self.chat.id),
+            (SettingsTarget.GROUP.value, self.access_group_id),
+            (SettingsTarget.ADMINS.value, self.chat_id),
+            (SettingsTarget.CHAT.value, self.chat_id),
         ]
 
         for target, target_id in filters:
-            if target == SettingsTarget.GROUP.value and self.settings_group_id is None:
+            if target == SettingsTarget.GROUP.value and self.access_group_id is None:
                 continue
             if target == SettingsTarget.ADMINS.value and not self.is_admin():
                 continue
-            if AccessSettings.objects.filter(chat=self.chat, target=target).exists():
-                return AccessSettings.objects.get(chat=self.chat, target=target, target_id=target_id).settings_object
+            if await AccessSettings.objects.filter(chat__id=self.chat_id, target=target).aexists():
+                access_settings: AccessSettings = await AccessSettings.objects.filter(chat__id=self.chat_id, target=target,
+                                                                                      target_id=target_id).afirst()
+                if access_settings:
+                    return await sync_to_async(lambda: access_settings.settings_object)()
+                else:
+                    continue
 
         return None
 
@@ -61,12 +78,12 @@ class ChatMember(models.Model):
         return self.is_owner() or self.status == MemberStatus.ADMIN.value
 
     def is_owner(self) -> bool:
-        return self.is_super_admin() or self.status == MemberStatus.OWNER.value
+        return self.status == MemberStatus.OWNER.value
 
     def is_super_admin(self) -> bool:
         return self.user_id in settings.ADMINS
 
-    def get_string(self, with_link = False) -> str:
+    def get_string(self, with_link=False) -> str:
         status_mark = {MemberStatus.MEMBER.value: "",
                        MemberStatus.RESTRICTED.value: "",
                        MemberStatus.LEFT.value: "",

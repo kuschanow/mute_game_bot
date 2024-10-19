@@ -2,7 +2,7 @@ from typing import Optional, List
 
 from aiogram_dialog_manager import Dialog
 from aiogram_dialog_manager.instance import ButtonInstance
-from bot.utils.dialog.dialog_buttons import ping_in_stats, cancel, make_diff, reset_to_global
+from bot.dialogs.dialog_buttons import ping_in_stats, cancel, make_diff, reset_to_global
 
 from bot.models import UserSettingsObject
 

@@ -1,17 +1,15 @@
 from typing import Optional, Dict, Any, List, Tuple
 
 from aiogram_dialog_manager import Dialog
-from asgiref.sync import sync_to_async
+from asgiref.sync import sync_to_async, async_to_sync
 from django.conf import settings
 
+from bot.dialogs.dialog_buttons import cancel, privacy, punishment, change_page
 from bot.models import ChatMember
 from games.models import Punishment
 
-from bot.utils.dialog.dialog_buttons import cancel, privacy, punishment, change_page
 
-
-@sync_to_async
-def get_punishments_keyboard(
+def sync_get_punishments_keyboard(
         dialog: Dialog,
         chat_member: ChatMember,
         time_filters: Optional[Dict[str, Any]] = None
@@ -46,7 +44,8 @@ def get_punishments_keyboard(
     punishments_count = query.count()
 
     if len(punishments) == 0 and page > 0:
-        dialog.values["page"] = (query.count() - 1) // settings.PAGE_SIZE
+        dialog.data["page"] = (query.count() - 1) // settings.PAGE_SIZE
+        return sync_get_punishments_keyboard(dialog, chat_member, time_filters)
 
     buttons = []
     for p in punishments:
@@ -54,12 +53,12 @@ def get_punishments_keyboard(
 
     privacy_block = [
         privacy.get_instance({"public_indicator": -1}),
-        privacy.get_instance({"public_indicator": 0})
+        privacy.get_instance({"public_indicator": 0}),
+        privacy.get_instance({"public_indicator": 1})
     ]
 
-    if chat_member.access_settings.can_delete_public_punishments:
-        privacy_block.append(privacy.get_instance({"public_indicator": 1})
-    )
+    if dialog.name == "punishment_deletion" and not async_to_sync(lambda: chat_member.access_settings)().can_delete_public_punishments:
+        privacy_block.pop(2)
 
     privacy_block.pop(public_indicator + 1)
 
@@ -75,3 +74,6 @@ def get_punishments_keyboard(
     buttons.append([cancel.get_instance()])
 
     return buttons
+
+
+get_punishments_keyboard = sync_to_async(sync_get_punishments_keyboard)

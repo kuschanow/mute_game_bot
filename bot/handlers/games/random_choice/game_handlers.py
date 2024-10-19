@@ -4,15 +4,14 @@ from aiogram.types import CallbackQuery
 from aiogram_dialog_manager import DialogManager, Dialog
 from aiogram_dialog_manager.filter import DialogFilter, ButtonFilter
 from aiogram_dialog_manager.filter.access import DialogAccessFilter
-from asgiref.sync import sync_to_async
+from asgiref.sync import sync_to_async, async_to_sync
 from django.utils.translation import gettext as _
 
 from bot.middlewares import set_random_choice_game_middlewares
-from bot.models import ChatMember, Chat
-from bot.models.access_settings_object import AccessSettingsObject
-from bot.utils.dialog.dialog_buttons import join, start, delete
-from bot.utils.dialog.dialog_menus import random_choice_game
-from bot.utils.dialog.dialog_texts import random_choice_game_texts
+from bot.models import ChatMember, Chat, AccessSettingsObject
+from bot.dialogs.dialog_buttons import join, start, delete
+from bot.dialogs.dialog_menus import random_choice_game
+from bot.dialogs.dialog_texts import random_choice_game_texts
 from games.models import RandomChoiceGame, RandomChoiceGamePlayer, RandomChoiceGameResult
 from .utils.texts import get_players, get_losers
 from ..utils import mute_losers
@@ -23,12 +22,12 @@ set_random_choice_game_middlewares(game_router)
 
 
 @game_router.callback_query(ButtonFilter(join))
-async def join_game(callback: CallbackQuery, game: RandomChoiceGame, member: ChatMember, chat: Chat, dialog: Dialog, dialog_manager: DialogManager):
+async def join_game(callback: CallbackQuery, game: RandomChoiceGame, member: ChatMember, access_settings: AccessSettingsObject, chat: Chat, dialog: Dialog, dialog_manager: DialogManager):
     if game.creator_id == member.id:
         await callback.answer(_("The creator cannot leave or join their game"))
         return
 
-    if not member.access_settings.can_join_games:
+    if not access_settings.can_join_games:
         await callback.answer(_("You cannot join games"))
         return
 
@@ -59,7 +58,7 @@ async def join_game(callback: CallbackQuery, game: RandomChoiceGame, member: Cha
         await dialog_manager.delete_dialog(dialog)
 
 
-@game_router.callback_query(ButtonFilter(start), MagicData(F.member.access_settings.can_press_other_buttons.is_(True)))
+@game_router.callback_query(ButtonFilter(start), MagicData(F.access_settings.can_press_other_buttons.is_(True)))
 @game_router.callback_query(ButtonFilter(start), DialogAccessFilter())
 async def start_game(callback: CallbackQuery, game: RandomChoiceGame, chat: Chat, dialog: Dialog, dialog_manager: DialogManager):
     if await game.players.acount() < game.min_players_count:
@@ -76,7 +75,7 @@ async def start_game(callback: CallbackQuery, game: RandomChoiceGame, chat: Chat
     await dialog_manager.delete_dialog(dialog)
 
 
-@game_router.callback_query(ButtonFilter(delete), MagicData(F.member.access_settings.can_press_other_buttons.is_(True)))
+@game_router.callback_query(ButtonFilter(delete), MagicData(F.access_settings.can_press_other_buttons.is_(True)))
 @game_router.callback_query(ButtonFilter(delete), DialogAccessFilter())
 async def delete_game(callback: CallbackQuery, game: RandomChoiceGame, dialog: Dialog, dialog_manager: DialogManager):
     await callback.answer(_("Deleted successfully"))

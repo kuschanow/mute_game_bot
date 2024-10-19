@@ -10,7 +10,7 @@ from .settings import settings_router
 user_settings_router = Router()
 user_settings_router.callback_query.filter(DialogFilter("user_settings"))
 
-chat_stats_dialog_manager = DialogManager(storage=dialog_storage, router=user_settings_router, bot=bot)
+user_setting_dialog_manager = DialogManager(storage=dialog_storage, router=user_settings_router, bot=bot)
 
 user_settings_router.include_routers(settings_router)
 

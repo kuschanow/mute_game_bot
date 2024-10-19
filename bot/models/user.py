@@ -1,5 +1,3 @@
-import uuid
-
 from aiogram.types import User as TeleUser
 from django.db import models
 
@@ -15,8 +13,8 @@ class User(models.Model):
     global_settings = models.ForeignKey("UserSettingsObject", on_delete=models.CASCADE, null=False, blank=False)
 
     def get_string(self, with_link: bool = False):
-       return f"<a href='tg://user?id={self.id}'>{self.first_name}{f' {self.last_name}' if self.last_name is not None else ''}</a>" if with_link \
-           else f"{self.first_name}{f' {self.last_name}' if self.last_name is not None else ''}"
+        return f"<a href='tg://user?id={self.id}'>{self.first_name}{f' {self.last_name}' if self.last_name is not None else ''}</a>" if with_link \
+            else f"{self.first_name}{f' {self.last_name}' if self.last_name is not None else ''}"
 
     @staticmethod
     async def get_or_create_user(tele_user: TeleUser):

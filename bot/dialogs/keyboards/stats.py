@@ -7,7 +7,7 @@ from django.conf import settings
 from django.db.models import Min
 from django.utils.translation import gettext as _
 
-from bot.utils.dialog.dialog_buttons import stats_format, change_page, stats_category, cancel
+from bot.dialogs.dialog_buttons import stats_format, change_page, stats_category, cancel
 from games.models import RandomChoiceGameLoser
 
 

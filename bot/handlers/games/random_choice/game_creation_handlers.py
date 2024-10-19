@@ -1,5 +1,4 @@
 import re
-from typing import Dict, Any
 
 from aiogram import Router, F
 from aiogram.enums import ChatType
@@ -14,15 +13,13 @@ from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.utils.translation import gettext as _
 
-from bot.generate_session import bot
-from bot.handlers.games.random_choice.GameSettingsStates import GameSettingsStates
+from bot.dialogs.dialog_buttons import privacy, change_page, punishment, is_creator_play, min_max, losers, autostart_when_full, create, cancel
+from bot.dialogs.dialog_menus import punishments, random_choice_settings, random_choice_game
+from bot.dialogs.dialog_texts import random_choice_game_creation_texts, random_choice_game_texts
+from bot.handlers.games.random_choice.game_settings_states import GameSettingsStates
 from bot.handlers.games.random_choice.utils.texts import get_players
 from bot.middlewares import set_random_choice_game_middlewares
-from bot.models import ChatMember, User
-from bot.models.access_settings_object import AccessSettingsObject
-from bot.utils.dialog.dialog_buttons import privacy, change_page, punishment, is_creator_play, min_max, losers, autostart_when_full, create, cancel
-from bot.utils.dialog.dialog_menus import punishments, random_choice_settings, random_choice_game
-from bot.utils.dialog.dialog_texts import random_choice_game_creation_texts, random_choice_game_texts
+from bot.models import ChatMember, User, AccessSettingsObject
 from games.models import RandomChoiceGame, RandomChoiceGamePlayer
 from shared import category
 
@@ -33,11 +30,11 @@ set_random_choice_game_middlewares(game_creation_router)
 
 
 @game_creation_router.message(Command(settings.RANDOM_CHOICE_GAME_COMMAND))
-async def start_game_command(message: Message, member: ChatMember, user: User, dialog_manager: DialogManager,
-                             state: FSMContext):
+async def start_game_command(message: Message, member: ChatMember, access_settings: AccessSettingsObject, user: User, dialog_manager: DialogManager,
+                             state: FSMContext, bot):
     await state.clear()
 
-    if not member.access_settings.can_create_games:
+    if not access_settings.can_create_games:
         await message.answer(_("You cannot create games"))
         await message.delete()
         return
@@ -50,7 +47,7 @@ async def start_game_command(message: Message, member: ChatMember, user: User, d
 
     menu_data = {
         "chat_member": member,
-        "time_filters": member.access_settings.time_filters
+        "time_filters": access_settings.time_filters
     }
 
     bot_message = await dialog.send_message(random_choice_game_creation_texts["punishment"], punishments, menu_data=menu_data)
@@ -60,7 +57,8 @@ async def start_game_command(message: Message, member: ChatMember, user: User, d
 
 
 @game_creation_router.callback_query(ButtonFilter(privacy))
-async def select_punishments_privacy(callback: CallbackQuery, dialog: Dialog, button: ButtonInstance, member: ChatMember):
+async def select_punishments_privacy(callback: CallbackQuery, dialog: Dialog, button: ButtonInstance, member: ChatMember,
+                                     access_settings: AccessSettingsObject):
     await callback.answer()
 
     dialog.data["public_indicator"] = button.data["public_indicator"]
@@ -69,20 +67,20 @@ async def select_punishments_privacy(callback: CallbackQuery, dialog: Dialog, bu
 
     menu_data = {
         "chat_member": member,
-        "time_filters": member.access_settings.time_filters
+        "time_filters": access_settings.time_filters
     }
 
     await dialog.edit_message(callback.message.message_id, random_choice_game_creation_texts["punishment"], punishments, menu_data=menu_data)
 
 
 @game_creation_router.callback_query(ButtonFilter(change_page))
-async def select_page(callback: CallbackQuery, dialog: Dialog, button_data: Dict[str, Any], member: ChatMember):
+async def select_page(callback: CallbackQuery, dialog: Dialog, button: ButtonInstance, member: ChatMember, access_settings: AccessSettingsObject):
     await callback.answer()
-    dialog.data["page"] = button_data["page"]
+    dialog.data["page"] = button.data["page"]
 
     menu_data = {
         "chat_member": member,
-        "time_filters": member.access_settings.time_filters
+        "time_filters": access_settings.time_filters
     }
 
     await dialog.edit_message(callback.message.message_id, random_choice_game_creation_texts["punishment"], punishments, menu_data=menu_data)
@@ -103,7 +101,7 @@ async def select_punishment(callback: CallbackQuery, member: ChatMember, dialog:
     dialog.data["losers"] = game.losers_count
 
     await dialog.edit_message(callback.message.message_id, random_choice_game_creation_texts["settings"], random_choice_settings,
-                              menu_data={"game": game, "member_settings": member.access_settings})
+                              menu_data={"game": game, "member_settings": await member.access_settings})
 
 
 @game_creation_router.callback_query(ButtonFilter(is_creator_play))
@@ -114,7 +112,7 @@ async def is_creator_play(callback: CallbackQuery, game: RandomChoiceGame, dialo
     await game.asave()
 
     await dialog.edit_message(dialog.data["main_message_id"], random_choice_game_creation_texts["settings"], random_choice_settings,
-                              menu_data={"game": game, "member_settings": member.access_settings})
+                              menu_data={"game": game, "member_settings": await member.access_settings})
 
 
 @game_creation_router.callback_query(ButtonFilter(min_max))
@@ -127,7 +125,7 @@ async def is_creator_play(callback: CallbackQuery, dialog: Dialog, state: FSMCon
 
     try:
         await dialog.edit_keyboard(dialog.data["main_message_id"], random_choice_settings,
-                                   menu_data={"game": game, "member_settings": member.access_settings, f"{button.type_name}_state": "selected"})
+                                   menu_data={"game": game, "member_settings": await member.access_settings, f"{button.type_name}_state": "selected"})
     except:
         pass
 
@@ -158,7 +156,7 @@ async def set_min(message: Message, game: RandomChoiceGame, member: ChatMember, 
     dialog.data["game_text"] = await game.get_string()
 
     await dialog.edit_message(dialog.data["main_message_id"], random_choice_game_creation_texts["settings"], random_choice_settings,
-                              menu_data={"game": game, "member_settings": member.access_settings})
+                              menu_data={"game": game, "member_settings": await member.access_settings})
     await message.delete()
 
 
@@ -184,7 +182,7 @@ async def set_losers(message: Message, game: RandomChoiceGame, member: ChatMembe
     dialog.data["game_text"] = await game.get_string()
 
     await dialog.edit_message(dialog.data["main_message_id"], random_choice_game_creation_texts["settings"], random_choice_settings,
-                              menu_data={"game": game, "member_settings": member.access_settings})
+                              menu_data={"game": game, "member_settings": await member.access_settings})
     await message.delete()
 
 
@@ -198,11 +196,12 @@ async def is_creator_play(callback: CallbackQuery, game: RandomChoiceGame, dialo
     dialog.data["game_text"] = await game.get_string()
 
     await dialog.edit_message(dialog.data["main_message_id"], random_choice_game_creation_texts["settings"], random_choice_settings,
-                              menu_data={"game": game, "member_settings": member.access_settings})
+                              menu_data={"game": game, "member_settings": await member.access_settings})
 
 
 @game_creation_router.callback_query(ButtonFilter(create))
-async def create(callback: CallbackQuery, game: RandomChoiceGame, member: ChatMember, dialog_manager: DialogManager, dialog: Dialog, state: FSMContext):
+async def create(callback: CallbackQuery, game: RandomChoiceGame, member: ChatMember, access_settings: AccessSettingsObject,
+                 dialog_manager: DialogManager, dialog: Dialog, state: FSMContext, bot):
     await callback.answer()
     await dialog.remove_state(context=state)
     await dialog.delete_all_messages()
@@ -211,7 +210,7 @@ async def create(callback: CallbackQuery, game: RandomChoiceGame, member: ChatMe
     game.is_opened_to_join = True
     await game.asave()
 
-    if game.is_creator_playing and member.access_settings.can_join_games:
+    if game.is_creator_playing and access_settings.can_join_games:
         await RandomChoiceGamePlayer(game=game, chat_member=member).asave()
 
     dialog = Dialog.create("random_choice_game", user_id=member.user_id, chat_id=member.chat_id, bot=bot)

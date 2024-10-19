@@ -3,6 +3,8 @@ from typing import Any, Dict
 from aiogram_dialog_manager.prototype import ButtonPrototype
 from django.utils.translation import gettext as _
 
+from shared.enums import SettingsTarget
+
 
 def set_indicator(data: Dict[str, Any]):
     data["indicator"] = '✅' if data["value"] else '☑️'
@@ -65,23 +67,27 @@ start = ButtonPrototype("start", {"": _("Start")})
 delete = ButtonPrototype("delete", {"": _("Delete")})
 
 stats_format = ButtonPrototype("stats_format",
-                            {
-                                "normal": _("%(format_name)s"),
-                                "selected": _("▶ %(normal)s ◀")
-                            },
-                            lambda data: data["state"])
+                               {
+                                   "normal": _("%(format_name)s"),
+                                   "selected": _("▶ %(normal)s ◀")
+                               },
+                               lambda data: data["state"])
 
 stats_category = ButtonPrototype("stats_category",
-                            {
-                                "normal": _("%(category_name)s"),
-                                "selected": _("▶ %(normal)s ◀")
-                            },
-                            lambda data: data["state"])
+                                 {
+                                     "normal": _("%(category_name)s"),
+                                     "selected": _("▶ %(normal)s ◀")
+                                 },
+                                 lambda data: data["state"])
 
 settings_target = ButtonPrototype("settings_target",
                                   {
-                                      "chat": _("Global"),
-                                      "admins": _("Admins")
+                                      SettingsTarget.SUPER_ADMIN.value: _("Super admin"),
+                                      SettingsTarget.OWNER.value: _("Owner"),
+                                      SettingsTarget.CHAT.value: _("Global"),
+                                      SettingsTarget.ADMINS.value: _("Admins"),
+                                      SettingsTarget.GROUP.value: _("Group"),
+                                      SettingsTarget.MEMBER.value: _("Member")
                                   },
                                   lambda data: data["target"])
 
@@ -101,7 +107,7 @@ can_delete_punishments = ButtonPrototype("can_delete_punishments", {"": _("Can d
 
 is_invulnerable = ButtonPrototype("is_invulnerable", {"": _("Invulnerable %(status)s")})
 
-hide_in_stats = ButtonPrototype("hide_in_stats", {"": _("Hide in stats %(status)s")})
+show_in_stats = ButtonPrototype("show_in_stats", {"": _("Show in stats %(status)s")})
 
 games_settings = ButtonPrototype("games_settings", {"": _("Games settings")})
 
@@ -123,3 +129,19 @@ access_time_settings = ButtonPrototype("access_time_settings",
                                        lambda data: f"{data['type']}_{'selected' if data['selected'] else ''}".strip("_"))
 
 ping_in_stats = ButtonPrototype("ping_in_stats", {"": _("Ping in stats %(status)s")})
+
+add = ButtonPrototype("add",
+                      {"normal": _("Add"), "selected": _("▶ %(normal)s ◀")},
+                      lambda data: data.get("state", "normal"))
+
+access_group = ButtonPrototype("access_group", {"": "%(name)s"})
+
+update = ButtonPrototype("update", {"": _("Update")})
+
+change_name = ButtonPrototype("change_page",
+                              {"normal": _("Change name"), "selected": _("▶ %(normal)s ◀")},
+                              lambda data: data.get("state", "normal"))
+
+group_access_settings = ButtonPrototype("group_access_settings", {"": _("Change settings")})
+
+member_access_settings = ButtonPrototype("member_access_settings", {"": "%(name)s"})
