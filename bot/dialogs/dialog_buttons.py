@@ -3,6 +3,8 @@ from typing import Any, Dict
 from aiogram_dialog_manager.prototype import ButtonPrototype
 from django.utils.translation import gettext as _
 
+from shared.enums import SettingsTarget
+
 
 def set_indicator(data: Dict[str, Any]):
     data["indicator"] = '✅' if data["value"] else '☑️'
@@ -56,9 +58,7 @@ autostart_when_full = ButtonPrototype("autostart_when_full",
                                       {"": _("Autostart when full %(indicator)s")},
                                       set_indicator)
 
-create = ButtonPrototype("create",
-                         {"normal": _("Create"), "selected": _("▶ %(normal)s ◀")},
-                         lambda data: data.get("state", "normal"))
+create = ButtonPrototype("create", {"": _("Create")})
 
 join = ButtonPrototype("join", {"": _("Join/Left")})
 
@@ -82,11 +82,12 @@ stats_category = ButtonPrototype("stats_category",
 
 settings_target = ButtonPrototype("settings_target",
                                   {
-                                      "super_admin": _("Super admin"),
-                                      "owner": _("Owner"),
-                                      "chat": _("Global"),
-                                      "admins": _("Admins"),
-                                      "group": _("Group")
+                                      SettingsTarget.SUPER_ADMIN.value: _("Super admin"),
+                                      SettingsTarget.OWNER.value: _("Owner"),
+                                      SettingsTarget.CHAT.value: _("Global"),
+                                      SettingsTarget.ADMINS.value: _("Admins"),
+                                      SettingsTarget.GROUP.value: _("Group"),
+                                      SettingsTarget.MEMBER.value: _("Member")
                                   },
                                   lambda data: data["target"])
 
@@ -129,7 +130,9 @@ access_time_settings = ButtonPrototype("access_time_settings",
 
 ping_in_stats = ButtonPrototype("ping_in_stats", {"": _("Ping in stats %(status)s")})
 
-add = ButtonPrototype("add", {"": _("Add")})
+add = ButtonPrototype("add",
+                      {"normal": _("Add"), "selected": _("▶ %(normal)s ◀")},
+                      lambda data: data.get("state", "normal"))
 
 access_group = ButtonPrototype("access_group", {"": "%(name)s"})
 
@@ -140,3 +143,5 @@ change_name = ButtonPrototype("change_page",
                               lambda data: data.get("state", "normal"))
 
 group_access_settings = ButtonPrototype("group_access_settings", {"": _("Change settings")})
+
+member_access_settings = ButtonPrototype("member_access_settings", {"": "%(name)s"})

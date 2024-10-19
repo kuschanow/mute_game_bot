@@ -7,17 +7,16 @@ from aiogram_dialog_manager.instance import ButtonInstance
 from asgiref.sync import sync_to_async
 from django.conf import settings
 
-from bot.generate_session import bot
-from bot.models import ChatMember
 from bot.dialogs.dialog_buttons import ping_in_stats, make_diff, reset_to_global
 from bot.dialogs.dialog_menus import user_settings
 from bot.dialogs.dialog_texts import user_settings_texts
+from bot.models import ChatMember
 
 settings_router = Router()
 
 
 @settings_router.message(Command(settings.USER_SETTINGS_COMMAND))
-async def user_settings_command(message: Message, member: ChatMember, dialog_manager: DialogManager):
+async def user_settings_command(message: Message, member: ChatMember, dialog_manager: DialogManager, bot):
     dialog = Dialog.create("user_settings", user_id=member.user_id, chat_id=member.chat_id, bot=bot)
 
     dialog.data["settings_type"] = "global" if member.user_id == member.chat_id else "local"

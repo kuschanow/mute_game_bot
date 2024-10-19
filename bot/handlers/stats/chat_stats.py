@@ -9,11 +9,10 @@ from aiogram_dialog_manager.instance import ButtonInstance
 from django.conf import settings
 from django.utils.translation import gettext as _
 
-from bot.generate_session import bot
-from bot.models import Chat, User
 from bot.dialogs.dialog_buttons import stats_format, stats_category, change_page
 from bot.dialogs.dialog_menus import stats
 from bot.dialogs.dialog_texts import base_dialog_text
+from bot.models import Chat, User
 from .utils.stats import get_random_choice_game_time_stats, get_random_choice_game_detailed_stats, get_random_choice_game_count_stats
 from .utils.texts import get_top_time_text, get_detailed_text, get_top_count_text
 
@@ -24,12 +23,13 @@ chat_stats_router.message.filter(MagicData(F.chat.type.is_not(ChatType.PRIVATE))
 async def stats_by_time(chat, page) -> str:
     return await get_top_time_text(await get_random_choice_game_time_stats(chat), page)
 
+
 async def stats_by_games(chat, page) -> str:
-    return await get_top_count_text(await get_random_choice_game_count_stats(chat) , page)
+    return await get_top_count_text(await get_random_choice_game_count_stats(chat), page)
 
 
 @chat_stats_router.message(Command(settings.SHOW_CHAT_STATS_COMMAND))
-async def chat_stats_command(message: Message, chat: Chat, state: FSMContext, user: User, dialog_manager: DialogManager):
+async def chat_stats_command(message: Message, chat: Chat, state: FSMContext, user: User, dialog_manager: DialogManager, bot):
     await state.clear()
 
     dialog = Dialog.create("chat_stats", user_id=user.id, chat_id=chat.id, bot=bot)
@@ -59,7 +59,8 @@ async def top_stats(callback: CallbackQuery, chat: Chat, dialog: Dialog):
 @chat_stats_router.callback_query(ButtonFilter(stats_category))
 async def top_by_time(callback: CallbackQuery, chat: Chat, dialog: Dialog, button: ButtonInstance):
     dialog.data["category"] = button.data["category"]
-    dialog.temp["text"] = await (stats_by_time(chat, dialog.data["page"]) if dialog.values["category"] == "by_time" else stats_by_games(chat, dialog.data["page"]))
+    dialog.temp["text"] = await (
+        stats_by_time(chat, dialog.data["page"]) if dialog.values["category"] == "by_time" else stats_by_games(chat, dialog.data["page"]))
     try:
         await dialog.edit_message(callback.message.message_id, base_dialog_text, stats)
     except:
@@ -69,7 +70,8 @@ async def top_by_time(callback: CallbackQuery, chat: Chat, dialog: Dialog, butto
 @chat_stats_router.callback_query(ButtonFilter(change_page))
 async def change_page(callback: CallbackQuery, chat: Chat, dialog: Dialog, button: ButtonInstance):
     dialog.data["page"] = button.data["page"]
-    dialog.temp["text"] = await (stats_by_time(chat, dialog.data["page"]) if dialog.values["category"] == "by_time" else stats_by_games(chat, dialog.data["page"]))
+    dialog.temp["text"] = await (
+        stats_by_time(chat, dialog.data["page"]) if dialog.values["category"] == "by_time" else stats_by_games(chat, dialog.data["page"]))
     try:
         await dialog.edit_message(callback.message.message_id, base_dialog_text, stats)
     except:
@@ -85,4 +87,3 @@ async def top_stats(callback: CallbackQuery, chat: Chat, dialog: Dialog):
         await dialog.edit_message(callback.message.message_id, base_dialog_text, stats)
     except:
         pass
-

@@ -14,12 +14,11 @@ from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.utils.translation import gettext as _
 
-from bot.models import User, Chat, ChatMember
 from bot.dialogs.dialog_menus import cancel as cancel_menu, privacy
 from bot.dialogs.dialog_texts import punishment_creation_texts
+from bot.models import User, Chat, ChatMember
 from games.models import Punishment
 from .punishment_creation_states import PunishmentCreationStates
-from ...generate_session import bot
 
 punishment_creation_router = Router()
 punishment_creation_router.message.filter(MagicData(F.chat.type.is_not(ChatType.PRIVATE)))
@@ -27,7 +26,7 @@ punishment_creation_router.callback_query.filter(DialogAccessFilter(), DialogFil
 
 
 @punishment_creation_router.message(Command(settings.CREATE_PUNISHMENT_COMMAND))
-async def create_punishment_command(message: Message, user: User, state: FSMContext, dialog_manager: DialogManager):
+async def create_punishment_command(message: Message, user: User, state: FSMContext, dialog_manager: DialogManager, bot):
     await state.clear()
 
     dialog = Dialog.create("punishment_creation", user_id=user.id, chat_id=message.chat.id, bot=bot)

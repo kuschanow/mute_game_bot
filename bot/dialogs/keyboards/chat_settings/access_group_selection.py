@@ -2,15 +2,14 @@ from typing import List
 
 from aiogram_dialog_manager import Dialog
 from aiogram_dialog_manager.instance import ButtonInstance
-from asgiref.sync import sync_to_async, async_to_sync
+from asgiref.sync import sync_to_async
 from django.conf import settings
 
-from bot.dialogs.dialog_buttons import cancel, back, change_page, access_group, create
+from bot.dialogs.dialog_buttons import cancel, back, change_page, access_group, add
 from bot.models import AccessGroup
 
 
-@sync_to_async
-def get_access_group_selection_keyboard(dialog: Dialog, creating: bool = False) -> List[List[ButtonInstance]]:
+def sync_get_access_group_selection_keyboard(dialog: Dialog, creating: bool = False) -> List[List[ButtonInstance]]:
     page = dialog.values["page"]
 
     start_index = page * settings.PAGE_SIZE
@@ -23,7 +22,7 @@ def get_access_group_selection_keyboard(dialog: Dialog, creating: bool = False) 
 
     if len(groups) == 0 and page > 0:
         dialog.data["page"] = (query.count() - 1) // settings.PAGE_SIZE
-        return async_to_sync(get_access_group_selection_keyboard)(dialog)
+        return sync_get_access_group_selection_keyboard(dialog)
 
     buttons = []
 
@@ -38,8 +37,11 @@ def get_access_group_selection_keyboard(dialog: Dialog, creating: bool = False) 
         navigation.append(change_page.get_instance({"to_page": "next", "page": page + 1}))
 
     buttons.append(navigation)
-    buttons.append([create.get_instance({"state": "selected"} if creating else {})])
+    buttons.append([add.get_instance({"state": "selected"} if creating else {})])
     buttons.append([back.get_instance({"page": "target"})])
     buttons.append([cancel.get_instance()])
 
     return buttons
+
+
+get_access_group_selection_keyboard = sync_to_async(sync_get_access_group_selection_keyboard)

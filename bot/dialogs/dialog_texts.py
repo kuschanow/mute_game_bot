@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.utils.translation import gettext as _
 
 base_dialog_text = "%(prefix)s" + "%(text)s"
@@ -60,7 +59,10 @@ access_settings_texts = {
                       "<code>/%(add_to_group_command)s %(group_id)s &lt;user_id or username&gt;</code>\n\n"
                       "You can remove a user from a group using the commands:\n"
                       "<code>/%(remove_from_group_command)s </code> (in response to a user message)\n"
-                      "<code>/%(remove_from_group_command)s &lt;user_id or username&gt;</code>")
+                      "<code>/%(remove_from_group_command)s &lt;user_id or username&gt;</code>"),
+    "member": _("%(target_name)s\n\n"
+                "To add exceptions for a new user, use the command:\n"
+                "<code>/%(add_member_exception_command)s &lt;user_id or username or just reply to user message&gt;</code>\n"),
 }
 
 user_settings_texts = {

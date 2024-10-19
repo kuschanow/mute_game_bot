@@ -12,7 +12,7 @@ from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.utils.translation import gettext as _
 
-from bot.dialogs.dialog_buttons import change_page, access_group as access_group_button, delete, update, create, change_name, group_access_settings
+from bot.dialogs.dialog_buttons import change_page, access_group as access_group_button, delete, update, add, change_name, group_access_settings
 from bot.dialogs.dialog_menus import access_groups, access_group
 from bot.dialogs.dialog_texts import access_settings_texts
 from bot.filters import IsOwner, IsSuperAdmin
@@ -27,7 +27,7 @@ group_access_settings_router.callback_query.filter(DialogFilter("access_settings
 group_access_settings_router.message.filter(or_f(IsOwner(), IsSuperAdmin()))
 
 
-@group_access_settings_router.callback_query(ButtonFilter(create))
+@group_access_settings_router.callback_query(ButtonFilter(add))
 async def create_group(callback: CallbackQuery, dialog: Dialog, state: FSMContext):
     await dialog.set_state(state=AccessGroupStates.set_name, context=state)
 
@@ -46,6 +46,7 @@ async def group_name(message: Message, dialog: Dialog, chat: Chat, state: FSMCon
 
     dialog.data["group_id"] = str(group.id)
     dialog.data["group_name"] = group.name
+    dialog.data["group_members"] = "\n".join(await sync_to_async(lambda: [member.get_string() for member in group.chatmember_set.all()])())
 
     await dialog.edit_message(dialog.values["main_message_id"], access_settings_texts["access_group"], access_group)
 
