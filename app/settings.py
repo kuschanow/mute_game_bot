@@ -126,7 +126,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'app.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
@@ -195,7 +194,6 @@ STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 )
 
-
 REDIS_HOST = env('REDIS_HOST', default=None)
 REDIS_PORT = env.int('REDIS_PORT', default=6379)
 REDIS_FSM_DB = env.int('REDIS_FSM_DB', default=0)
@@ -214,11 +212,11 @@ PAGE_SIZE = env.int('PAGE_SIZE', default=10)
 RATING_PAGE_SIZE = env.int('RATING_PAGE_SIZE', default=10)
 USE_LOGGING_MIDDLEWARE = env.bool('USE_LOGGING_MIDDLEWARE', False)
 
-WEB_SERVER_HOST=env('WEB_SERVER_HOST', default="localhost")
-WEB_SERVER_PORT=env.int('WEB_SERVER_PORT', default=8080)
-WEBHOOK_SECRET=env('WEBHOOK_SECRET', default="my-secret")
-BASE_WEBHOOK_URL=env('BASE_WEBHOOK_URL', default=None)
-WEBHOOK_PATH=env('WEBHOOK_PATH', default="/webhook")
+WEB_SERVER_HOST = env('WEB_SERVER_HOST', default="localhost")
+WEB_SERVER_PORT = env.int('WEB_SERVER_PORT', default=8080)
+WEBHOOK_SECRET = env('WEBHOOK_SECRET', default="my-secret")
+BASE_WEBHOOK_URL = env('BASE_WEBHOOK_URL', default=None)
+WEBHOOK_PATH = env('WEBHOOK_PATH', default="/webhook")
 
 SEQ_KEY = env('SEQ_KEY', default=None)
 SEQ_URL = env('SEQ_URL', default=None)
@@ -232,6 +230,7 @@ CREATE_PUNISHMENT_COMMAND = env('CREATE_PUNISHMENT_COMMAND', default="create_pun
 DELETE_PUNISHMENT_COMMAND = env('DELETE_PUNISHMENT_COMMAND', default="delete_punishment")
 SHOW_USER_STATS_COMMAND = env('SHOW_USER_STATS_COMMAND', default="user_stats")
 SHOW_CHAT_STATS_COMMAND = env('SHOW_CHAT_STATS_COMMAND', default="chat_stats")
+HALL_OF_FAME_COMMAND = env('HALL_OF_FAME_COMMAND', default='hall_of_fame')
 ACCESS_SETTINGS_COMMAND = env('ACCESS_SETTINGS_COMMAND', default="access_settings")
 CHAT_SETTINGS_COMMAND = env('CHAT_SETTINGS_COMMAND', default="chat_settings")
 USER_SETTINGS_COMMAND = env('USER_SETTINGS_COMMAND', default="user_settings")

@@ -2,7 +2,7 @@ from aiogram_dialog_manager.prototype import MenuPrototype
 
 from shared.enums import SettingsTarget
 from .dialog_buttons import cancel as cancel_button, privacy as privacy_button, accept as accept_button, refuse, \
-    settings_target as settings_target_button, game_access_settings, back, delete, update, change_name, group_access_settings
+    settings_target as settings_target_button, game_access_settings, back, delete, update as update_button, change_name, group_access_settings
 from .keyboards import get_punishments_keyboard, get_stats_keyboard
 from .keyboards.chat_settings.access_group_selection import get_access_group_selection_keyboard
 from .keyboards.chat_settings.access_settings import get_access_settings_keyboard
@@ -55,7 +55,7 @@ access_groups = MenuPrototype(get_access_group_selection_keyboard)
 
 access_group = MenuPrototype(lambda changing_name=False: [
     [group_access_settings.get_instance()],
-    [update.get_instance({"page": "access_group"})],
+    [update_button.get_instance({"page": "access_group"})],
     [change_name.get_instance({"state": "selected"} if changing_name else {})],
     [delete.get_instance()],
     [back.get_instance({"page": "access_groups"})],
@@ -63,3 +63,5 @@ access_group = MenuPrototype(lambda changing_name=False: [
 ])
 
 member_access_settings_menu = MenuPrototype(get_member_access_settings_selection_keyboard)
+
+update = MenuPrototype(lambda: [[update_button.get_instance()], [cancel_button.get_instance()]])
