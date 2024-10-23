@@ -89,7 +89,7 @@ class ChatMember(models.Model):
                        MemberStatus.LEFT.value: "",
                        MemberStatus.ADMIN.value: "🅰️ ",
                        MemberStatus.OWNER.value: "🅾️ "}
-        user_name = self.chat.name if self.is_anon else self.user.get_string(with_link)
+        user_name = self.chat.name if self.is_anon else self.user.get_string(with_link or self.private_settings.ping_in_stats)
         return f"{status_mark[self.status]}{user_name}"
 
     @staticmethod

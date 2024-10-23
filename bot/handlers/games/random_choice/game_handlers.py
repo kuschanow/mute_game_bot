@@ -58,7 +58,7 @@ async def join_game(callback: CallbackQuery, game: RandomChoiceGame, member: Cha
         await dialog_manager.delete_dialog(dialog)
 
 
-@game_router.callback_query(ButtonFilter(start), MagicData(F.access_settings.can_press_other_buttons.is_(True)))
+@game_router.callback_query(ButtonFilter(start), MagicData(F.access_settings.can_press_other_buttons))
 @game_router.callback_query(ButtonFilter(start), DialogAccessFilter())
 async def start_game(callback: CallbackQuery, game: RandomChoiceGame, chat: Chat, dialog: Dialog, dialog_manager: DialogManager):
     if await game.players.acount() < game.min_players_count:
@@ -75,7 +75,7 @@ async def start_game(callback: CallbackQuery, game: RandomChoiceGame, chat: Chat
     await dialog_manager.delete_dialog(dialog)
 
 
-@game_router.callback_query(ButtonFilter(delete), MagicData(F.access_settings.can_press_other_buttons.is_(True)))
+@game_router.callback_query(ButtonFilter(delete), MagicData(F.access_settings.can_press_other_buttons))
 @game_router.callback_query(ButtonFilter(delete), DialogAccessFilter())
 async def delete_game(callback: CallbackQuery, game: RandomChoiceGame, dialog: Dialog, dialog_manager: DialogManager):
     await callback.answer(_("Deleted successfully"))
