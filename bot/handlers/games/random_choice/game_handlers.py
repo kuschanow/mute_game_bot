@@ -1,17 +1,20 @@
+from datetime import timezone
+
 from aiogram import Router, F
 from aiogram.filters import MagicData
 from aiogram.types import CallbackQuery
 from aiogram_dialog_manager import DialogManager, Dialog
 from aiogram_dialog_manager.filter import DialogFilter, ButtonFilter
 from aiogram_dialog_manager.filter.access import DialogAccessFilter
-from asgiref.sync import sync_to_async, async_to_sync
+from asgiref.sync import sync_to_async
 from django.utils.translation import gettext as _
+from future.backports.datetime import datetime
 
-from bot.middlewares import set_random_choice_game_middlewares
-from bot.models import ChatMember, Chat, AccessSettingsObject
 from bot.dialogs.dialog_buttons import join, start, delete
 from bot.dialogs.dialog_menus import random_choice_game
 from bot.dialogs.dialog_texts import random_choice_game_texts
+from bot.middlewares import set_random_choice_game_middlewares
+from bot.models import ChatMember, Chat, AccessSettingsObject
 from games.models import RandomChoiceGame, RandomChoiceGamePlayer, RandomChoiceGameResult
 from .utils.texts import get_players, get_losers
 from ..utils import mute_losers
@@ -22,7 +25,8 @@ set_random_choice_game_middlewares(game_router)
 
 
 @game_router.callback_query(ButtonFilter(join))
-async def join_game(callback: CallbackQuery, game: RandomChoiceGame, member: ChatMember, access_settings: AccessSettingsObject, chat: Chat, dialog: Dialog, dialog_manager: DialogManager):
+async def join_game(callback: CallbackQuery, game: RandomChoiceGame, member: ChatMember, access_settings: AccessSettingsObject, chat: Chat,
+                    dialog: Dialog, dialog_manager: DialogManager):
     if game.creator_id == member.id:
         await callback.answer(_("The creator cannot leave or join their game"))
         return
@@ -47,7 +51,15 @@ async def join_game(callback: CallbackQuery, game: RandomChoiceGame, member: Cha
 
     await dialog.edit_message(callback.message.message_id, random_choice_game_texts["game"], random_choice_game, menu_data={"game": game})
 
-    if game.autostart_at_max_players and await game.players.acount() == game.max_players_count:
+    players_count = await game.players.acount()
+
+    autostart_at_max_players_condition = (not game.autostart_at_max_players or
+                                          (game.autostart_at_max_players and players_count == game.max_players_count))
+
+    autostart_at_condition = (not game.autostart_timer or game.autostart_timer + game.autostart_timer_started_at >= datetime.now(timezone.utc))
+
+    if ((game.autostart_operator == 'or' and autostart_at_max_players_condition) or
+            (game.autostart_operator != 'or' and (autostart_at_max_players_condition and autostart_at_condition))):
         result: RandomChoiceGameResult = await game.start_game()
 
         await mute_losers(game, result, chat)

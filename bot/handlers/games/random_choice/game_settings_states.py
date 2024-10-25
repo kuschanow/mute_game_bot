@@ -4,7 +4,7 @@ from aiogram.fsm.state import StatesGroup, State
 class GameSettingsStates(StatesGroup):
     set_min_max = State()
     set_losers = State()
-    set_autostart_time = State()
+    set_autostart_timer = State()
 
     @staticmethod
     def get_by_string(name: str):
@@ -13,4 +13,4 @@ class GameSettingsStates(StatesGroup):
         if name == "losers":
             return GameSettingsStates.set_losers
         if name == "autostart_time":
-            return GameSettingsStates.set_autostart_time
+            return GameSettingsStates.set_autostart_timer

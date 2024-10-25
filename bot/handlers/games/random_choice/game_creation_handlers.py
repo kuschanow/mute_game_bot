@@ -1,4 +1,5 @@
 import re
+from datetime import datetime, timezone, timedelta
 
 from aiogram import Router, F
 from aiogram.enums import ChatType
@@ -13,14 +14,16 @@ from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.utils.translation import gettext as _
 
-from bot.dialogs.dialog_buttons import privacy, change_page, punishment, is_creator_play, min_max, losers, autostart_when_full, create, cancel
+from bot.dialogs.dialog_buttons import privacy, change_page, punishment, is_creator_play, min_max, losers, autostart_when_full, create, cancel, \
+    autostart_timer as autostart_timer_button, autostart_operator
 from bot.dialogs.dialog_menus import punishments, random_choice_settings, random_choice_game
 from bot.dialogs.dialog_texts import random_choice_game_creation_texts, random_choice_game_texts
 from bot.handlers.games.random_choice.game_settings_states import GameSettingsStates
 from bot.handlers.games.random_choice.utils.texts import get_players
 from bot.middlewares import set_random_choice_game_middlewares
-from bot.models import ChatMember, User, AccessSettingsObject
+from bot.models import ChatMember, User, AccessSettingsObject, Chat
 from games.models import RandomChoiceGame, RandomChoiceGamePlayer
+from games.tasks import random_choice_game_autostart_timer as autostart_timer_task
 from shared import category
 
 game_creation_router = Router()
@@ -187,7 +190,7 @@ async def set_losers(message: Message, game: RandomChoiceGame, member: ChatMembe
 
 
 @game_creation_router.callback_query(ButtonFilter(autostart_when_full))
-async def is_creator_play(callback: CallbackQuery, game: RandomChoiceGame, dialog: Dialog, member: ChatMember):
+async def autostart_when_full(callback: CallbackQuery, game: RandomChoiceGame, dialog: Dialog, member: ChatMember):
     await callback.answer()
 
     game.autostart_at_max_players = not game.autostart_at_max_players
@@ -199,9 +202,62 @@ async def is_creator_play(callback: CallbackQuery, game: RandomChoiceGame, dialo
                               menu_data={"game": game, "member_settings": await member.access_settings})
 
 
+@game_creation_router.callback_query(ButtonFilter(autostart_timer_button))
+async def autostart_timer(callback: CallbackQuery, state: FSMContext, game: RandomChoiceGame, dialog: Dialog, button: ButtonInstance,
+                       member: ChatMember):
+    await callback.answer()
+
+    if button.data["state"] == "set":
+        game.autostart_timer = timedelta(minutes=5)
+        await game.asave()
+    else:
+        await dialog.remove_state(context=state)
+        await dialog.set_state(state=GameSettingsStates.set_autostart_timer, context=state)
+
+    await dialog.edit_message(dialog.data["main_message_id"], random_choice_game_creation_texts["settings"], random_choice_settings,
+                              menu_data={"game": game, "member_settings": await member.access_settings})
+
+
+@game_creation_router.message(StateFilter(GameSettingsStates.set_autostart_timer), F.text.regexp(r"\d+"))
+async def set_autostart_timer(message: Message, game: RandomChoiceGame, member: ChatMember, state: FSMContext, dialog: Dialog):
+    await dialog.remove_state(context=state)
+
+    matches = re.findall(r"\d+", message.text)
+    days, hours, minutes = (0,) * (3 - len(matches)) + tuple(map(int, matches))
+    time = timedelta(days=days, hours=hours, minutes=minutes)
+
+    if time.total_seconds() == 0:
+        time = None
+
+    game.autostart_timer = time
+    await game.asave()
+
+    dialog.data["autostart_timer"] = time
+    dialog.data["game_text"] = await game.get_string()
+
+    await dialog.edit_message(dialog.data["main_message_id"], random_choice_game_creation_texts["settings"], random_choice_settings,
+                              menu_data={"game": game, "member_settings": await member.access_settings})
+    await message.delete()
+
+
+@game_creation_router.callback_query(ButtonFilter(autostart_operator))
+async def autostart_operator(callback: CallbackQuery, game: RandomChoiceGame, member: ChatMember, dialog: Dialog):
+    await callback.answer()
+
+    if game.autostart_operator == "or":
+        game.autostart_operator = "and"
+    if game.autostart_operator == "and":
+        game.autostart_operator = "or"
+
+    await game.asave()
+
+    await dialog.edit_message(dialog.data["main_message_id"], random_choice_game_creation_texts["settings"], random_choice_settings,
+                              menu_data={"game": game, "member_settings": await member.access_settings})
+
+
 @game_creation_router.callback_query(ButtonFilter(create))
 async def create(callback: CallbackQuery, game: RandomChoiceGame, member: ChatMember, access_settings: AccessSettingsObject,
-                 dialog_manager: DialogManager, dialog: Dialog, state: FSMContext, bot):
+                 dialog_manager: DialogManager, dialog: Dialog, state: FSMContext, chat: Chat, bot):
     await callback.answer()
     await dialog.remove_state(context=state)
     await dialog.delete_all_messages()
@@ -212,6 +268,10 @@ async def create(callback: CallbackQuery, game: RandomChoiceGame, member: ChatMe
 
     if game.is_creator_playing and access_settings.can_join_games:
         await RandomChoiceGamePlayer(game=game, chat_member=member).asave()
+
+    if game.autostart_timer:
+        game.autostart_timer_started_at = datetime.now(timezone.utc)
+        autostart_timer_task.apply_async(args=[str(game.id), chat.id], eta=game.autostart_timer_started_at + game.autostart_timer)
 
     dialog = Dialog.create("random_choice_game", user_id=member.user_id, chat_id=member.chat_id, bot=bot)
 
