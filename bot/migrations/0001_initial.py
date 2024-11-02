@@ -57,7 +57,7 @@ class Migration(migrations.Migration):
             name='AccessSettings',
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('target', models.TextField(choices=[('chat', 'Chat'), ('admins', 'Admins'), ('group', 'Group'), ('member', 'Member')], default='chat')),
+                ('target', models.TextField(choices=[('super_admin', 'Super_admin'), ('owner', 'Owner'), ('chat', 'Chat'), ('admins', 'Admins'), ('group', 'Group'), ('member', 'Member')], default='chat')),
                 ('target_id', models.TextField()),
                 ('settings_object', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='bot.accesssettingsobject')),
                 ('chat', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='bot.chat')),

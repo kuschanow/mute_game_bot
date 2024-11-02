@@ -26,7 +26,7 @@ class Migration(migrations.Migration):
             name='UserSettingsObject',
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('ping_in_stats', models.BooleanField(default=False)),
+                ('ping_in_stats', models.BooleanField(default=True)),
             ],
         ),
         migrations.AddField(

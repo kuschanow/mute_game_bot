@@ -6,6 +6,7 @@ from django.conf import settings
 from django.utils.translation import gettext as _
 
 from bot.models import ChatMember
+from shared.utils import format_time
 
 
 def get_places(stats_list: List, page: int):
@@ -34,7 +35,7 @@ def get_top_time_text(stats_list: List[tuple[ChatMember, timedelta]], page: int)
 
     for i in range(len(places)):
         text += (f"    {page * settings.RATING_PAGE_SIZE + i + 1}) {places[i][0].get_string()}: "
-                 f"{str(places[i][1]).replace(' day,', '').replace(' days,', '')[:-3]}\n")
+                 f"{format_time(places[i][1])}\n")
 
     return text
 

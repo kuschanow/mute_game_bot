@@ -37,8 +37,10 @@ async def chat_stats_command(message: Message, chat: Chat, state: FSMContext, us
     dialog.data["format"] = "top"
     dialog.data["category"] = "by_time"
     dialog.data["page"] = 0
+    dialog.temp["text"] = "⁠"
+    stats_message = await dialog.send_message(base_dialog_text, stats)
     dialog.temp["text"] = await stats_by_time(chat, dialog.data["page"])
-    await dialog.send_message(base_dialog_text, stats)
+    await dialog.edit_message(stats_message.message_id, base_dialog_text, stats)
     await dialog_manager.save_dialog(dialog)
     await message.delete()
 

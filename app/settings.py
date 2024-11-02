@@ -14,6 +14,7 @@ from pathlib import Path
 from string import Template
 
 import environ
+import humanize
 
 env = environ.Env()
 environ.Env.read_env('./.env')
@@ -177,6 +178,7 @@ LANGUAGE_CODE = env('LANGUAGE_CODE', default="en-us")
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
+HUMANIZE_LANGUAGE_CODE = env('HUMANIZE_LANGUAGE_CODE', default=None)
 
 LOCALE_PATHS = [Path(BASE_DIR) / 'locale']
 

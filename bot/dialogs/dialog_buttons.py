@@ -58,6 +58,16 @@ autostart_when_full = ButtonPrototype("autostart_when_full",
                                       {"": _("Autostart when full %(indicator)s")},
                                       set_indicator)
 
+autostart_operator = ButtonPrototype("autostart_operator",
+                                     {"or": _("Or"), "and": _("And")},
+                                     lambda data: data["operator"])
+
+autostart_timer = ButtonPrototype("autostart_timer",
+                                  {"set": _("Set autostart timer"),
+                                   "edit": _("Autostart after %(autostart_timer)s"),
+                                   "selected": _("▶ %(edit)s ◀")},
+                                  lambda data: data["state"])
+
 create = ButtonPrototype("create", {"": _("Create")})
 
 join = ButtonPrototype("join", {"": _("Join/Left")})
