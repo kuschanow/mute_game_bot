@@ -1,8 +1,10 @@
 import random
-from datetime import datetime
+from datetime import datetime, timezone
 from uuid import uuid4
+import humanize
 
 from asgiref.sync import sync_to_async
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
@@ -64,20 +66,18 @@ class RandomChoiceGame(models.Model):
         if self.autostart_at_max_players and self.autostart_timer is None:
             autostart_text = when_full
         elif self.autostart_timer is not None:
-            autostart_at = self.autostart_timer_started_at + self.autostart_timer
-            now = datetime.now()
-            if autostart_at.date() == now.date():
-                at_time = _("%(time)s") % {"time": autostart_at.strftime("%H:%M:%S")}
-            else:
-                at_time = _("%(time)s") % {"time": autostart_at.strftime("%Y-%m-%d %H:%M:%S")}
+            if settings.HUMANIZE_LANGUAGE_CODE:
+                humanize.i18n.activate(settings.HUMANIZE_LANGUAGE_CODE)
+            start_after = humanize.naturaldelta((self.autostart_timer_started_at + self.autostart_timer - datetime.now(
+                timezone.utc)) if self.autostart_timer_started_at or self.result is not None else self.autostart_timer)
 
             if not self.autostart_at_max_players:
-                autostart_text = _("at %(time)s") % {"time": at_time}
+                autostart_text = _("after %(time)s") % {"time": self.autostart_timer}
             else:
                 if self.autostart_operator == "or":
-                    autostart_text = _("if time is %(time)s or %(full)s") % {"time": at_time, "full": when_full}
+                    autostart_text = _("after %(time)s or %(full)s") % {"time": start_after, "full": when_full}
                 else:
-                    autostart_text = _("if time is after %(time)s and %(full)s") % {"time": at_time, "full": when_full}
+                    autostart_text = _("after %(time)s and %(full)s") % {"time": start_after, "full": when_full}
 
         return (_("<b>Random choice game</b>\n\n") +
                 f"👑 {self.creator.get_string(True)}\n\n" +

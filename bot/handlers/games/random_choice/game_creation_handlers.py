@@ -25,6 +25,7 @@ from bot.models import ChatMember, User, AccessSettingsObject, Chat
 from games.models import RandomChoiceGame, RandomChoiceGamePlayer
 from games.tasks import random_choice_game_autostart_timer as autostart_timer_task
 from shared import category
+from shared.utils import format_time
 
 game_creation_router = Router()
 game_creation_router.message.filter(MagicData(F.chat.type.is_not(ChatType.PRIVATE)))
@@ -133,10 +134,13 @@ async def is_creator_play(callback: CallbackQuery, dialog: Dialog, state: FSMCon
         pass
 
 
-@game_creation_router.message(StateFilter(GameSettingsStates.set_min_max), F.text.regexp(r"(\d+|)-(\d+|)"))
+@game_creation_router.message(StateFilter(GameSettingsStates.set_min_max), F.text.regexp(r"(\d+|)-?(\d+|)"))
 async def set_min(message: Message, game: RandomChoiceGame, member: ChatMember, state: FSMContext, dialog: Dialog):
     await dialog.remove_state(context=state)
-    min_str, max_str = re.search(r"(\d+|)-(\d+|)", message.text).groups()
+    min_str, max_str = re.search(r"(\d+|)-?(\d+|)", message.text).groups()
+
+    if '-' not in message.text:
+        max_str = min_str
 
     min_num = int(min_str) if min_str else 2
     max_num = int(max_str) if max_str else None
@@ -204,18 +208,22 @@ async def autostart_when_full(callback: CallbackQuery, game: RandomChoiceGame, d
 
 @game_creation_router.callback_query(ButtonFilter(autostart_timer_button))
 async def autostart_timer(callback: CallbackQuery, state: FSMContext, game: RandomChoiceGame, dialog: Dialog, button: ButtonInstance,
-                       member: ChatMember):
-    await callback.answer()
-
+                          member: ChatMember):
+    autostart_state = None
     if button.data["state"] == "set":
+        await callback.answer()
+        dialog.data["autostart_timer"] = format_time(timedelta(minutes=5))
         game.autostart_timer = timedelta(minutes=5)
         await game.asave()
+        dialog.data["game_text"] = await game.get_string()
     else:
+        autostart_state = "selected"
+        await callback.answer(_("Send with your values"))
         await dialog.remove_state(context=state)
         await dialog.set_state(state=GameSettingsStates.set_autostart_timer, context=state)
 
     await dialog.edit_message(dialog.data["main_message_id"], random_choice_game_creation_texts["settings"], random_choice_settings,
-                              menu_data={"game": game, "member_settings": await member.access_settings})
+                              menu_data={"game": game, "member_settings": await member.access_settings, "autostart_state": autostart_state})
 
 
 @game_creation_router.message(StateFilter(GameSettingsStates.set_autostart_timer), F.text.regexp(r"\d+"))
@@ -232,7 +240,7 @@ async def set_autostart_timer(message: Message, game: RandomChoiceGame, member: 
     game.autostart_timer = time
     await game.asave()
 
-    dialog.data["autostart_timer"] = time
+    dialog.data["autostart_timer"] = format_time(time)
     dialog.data["game_text"] = await game.get_string()
 
     await dialog.edit_message(dialog.data["main_message_id"], random_choice_game_creation_texts["settings"], random_choice_settings,
@@ -246,10 +254,11 @@ async def autostart_operator(callback: CallbackQuery, game: RandomChoiceGame, me
 
     if game.autostart_operator == "or":
         game.autostart_operator = "and"
-    if game.autostart_operator == "and":
+    elif game.autostart_operator == "and":
         game.autostart_operator = "or"
 
     await game.asave()
+    dialog.data["game_text"] = await game.get_string()
 
     await dialog.edit_message(dialog.data["main_message_id"], random_choice_game_creation_texts["settings"], random_choice_settings,
                               menu_data={"game": game, "member_settings": await member.access_settings})
@@ -269,15 +278,15 @@ async def create(callback: CallbackQuery, game: RandomChoiceGame, member: ChatMe
     if game.is_creator_playing and access_settings.can_join_games:
         await RandomChoiceGamePlayer(game=game, chat_member=member).asave()
 
-    if game.autostart_timer:
-        game.autostart_timer_started_at = datetime.now(timezone.utc)
-        autostart_timer_task.apply_async(args=[str(game.id), chat.id], eta=game.autostart_timer_started_at + game.autostart_timer)
-
     dialog = Dialog.create("random_choice_game", user_id=member.user_id, chat_id=member.chat_id, bot=bot)
-
     dialog.data["game_id"] = str(game.id)
     dialog.data["game_text"] = await game.get_string()
     dialog.data["game_players"] = await get_players(game)
+
+    if game.autostart_timer:
+        game.autostart_timer_started_at = datetime.now(timezone.utc)
+        autostart_timer_task.apply_async(args=[str(game.id), chat.id, str(dialog.dialog_id)], eta=game.autostart_timer_started_at + game.autostart_timer)
+        await game.asave()
 
     bot_message = await dialog.send_message(random_choice_game_texts["game"], random_choice_game, menu_data={"game": game})
 

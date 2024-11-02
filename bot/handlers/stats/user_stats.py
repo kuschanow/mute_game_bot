@@ -26,8 +26,8 @@ async def chat_stats_command(message: Message, member: ChatMember):
         user_id, username = match.groups()
         member_for_stats = await get_member_from_message(message, user_id, username)
 
-    await message.answer(text=await get_detailed_text_by_member(await get_random_choice_game_detailed_stats_by_user(member_for_stats), member_for_stats))
+    stats_message = await message.answer(text="⁠")
+    await stats_message.edit_text(
+        text=await get_detailed_text_by_member(await get_random_choice_game_detailed_stats_by_user(member_for_stats), member_for_stats))
 
     await message.delete()
-
-

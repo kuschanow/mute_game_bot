@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 
 from bot.models import Chat, User
+from shared.utils import format_time
 
 
 class Punishment(models.Model):
@@ -23,7 +24,7 @@ class Punishment(models.Model):
         # h = int(self.time.total_seconds() // 3600)
         # m = int(self.time.total_seconds() // 60 - h * 60)
         # return f"{self.name} ({h:02}:{m:02})"
-        return f"'{self.name}' ({str(self.time).replace(' day,', '').replace(' days,', '')[:-3]})"
+        return f"'{self.name}' ({format_time(self.time)})"
 
     def clean(self):
         self.name = self.name[:100].replace("\n", " ")

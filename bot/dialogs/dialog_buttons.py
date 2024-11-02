@@ -63,9 +63,10 @@ autostart_operator = ButtonPrototype("autostart_operator",
                                      lambda data: data["operator"])
 
 autostart_timer = ButtonPrototype("autostart_timer",
-                               {"set": _("Set autostart time"),
-                                "edit": _("Autostart at %(autostart_timer)s")},
-                               lambda data: data["state"])
+                                  {"set": _("Set autostart timer"),
+                                   "edit": _("Autostart after %(autostart_timer)s"),
+                                   "selected": _("▶ %(edit)s ◀")},
+                                  lambda data: data["state"])
 
 create = ButtonPrototype("create", {"": _("Create")})
 

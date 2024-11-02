@@ -1,20 +1,17 @@
-from asgiref.sync import async_to_sync
+import asyncio
+
 from celery import shared_task
 
 
-@shared_task(serializer='pickle')
-def random_choice_game_autostart_timer(game_id: str, chat_id: int):
+@shared_task
+def random_choice_game_autostart_timer(game_id: str, chat_id: int, dialog_id: str):
     from games.models import RandomChoiceGame
     from bot.models import Chat
-    from bot.handlers.games.utils import mute_losers
 
     game = RandomChoiceGame.objects.get(id=game_id)
     chat = Chat.objects.get(id=chat_id)
 
     if game.result:
-        return
-
-    if game.autostart_at:
         return
 
     players_count = game.players.count()
@@ -24,5 +21,22 @@ def random_choice_game_autostart_timer(game_id: str, chat_id: int):
 
     if (operator == "or" and players_count >= game.min_players_count) or \
             (operator != "or" and autostart_at_max_players_condition):
-        result = async_to_sync(game.start_game)()
-        mute_losers(game, result, chat)
+        asyncio.run(asyncio.wait_for(mute(chat, game, dialog_id), timeout=None))
+
+
+async def mute(chat, game, dialog_id):
+    from bot.handlers.games.utils import mute_losers
+    from bot.handlers.games.random_choice import random_choice_game_dialog_manager
+    from bot.dialogs.dialog_texts import random_choice_game_texts
+    from bot.handlers.games.random_choice.utils.texts import get_losers
+
+    result = await game.start_game()
+    await mute_losers(game, result, chat)
+
+    dialog = await random_choice_game_dialog_manager.get_dialog(dialog_id)
+
+    await dialog.edit_message(dialog.values["main_message_id"], random_choice_game_texts["game"])
+    dialog.data["game_losers"] = await get_losers(result)
+    dialog.data["game_text"] = await game.get_string()
+    await dialog.send_message(random_choice_game_texts["results"], reply_to_message_id=dialog.values["main_message_id"])
+    await random_choice_game_dialog_manager.delete_dialog(dialog)

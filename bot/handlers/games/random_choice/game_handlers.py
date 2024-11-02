@@ -56,7 +56,7 @@ async def join_game(callback: CallbackQuery, game: RandomChoiceGame, member: Cha
     autostart_at_max_players_condition = (not game.autostart_at_max_players or
                                           (game.autostart_at_max_players and players_count == game.max_players_count))
 
-    autostart_at_condition = (not game.autostart_timer or game.autostart_timer + game.autostart_timer_started_at >= datetime.now(timezone.utc))
+    autostart_at_condition = (not game.autostart_timer or game.autostart_timer + game.autostart_timer_started_at <= datetime.now(timezone.utc))
 
     if ((game.autostart_operator == 'or' and autostart_at_max_players_condition) or
             (game.autostart_operator != 'or' and (autostart_at_max_players_condition and autostart_at_condition))):
