@@ -3,7 +3,7 @@ import logging
 import seqlog
 from django.conf import settings
 
-if settings.SEQ_URL and settings.SEQ_KEY:
+if settings.ENABLE_SEQ:
     seqlog.log_to_seq(
         server_url=settings.SEQ_URL,
         api_key=settings.SEQ_KEY,

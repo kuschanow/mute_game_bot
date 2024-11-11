@@ -220,6 +220,7 @@ WEBHOOK_SECRET = env('WEBHOOK_SECRET', default="my-secret")
 BASE_WEBHOOK_URL = env('BASE_WEBHOOK_URL', default=None)
 WEBHOOK_PATH = env('WEBHOOK_PATH', default="/webhook")
 
+ENABLE_SEQ = env.bool('ENABLE_SEQ', default=False)
 SEQ_KEY = env('SEQ_KEY', default=None)
 SEQ_URL = env('SEQ_URL', default=None)
 SEQ_BATCH = env.int('SEQ_BATCH', default=10)
