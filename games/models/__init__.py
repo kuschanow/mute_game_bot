@@ -1,5 +1,3 @@
 from .punishment import Punishment
-from .random_choice_game import RandomChoiceGame
-from .random_choice_game_player import RandomChoiceGamePlayer
-from .random_choice_game_gesult import RandomChoiceGameResult
-from .random_choice_gameLoser import RandomChoiceGameLoser
+from .random_choice_game import *
+from .hidden_mines_game import *

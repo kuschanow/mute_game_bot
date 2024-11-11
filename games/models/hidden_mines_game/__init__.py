@@ -1,0 +1,4 @@
+from .hidden_mines_game import HiddenMinesGame
+from .hidden_mines_game_player import HiddenMinesGamePlayer
+from .hidden_mines_game_result import HiddenMinesGameResult
+from .hidden_mines_game_loser import HiddenMinesGameLoser
