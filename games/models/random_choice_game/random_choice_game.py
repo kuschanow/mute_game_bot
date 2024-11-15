@@ -32,13 +32,11 @@ class RandomChoiceGame(models.Model):
 
     is_opened_to_join = models.BooleanField(null=False, default=False)
 
-    result = models.OneToOneField("RandomChoiceGameResult", null=True, default=None, on_delete=models.CASCADE, related_name="game")
-
     created_at = models.DateTimeField(auto_now_add=True)
 
     @sync_to_async
     def is_finished(self) -> bool:
-        self.is_finished = self.result is not None
+        self.is_finished = hasattr(self, "result")
         return self.is_finished
 
     @sync_to_async
@@ -53,7 +51,6 @@ class RandomChoiceGame(models.Model):
             RandomChoiceGameLoser(player_id=loser.player_id, game_result=game_result).save()
 
         self.is_finished = True
-        self.result = game_result
         self.save()
         return game_result
 
@@ -69,7 +66,7 @@ class RandomChoiceGame(models.Model):
             if settings.HUMANIZE_LANGUAGE_CODE:
                 humanize.i18n.activate(settings.HUMANIZE_LANGUAGE_CODE)
             start_after = humanize.naturaldelta((self.autostart_timer_started_at + self.autostart_timer - datetime.now(
-                timezone.utc)) if self.autostart_timer_started_at or self.result is not None else self.autostart_timer)
+                timezone.utc)) if self.autostart_timer_started_at or hasattr(self, "result") is not None else self.autostart_timer)
 
             if not self.autostart_at_max_players:
                 autostart_text = _("after %(time)s") % {"time": self.autostart_timer}

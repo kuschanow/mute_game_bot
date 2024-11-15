@@ -11,7 +11,7 @@ def random_choice_game_autostart_timer(game_id: str, chat_id: int, dialog_id: st
     game = RandomChoiceGame.objects.get(id=game_id)
     chat = Chat.objects.get(id=chat_id)
 
-    if game.result:
+    if game.is_finished():
         return
 
     players_count = game.players.count()
