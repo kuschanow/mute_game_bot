@@ -1,8 +1,7 @@
 import random
 from datetime import datetime, timezone
-from uuid import uuid4
-import humanize
 
+import humanize
 from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -11,33 +10,20 @@ from django.db import models
 from django.db.models import F
 from django.utils.translation import gettext as _
 
-from bot.models import ChatMember
+from games.models.base_game_models import GameBase
 
 
-class RandomChoiceGame(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    punishment = models.ForeignKey("Punishment", on_delete=models.CASCADE)
+class RandomChoiceGame(GameBase):
+    game_name = "RandomChoice"
+
     min_players_count = models.PositiveIntegerField(null=False, default=2, validators=[MinValueValidator(2)])
     max_players_count = models.PositiveIntegerField(null=True, default=6)
     losers_count = models.PositiveIntegerField(null=False, default=1)
-
-    creator = models.ForeignKey(ChatMember, null=True, blank=False, on_delete=models.SET_NULL, related_name="created_random_choice_games")
-    players = models.ManyToManyField(ChatMember, through="RandomChoiceGamePlayer", related_name='participated_random_choice_games')
-    is_creator_playing = models.BooleanField(default=True, null=False)
 
     autostart_at_max_players = models.BooleanField(null=False, default=False)
     autostart_operator = models.TextField(null=False, blank=False, default="or")
     autostart_timer = models.DurationField(null=True, default=None)
     autostart_timer_started_at = models.DateTimeField(null=True, default=None)
-
-    is_opened_to_join = models.BooleanField(null=False, default=False)
-
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    @sync_to_async
-    def is_finished(self) -> bool:
-        self.is_finished = hasattr(self, "result")
-        return self.is_finished
 
     @sync_to_async
     def start_game(self):
@@ -98,6 +84,3 @@ class RandomChoiceGame(models.Model):
             raise ValidationError(f"losers count must be less than max players count")
 
         super().clean()
-
-    def __str__(self):
-        return f"[id {self.id}] - [creator {self.creator}] - [punishment {self.punishment}]"

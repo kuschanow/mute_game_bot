@@ -1,5 +1,5 @@
-from django.db import models
+from games.models.base_game_models import GamePlayerBase
 
 
-class HiddenMinesGamePlayer(models.Model):
-    pass
+class HiddenMinesGamePlayer(GamePlayerBase):
+    game_name = "HiddenMines"
