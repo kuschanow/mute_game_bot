@@ -7,26 +7,24 @@ from django.db import migrations, models
 
 
 def forward(apps, schema_editor):
-    # SQL для переноса данных
     sql = """
     UPDATE games_randomchoicegameresult AS r
     SET game_id = g.id
     FROM games_randomchoicegame AS g
     WHERE r.id = g.result_id
     """
-    # Выполнение SQL-запроса
+
     schema_editor.execute(sql)
 
 
 def backward(apps, schema_editor):
-    # SQL для переноса данных
     sql = """
     UPDATE games_randomchoicegame AS g
     SET result_id = r.id
     FROM games_randomchoicegameresult AS r
     WHERE g.id = r.game_id
     """
-    # Выполнение SQL-запроса
+
     schema_editor.execute(sql)
 
 
