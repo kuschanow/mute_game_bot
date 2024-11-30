@@ -13,7 +13,6 @@ class GameLoserMeta(models.base.ModelBase):
             if not hasattr(new_class, 'game_name') or not new_class.game_name:
                 raise ValueError("You need to specify 'game_name' in the subclass.")
 
-            # Добавляем ForeignKey для game_result и player
             new_class.add_to_class(
                 "game_result",
                 models.ForeignKey(

@@ -17,7 +17,6 @@ class GameMeta(models.base.ModelBase):
             def camel_to_snake(name):
                 return re.sub('([a-z0-9])([A-Z])', r'\1_\2', name).lower()
 
-            # Добавляем ForeignKey для creator
             new_class.add_to_class(
                 "creator",
                 models.ForeignKey(
@@ -29,7 +28,6 @@ class GameMeta(models.base.ModelBase):
                 )
             )
 
-            # Добавляем ManyToManyField для players
             new_class.add_to_class(
                 "players",
                 models.ManyToManyField(

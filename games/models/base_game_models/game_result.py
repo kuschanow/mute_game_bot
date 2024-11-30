@@ -12,7 +12,6 @@ class GameResultMeta(models.base.ModelBase):
             if not hasattr(new_class, 'game_name') or not new_class.game_name:
                 raise ValueError("You need to specify 'game_name' in the subclass.")
 
-            # Добавление ManyToManyField
             new_class.add_to_class(
                 "losers",
                 models.ManyToManyField(
@@ -21,7 +20,6 @@ class GameResultMeta(models.base.ModelBase):
                 )
             )
 
-            # Добавление OneToOneField
             new_class.add_to_class(
                 "game",
                 models.OneToOneField(
