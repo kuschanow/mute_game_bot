@@ -36,7 +36,6 @@ class RandomChoiceGame(GameBase):
         for loser in losers:
             RandomChoiceGameLoser(player_id=loser.player_id, game_result=game_result).save()
 
-        self.is_finished = True
         self.save()
         return game_result
 
