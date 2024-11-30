@@ -6,6 +6,30 @@ import django.db.models.deletion
 from django.db import migrations, models
 
 
+def forward(apps, schema_editor):
+    # SQL для переноса данных
+    sql = """
+    UPDATE games_randomchoicegameresult AS r
+    SET game_id = g.id
+    FROM games_randomchoicegame AS g
+    WHERE r.id = g.result_id
+    """
+    # Выполнение SQL-запроса
+    schema_editor.execute(sql)
+
+
+def backward(apps, schema_editor):
+    # SQL для переноса данных
+    sql = """
+    UPDATE games_randomchoicegame AS g
+    SET result_id = r.id
+    FROM games_randomchoicegameresult AS r
+    WHERE g.id = r.game_id
+    """
+    # Выполнение SQL-запроса
+    schema_editor.execute(sql)
+
+
 class Migration(migrations.Migration):
     dependencies = [
         ('games', '0001_initial'),
@@ -26,15 +50,16 @@ class Migration(migrations.Migration):
             name='autostart_timer_started_at',
             field=models.DateTimeField(default=None, null=True),
         ),
-        migrations.RemoveField(
-            model_name='randomchoicegame',
-            name='result',
-        ),
         migrations.AddField(
             model_name='randomchoicegameresult',
             name='game',
             field=models.OneToOneField(default=None, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='result',
                                        to='games.randomchoicegame'),
+        ),
+        migrations.RunPython(forward, backward),
+        migrations.RemoveField(
+            model_name='randomchoicegame',
+            name='result',
         ),
         migrations.CreateModel(
             name='HiddenMinesGame',

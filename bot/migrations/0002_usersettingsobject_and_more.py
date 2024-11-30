@@ -6,7 +6,7 @@ import django.db.models.deletion
 from django.db import migrations, models
 
 
-def populate_new_field(apps, schema_editor):
+def forward(apps, schema_editor):
     user_model = apps.get_model('bot', 'user')
     settings_model = apps.get_model('bot', 'usersettingsobject')
     for instance in user_model.objects.all():
@@ -15,6 +15,10 @@ def populate_new_field(apps, schema_editor):
         # Присваиваем его id новому полю в ModelA
         instance.global_settings = new_b
         instance.save()
+
+
+def backward(apps, schema_editor):
+    pass
 
 
 class Migration(migrations.Migration):
@@ -40,7 +44,7 @@ class Migration(migrations.Migration):
             name='global_settings',
             field=models.ForeignKey(default=uuid.uuid4, on_delete=django.db.models.deletion.CASCADE, to='bot.usersettingsobject'),
         ),
-        migrations.RunPython(populate_new_field),
+        migrations.RunPython(forward, backward),
         migrations.AddField(
             model_name='accesssettingsobject',
             name='show_in_stats',
