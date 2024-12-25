@@ -229,6 +229,7 @@ SEQ_LEVEL = env.int('SEQ_LEVEL', default=20)
 
 HELP_COMMAND = env('HELP_COMMAND', default="help")
 RANDOM_CHOICE_GAME_COMMAND = env('RANDOM_CHOICE_GAME_COMMAND', default="random_choice_game")
+HIDDEN_MINES_GAME_COMMAND = env('HIDDEN_MINES_GAME_COMMAND', default="hidden_mines_game")
 CREATE_PUNISHMENT_COMMAND = env('CREATE_PUNISHMENT_COMMAND', default="create_punishment")
 DELETE_PUNISHMENT_COMMAND = env('DELETE_PUNISHMENT_COMMAND', default="delete_punishment")
 SHOW_USER_STATS_COMMAND = env('SHOW_USER_STATS_COMMAND', default="user_stats")

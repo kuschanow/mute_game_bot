@@ -13,6 +13,7 @@ wrong_private_commands_router.message.filter(F.chat.type.is_(ChatType.PRIVATE))
 
 
 @wrong_private_commands_router.message(Command(settings.RANDOM_CHOICE_GAME_COMMAND))
+@wrong_private_commands_router.message(Command(settings.HIDDEN_MINES_GAME_COMMAND))
 @wrong_private_commands_router.message(Command(settings.CREATE_PUNISHMENT_COMMAND))
 @wrong_private_commands_router.message(Command(settings.ACCESS_SETTINGS_COMMAND))
 @wrong_private_commands_router.message(Command(settings.CHAT_SETTINGS_COMMAND))

@@ -17,7 +17,7 @@ from django.utils.translation import gettext as _
 from bot.dialogs.dialog_buttons import privacy, change_page, punishment, is_creator_play, min_max, losers, autostart_when_full, create, cancel, \
     autostart_timer as autostart_timer_button, autostart_operator
 from bot.dialogs.dialog_menus import punishments, random_choice_settings, random_choice_game
-from bot.dialogs.dialog_texts import random_choice_game_creation_texts, random_choice_game_texts
+from bot.dialogs.dialog_texts import game_creation_texts, random_choice_game_texts
 from bot.handlers.games.random_choice.game_settings_states import GameSettingsStates
 from bot.handlers.games.random_choice.utils.texts import get_players
 from bot.middlewares import set_random_choice_game_middlewares
@@ -43,7 +43,7 @@ async def start_game_command(message: Message, member: ChatMember, access_settin
         await message.delete()
         return
 
-    dialog = Dialog.create("random_choice_game_creation", user_id=user.id, chat_id=message.chat.id, bot=bot)
+    dialog = Dialog.create("random_choice_game_creation", user_id=member.user_id, chat_id=member.chat_id, bot=bot)
     dialog.data["prefix"] = _("Dialog with ") + user.get_string(True) + "\n\n"
     dialog.data["public_indicator"] = 1
     dialog.data["category"] = category[1]
@@ -54,40 +54,10 @@ async def start_game_command(message: Message, member: ChatMember, access_settin
         "time_filters": access_settings.time_filters
     }
 
-    bot_message = await dialog.send_message(random_choice_game_creation_texts["punishment"], punishments, menu_data=menu_data)
+    bot_message = await dialog.send_message(game_creation_texts["punishment"], punishments, menu_data=menu_data)
     dialog.data["main_message_id"] = bot_message.message_id
     await dialog_manager.save_dialog(dialog)
     await message.delete()
-
-
-@game_creation_router.callback_query(ButtonFilter(privacy))
-async def select_punishments_privacy(callback: CallbackQuery, dialog: Dialog, button: ButtonInstance, member: ChatMember,
-                                     access_settings: AccessSettingsObject):
-    await callback.answer()
-
-    dialog.data["public_indicator"] = button.data["public_indicator"]
-    dialog.data["category"] = category[button.data["public_indicator"]]
-    dialog.data["page"] = 0
-
-    menu_data = {
-        "chat_member": member,
-        "time_filters": access_settings.time_filters
-    }
-
-    await dialog.edit_message(callback.message.message_id, random_choice_game_creation_texts["punishment"], punishments, menu_data=menu_data)
-
-
-@game_creation_router.callback_query(ButtonFilter(change_page))
-async def select_page(callback: CallbackQuery, dialog: Dialog, button: ButtonInstance, member: ChatMember, access_settings: AccessSettingsObject):
-    await callback.answer()
-    dialog.data["page"] = button.data["page"]
-
-    menu_data = {
-        "chat_member": member,
-        "time_filters": access_settings.time_filters
-    }
-
-    await dialog.edit_message(callback.message.message_id, random_choice_game_creation_texts["punishment"], punishments, menu_data=menu_data)
 
 
 @game_creation_router.callback_query(ButtonFilter(punishment))
@@ -104,7 +74,7 @@ async def select_punishment(callback: CallbackQuery, member: ChatMember, dialog:
     dialog.data["max"] = game.max_players_count
     dialog.data["losers"] = game.losers_count
 
-    await dialog.edit_message(callback.message.message_id, random_choice_game_creation_texts["settings"], random_choice_settings,
+    await dialog.edit_message(callback.message.message_id, game_creation_texts["settings"], random_choice_settings,
                               menu_data={"game": game, "member_settings": await member.access_settings})
 
 
@@ -115,7 +85,7 @@ async def is_creator_play(callback: CallbackQuery, game: RandomChoiceGame, dialo
     game.is_creator_playing = not game.is_creator_playing
     await game.asave()
 
-    await dialog.edit_message(dialog.data["main_message_id"], random_choice_game_creation_texts["settings"], random_choice_settings,
+    await dialog.edit_message(dialog.data["main_message_id"], game_creation_texts["settings"], random_choice_settings,
                               menu_data={"game": game, "member_settings": await member.access_settings})
 
 
@@ -162,7 +132,7 @@ async def set_min(message: Message, game: RandomChoiceGame, member: ChatMember, 
     dialog.data["losers"] = game.losers_count
     dialog.data["game_text"] = await game.get_string()
 
-    await dialog.edit_message(dialog.data["main_message_id"], random_choice_game_creation_texts["settings"], random_choice_settings,
+    await dialog.edit_message(dialog.data["main_message_id"], game_creation_texts["settings"], random_choice_settings,
                               menu_data={"game": game, "member_settings": await member.access_settings})
     await message.delete()
 
@@ -188,7 +158,7 @@ async def set_losers(message: Message, game: RandomChoiceGame, member: ChatMembe
     dialog.data["losers"] = game.losers_count
     dialog.data["game_text"] = await game.get_string()
 
-    await dialog.edit_message(dialog.data["main_message_id"], random_choice_game_creation_texts["settings"], random_choice_settings,
+    await dialog.edit_message(dialog.data["main_message_id"], game_creation_texts["settings"], random_choice_settings,
                               menu_data={"game": game, "member_settings": await member.access_settings})
     await message.delete()
 
@@ -202,7 +172,7 @@ async def autostart_when_full(callback: CallbackQuery, game: RandomChoiceGame, d
 
     dialog.data["game_text"] = await game.get_string()
 
-    await dialog.edit_message(dialog.data["main_message_id"], random_choice_game_creation_texts["settings"], random_choice_settings,
+    await dialog.edit_message(dialog.data["main_message_id"], game_creation_texts["settings"], random_choice_settings,
                               menu_data={"game": game, "member_settings": await member.access_settings})
 
 
@@ -222,7 +192,7 @@ async def autostart_timer(callback: CallbackQuery, state: FSMContext, game: Rand
         await dialog.remove_state(context=state)
         await dialog.set_state(state=GameSettingsStates.set_autostart_timer, context=state)
 
-    await dialog.edit_message(dialog.data["main_message_id"], random_choice_game_creation_texts["settings"], random_choice_settings,
+    await dialog.edit_message(dialog.data["main_message_id"], game_creation_texts["settings"], random_choice_settings,
                               menu_data={"game": game, "member_settings": await member.access_settings, "autostart_state": autostart_state})
 
 
@@ -243,7 +213,7 @@ async def set_autostart_timer(message: Message, game: RandomChoiceGame, member: 
     dialog.data["autostart_timer"] = format_time(time)
     dialog.data["game_text"] = await game.get_string()
 
-    await dialog.edit_message(dialog.data["main_message_id"], random_choice_game_creation_texts["settings"], random_choice_settings,
+    await dialog.edit_message(dialog.data["main_message_id"], game_creation_texts["settings"], random_choice_settings,
                               menu_data={"game": game, "member_settings": await member.access_settings})
     await message.delete()
 
@@ -260,7 +230,7 @@ async def autostart_operator(callback: CallbackQuery, game: RandomChoiceGame, me
     await game.asave()
     dialog.data["game_text"] = await game.get_string()
 
-    await dialog.edit_message(dialog.data["main_message_id"], random_choice_game_creation_texts["settings"], random_choice_settings,
+    await dialog.edit_message(dialog.data["main_message_id"], game_creation_texts["settings"], random_choice_settings,
                               menu_data={"game": game, "member_settings": await member.access_settings})
 
 
@@ -285,7 +255,8 @@ async def create(callback: CallbackQuery, game: RandomChoiceGame, member: ChatMe
 
     if game.autostart_timer:
         game.autostart_timer_started_at = datetime.now(timezone.utc)
-        autostart_timer_task.apply_async(args=[str(game.id), chat.id, str(dialog.dialog_id)], eta=game.autostart_timer_started_at + game.autostart_timer)
+        autostart_timer_task.apply_async(args=[str(game.id), chat.id, str(dialog.dialog_id)],
+                                         eta=game.autostart_timer_started_at + game.autostart_timer)
         await game.asave()
 
     bot_message = await dialog.send_message(random_choice_game_texts["game"], random_choice_game, menu_data={"game": game})

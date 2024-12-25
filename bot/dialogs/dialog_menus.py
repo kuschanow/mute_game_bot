@@ -8,6 +8,7 @@ from .keyboards.chat_settings.access_group_selection import get_access_group_sel
 from .keyboards.chat_settings.access_settings import get_access_settings_keyboard
 from .keyboards.chat_settings.member_access_settings_selection import get_member_access_settings_selection_keyboard
 from .keyboards.chat_settings.random_choice_game_access_settings import get_random_choice_game_access_settings_keyboard
+from .keyboards.hidden_mines_game import get_game_field
 from .keyboards.random_choice_game import get_settings_keyboard as get_random_choice_game_settings_keyboard, \
     get_game_menu_keyboard as get_random_choice_game_menu_keyboard
 from .keyboards.user_settings import get_user_settings
@@ -65,3 +66,5 @@ access_group = MenuPrototype(lambda changing_name=False: [
 member_access_settings_menu = MenuPrototype(get_member_access_settings_selection_keyboard)
 
 update = MenuPrototype(lambda: [[update_button.get_instance()], [cancel_button.get_instance()]])
+
+hidden_mines_field = MenuPrototype(get_game_field)

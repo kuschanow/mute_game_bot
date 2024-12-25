@@ -1,6 +1,6 @@
 from .hidden_mines_game import HiddenMinesGame
 from .hidden_mines_game_cell import HiddenMinesGameCell
-from .hidden_mines_game_filed import HiddenMinesGameField
+from .hidden_mines_game_field import HiddenMinesGameField
 from .hidden_mines_game_loser import HiddenMinesGameLoser
 from .hidden_mines_game_player import HiddenMinesGamePlayer
 from .hidden_mines_game_result import HiddenMinesGameResult

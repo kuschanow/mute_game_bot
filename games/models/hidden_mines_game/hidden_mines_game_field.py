@@ -1,4 +1,10 @@
+from random import randint
+
 from django.db import models
+
+from shared.enums.CellTypes import CellTypes
+from .hidden_mines_game import HiddenMinesGame
+from .hidden_mines_game_cell import HiddenMinesGameCell
 
 
 class HiddenMinesGameField(models.Model):

@@ -33,7 +33,7 @@ punishment_deletion_texts = {
               _("Accept deletion for %(punishment_name)s"),
 }
 
-random_choice_game_creation_texts = {
+game_creation_texts = {
     "punishment": "%(prefix)s" +
                   _("Choose a punishment from the list below\n\n"
                     "Category: %(category)s"),
@@ -46,6 +46,12 @@ random_choice_game_texts = {
             "%(game_players)s",
 
     "results": "%(game_losers)s"
+}
+
+hidden_mines_game_texts = {
+    "game": "%(game_text)s",
+
+    "results": "%(game_result)s"
 }
 
 access_settings_texts = {
