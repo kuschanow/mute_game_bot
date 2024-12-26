@@ -1,7 +1,6 @@
 from aiogram import Router
 from django.conf import settings
 
-from bot.middlewares.games_middleware.random_choice_game_middleware import set_random_choice_game_middlewares
 from .chat_middlewares import set_chat_middlewares
 from .logger_middlewares import set_logger_middlewares
 from .member_middlewares import set_member_middlewares

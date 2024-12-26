@@ -20,7 +20,7 @@ from bot.dialogs.dialog_menus import punishments, random_choice_settings, random
 from bot.dialogs.dialog_texts import game_creation_texts, random_choice_game_texts
 from bot.handlers.games.random_choice.game_settings_states import GameSettingsStates
 from bot.handlers.games.random_choice.utils.texts import get_players
-from bot.middlewares import set_random_choice_game_middlewares
+from bot.middlewares.games_middleware import set_random_choice_game_middlewares
 from bot.models import ChatMember, User, AccessSettingsObject, Chat
 from games.models import RandomChoiceGame, RandomChoiceGamePlayer
 from games.tasks import random_choice_game_autostart_timer as autostart_timer_task

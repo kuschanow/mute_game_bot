@@ -1,9 +1,13 @@
 from random import randint
 
+from asgiref.sync import sync_to_async
+from django.utils.translation import gettext as _
+
 from games.models.base_game_models import GameBase
 from shared.enums.CellTypes import CellTypes
 from .hidden_mines_game_cell import HiddenMinesGameCell
 from .hidden_mines_game_field import HiddenMinesGameField
+from .. import HiddenMinesGameResult, HiddenMinesGameWinner, HiddenMinesGameLoser
 
 
 class HiddenMinesGame(GameBase):
@@ -19,7 +23,7 @@ class HiddenMinesGame(GameBase):
             HiddenMinesGameCell(x=1, y=1, field=field, type=CellTypes.MINE)
         ]
 
-        cells[randint(0, 3)].type = CellTypes.EMPTY
+        cells[randint(0, 3)].type = CellTypes.WIN
 
         for cell in cells:
             cell.save()
@@ -33,3 +37,17 @@ class HiddenMinesGame(GameBase):
 
                 {_("There are 3 'dead' cells and 1 'win' cell in the grid below")}
                 """
+
+    async def finish_game(self, with_cell: HiddenMinesGameCell) -> HiddenMinesGameResult:
+        result = HiddenMinesGameResult(game=self)
+        await result.asave()
+
+        if with_cell.type == CellTypes.WIN:
+            winner = HiddenMinesGameWinner(game_result=result, player=await sync_to_async(self.players.first)())
+            await winner.asave()
+
+        elif with_cell.type == CellTypes.LOSE:
+            loser = HiddenMinesGameLoser(game_result=result, player=await sync_to_async(self.players.first)())
+            await loser.asave()
+
+        return result

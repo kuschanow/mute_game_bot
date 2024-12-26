@@ -12,7 +12,7 @@ from django.utils.translation import gettext as _
 from bot.dialogs.dialog_buttons import punishment
 from bot.dialogs.dialog_menus import punishments, hidden_mines_field
 from bot.dialogs.dialog_texts import game_creation_texts, hidden_mines_game_texts
-from bot.middlewares import set_random_choice_game_middlewares
+from bot.middlewares.games_middleware import set_random_choice_game_middlewares
 from bot.models import AccessSettingsObject, User, ChatMember
 from games.models import HiddenMinesGame, HiddenMinesGamePlayer
 from shared import category
@@ -20,7 +20,6 @@ from shared import category
 game_creation_router = Router()
 game_creation_router.message.filter(MagicData(F.chat.type.is_not(ChatType.PRIVATE)))
 game_creation_router.callback_query.filter(DialogAccessFilter(), DialogFilter("hidden_mines_game_creation"))
-set_random_choice_game_middlewares(game_creation_router)
 
 
 @game_creation_router.message(Command(settings.HIDDEN_MINES_GAME_COMMAND))

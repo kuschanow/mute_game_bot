@@ -7,7 +7,7 @@ from aiogram_dialog_manager.instance import ButtonInstance
 from bot.dialogs.dialog_buttons import privacy, change_page
 from bot.dialogs.dialog_menus import punishments
 from bot.dialogs.dialog_texts import game_creation_texts
-from bot.middlewares import set_random_choice_game_middlewares
+from bot.middlewares.games_middleware import set_random_choice_game_middlewares
 from bot.models import ChatMember, AccessSettingsObject
 from shared import category
 

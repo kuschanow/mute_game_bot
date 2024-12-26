@@ -1,0 +1,2 @@
+from .random_choice_game_middleware import set_random_choice_game_middlewares
+from .hidden_mines_game_middleware import set_hidden_mines_game_middlewares

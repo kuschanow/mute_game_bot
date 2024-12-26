@@ -155,3 +155,5 @@ change_name = ButtonPrototype("change_page",
 group_access_settings = ButtonPrototype("group_access_settings", {"": _("Change settings")})
 
 member_access_settings = ButtonPrototype("member_access_settings", {"": "%(name)s"})
+
+cell = ButtonPrototype("cell", {"closed": _("❔"), "opened": "%(value)s"}, lambda data: "opened" if data["is_opened"] else "closed")

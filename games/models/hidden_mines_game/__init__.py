@@ -4,3 +4,4 @@ from .hidden_mines_game_field import HiddenMinesGameField
 from .hidden_mines_game_loser import HiddenMinesGameLoser
 from .hidden_mines_game_player import HiddenMinesGamePlayer
 from .hidden_mines_game_result import HiddenMinesGameResult
+from .hidden_mines_game_winner import HiddenMinesGameWinner

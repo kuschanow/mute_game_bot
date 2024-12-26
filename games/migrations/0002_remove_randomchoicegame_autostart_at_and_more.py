@@ -78,7 +78,7 @@ class Migration(migrations.Migration):
             name='HiddenMinesGameField',
             fields=[
                 ('id', models.UUIDField(editable=False, primary_key=True, serialize=False)),
-                ('game', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='field', to='games.hiddenminesgame')),
+                ('game', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='field', to='games.hiddenminesgame')),
             ],
         ),
         migrations.CreateModel(

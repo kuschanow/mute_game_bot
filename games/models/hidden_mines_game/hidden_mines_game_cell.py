@@ -11,7 +11,7 @@ class HiddenMinesGameCell(models.Model):
     x = models.IntegerField(null=False)
     y = models.IntegerField(null=False)
 
-    type = models.TextField(null=False, blank=False, choices=enum_to_choices(CellTypes), default=CellTypes.EMPTY.value)
+    type = models.TextField(null=False, blank=False, choices=enum_to_choices(CellTypes), default=CellTypes.WIN.value)
 
     is_opened = models.BooleanField(null=False, default=False)
 

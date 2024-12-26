@@ -1,6 +1,7 @@
 from uuid import uuid4
 
 from django.db import models
+from django.db.models import Manager
 
 from .game import GameBase
 
@@ -40,6 +41,7 @@ class GameResultBase(models.Model, metaclass=GameResultMeta):
     finished_at = models.DateTimeField(auto_now_add=True)
 
     game: GameBase
+    losers: Manager
 
     def __str__(self):
         return f"[game {self.game}] - [finished at {self.finished_at}]"

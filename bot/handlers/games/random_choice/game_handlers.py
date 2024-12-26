@@ -13,7 +13,7 @@ from future.backports.datetime import datetime
 from bot.dialogs.dialog_buttons import join, start, delete
 from bot.dialogs.dialog_menus import random_choice_game
 from bot.dialogs.dialog_texts import random_choice_game_texts
-from bot.middlewares import set_random_choice_game_middlewares
+from bot.middlewares.games_middleware import set_random_choice_game_middlewares
 from bot.models import ChatMember, Chat, AccessSettingsObject
 from games.models import RandomChoiceGame, RandomChoiceGamePlayer, RandomChoiceGameResult
 from .utils.texts import get_players, get_losers
