@@ -1,3 +1,5 @@
+from datetime import datetime, timezone, timedelta
+
 from aiogram import Router, F
 from aiogram.enums import ChatType
 from aiogram.filters import MagicData, Command
@@ -12,9 +14,9 @@ from django.utils.translation import gettext as _
 from bot.dialogs.dialog_buttons import punishment
 from bot.dialogs.dialog_menus import punishments, hidden_mines_field
 from bot.dialogs.dialog_texts import game_creation_texts, hidden_mines_game_texts
-from bot.middlewares.games_middleware import set_random_choice_game_middlewares
-from bot.models import AccessSettingsObject, User, ChatMember
+from bot.models import AccessSettingsObject, User, ChatMember, Chat
 from games.models import HiddenMinesGame, HiddenMinesGamePlayer
+from games.tasks import auto_ban
 from shared import category
 
 game_creation_router = Router()
@@ -50,7 +52,7 @@ async def create_hidden_mines_game(message: Message, access_settings: AccessSett
 
 
 @game_creation_router.callback_query(ButtonFilter(punishment))
-async def select_punishment(callback: CallbackQuery, member: ChatMember, button: ButtonInstance, bot):
+async def select_punishment(callback: CallbackQuery, member: ChatMember, button: ButtonInstance, chat: Chat, bot):
     await callback.answer()
     game = HiddenMinesGame(
         punishment_id=button.data["id"],
@@ -67,3 +69,6 @@ async def select_punishment(callback: CallbackQuery, member: ChatMember, button:
     dialog.data["game_text"] = game.get_string()
 
     await dialog.send_message(hidden_mines_game_texts["game"], hidden_mines_field, menu_data={"game": game})
+
+    auto_ban.apply_async(args=[str(game.id), chat.id, str(dialog.dialog_id)],
+                         eta=datetime.now(timezone.utc) + timedelta(minutes=2))

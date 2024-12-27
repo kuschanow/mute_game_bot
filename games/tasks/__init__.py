@@ -1,1 +1,2 @@
 from .random_choice_game_autostart_timer import random_choice_game_autostart_timer
+from .auto_ban import auto_ban
