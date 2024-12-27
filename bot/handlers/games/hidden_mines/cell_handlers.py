@@ -49,4 +49,4 @@ async def open_win_cell(callback: CallbackQuery, game: HiddenMinesGame, dialog_m
 
     await dialog_manager.delete_dialog(dialog)
 
-    await mute_losers(game, result, chat)
+    await mute_losers(game, chat)

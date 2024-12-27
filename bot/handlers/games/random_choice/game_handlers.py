@@ -16,7 +16,6 @@ from bot.dialogs.dialog_texts import random_choice_game_texts
 from bot.middlewares.games_middleware import set_random_choice_game_middlewares
 from bot.models import ChatMember, Chat, AccessSettingsObject
 from games.models import RandomChoiceGame, RandomChoiceGamePlayer, RandomChoiceGameResult
-from .utils.texts import get_players, get_losers
 from ..utils import mute_losers
 
 game_router = Router()
@@ -36,7 +35,7 @@ async def join_game(callback: CallbackQuery, game: RandomChoiceGame, member: Cha
         return
 
     if await sync_to_async(lambda: member in game.players.all())():
-        await sync_to_async(game.players.remove)(member)
+        await sync_to_async(game.players.remove)(member)  # type: ignore
         await callback.answer(_("You left the game"))
     else:
         if await game.players.acount() < game.max_players_count:
@@ -47,7 +46,7 @@ async def join_game(callback: CallbackQuery, game: RandomChoiceGame, member: Cha
             return
 
     dialog.data["game_text"] = await game.get_string()
-    dialog.data["game_players"] = await get_players(game)
+    dialog.data["game_players"] = await game.get_players()
 
     await dialog.edit_message(callback.message.message_id, random_choice_game_texts["game"], random_choice_game, menu_data={"game": game})
 
@@ -62,10 +61,10 @@ async def join_game(callback: CallbackQuery, game: RandomChoiceGame, member: Cha
             (game.autostart_operator != 'or' and (autostart_at_max_players_condition and autostart_at_condition))):
         result: RandomChoiceGameResult = await game.start_game()
 
-        await mute_losers(game, result, chat)
+        await mute_losers(game, chat)
 
         await dialog.edit_message(callback.message.message_id, random_choice_game_texts["game"])
-        dialog.data["game_losers"] = await get_losers(result)
+        dialog.data["game_losers"] = await result.get_losers()
         await dialog.send_message(random_choice_game_texts["results"], reply_to_message_id=callback.message.message_id)
         await dialog_manager.delete_dialog(dialog)
 
@@ -79,10 +78,10 @@ async def start_game(callback: CallbackQuery, game: RandomChoiceGame, chat: Chat
 
     result: RandomChoiceGameResult = await game.start_game()
 
-    await mute_losers(game, result, chat)
+    await mute_losers(game, chat)
 
     await dialog.edit_message(callback.message.message_id, random_choice_game_texts["game"])
-    dialog.data["game_losers"] = await get_losers(result)
+    dialog.data["game_losers"] = await result.get_losers()
     await dialog.send_message(random_choice_game_texts["results"], reply_to_message_id=callback.message.message_id)
     await dialog_manager.delete_dialog(dialog)
 

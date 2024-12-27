@@ -1,8 +1,10 @@
 import re
 from uuid import uuid4
 
+from asgiref.sync import sync_to_async
 from django.db import models
-from django.db.models import Manager
+from django.db.models import Manager, F
+from django.utils.translation import gettext as _
 
 from bot.models import ChatMember
 
@@ -49,7 +51,19 @@ class GameBase(models.Model, metaclass=GameMeta):
     created_at = models.DateTimeField(auto_now_add=True)
 
     creator: ChatMember
-    players: Manager
+    creator_id: int
+    players: Manager[ChatMember]
+
+    @sync_to_async
+    def get_players(self) -> str:
+        text = _("Players:\n")
+
+        player_index = 1
+        for player in self.players.annotate(join_at=F(f'{self.game_name.lower()}gameplayer__join_at')).order_by("join_at"):
+            text += f"{player_index}) {'👑 ' if player.id == self.creator_id else ''}{player.get_string(True)}\n"
+            player_index += 1
+
+        return text
 
     @property
     def is_finished(self):

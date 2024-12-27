@@ -1,7 +1,9 @@
 from uuid import uuid4
 
+from asgiref.sync import sync_to_async
 from django.db import models
-from django.db.models import Manager
+from django.db.models import Manager, F
+from django.utils.translation import gettext as _
 
 from .game import GameBase
 
@@ -42,6 +44,17 @@ class GameResultBase(models.Model, metaclass=GameResultMeta):
 
     game: GameBase
     losers: Manager
+
+    @sync_to_async
+    def get_losers(self) -> str:
+        text = ""
+        for player in self.game.players.annotate(join_at=F(f'{self.game_name.lower()}gameplayer__join_at')).order_by("join_at"):
+            if self.losers.filter(chat_member=player).exists():
+                text += _("▶ %(player)s\n") % {"player": player.get_string(True)}
+            else:
+                text += f"{player.get_string(True)}\n"
+
+        return text
 
     def __str__(self):
         return f"[game {self.game}] - [finished at {self.finished_at}]"

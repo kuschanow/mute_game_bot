@@ -14,12 +14,11 @@ from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.utils.translation import gettext as _
 
-from bot.dialogs.dialog_buttons import privacy, change_page, punishment, is_creator_play, min_max, losers, autostart_when_full, create, cancel, \
+from bot.dialogs.dialog_buttons import punishment, is_creator_play, min_max, losers, autostart_when_full, create, cancel, \
     autostart_timer as autostart_timer_button, autostart_operator
 from bot.dialogs.dialog_menus import punishments, random_choice_settings, random_choice_game
 from bot.dialogs.dialog_texts import game_creation_texts, random_choice_game_texts
 from bot.handlers.games.random_choice.game_settings_states import GameSettingsStates
-from bot.handlers.games.random_choice.utils.texts import get_players
 from bot.middlewares.games_middleware import set_random_choice_game_middlewares
 from bot.models import ChatMember, User, AccessSettingsObject, Chat
 from games.models import RandomChoiceGame, RandomChoiceGamePlayer
@@ -251,7 +250,7 @@ async def create(callback: CallbackQuery, game: RandomChoiceGame, member: ChatMe
     dialog = Dialog.create("random_choice_game", user_id=member.user_id, chat_id=member.chat_id, bot=bot)
     dialog.data["game_id"] = str(game.id)
     dialog.data["game_text"] = await game.get_string()
-    dialog.data["game_players"] = await get_players(game)
+    dialog.data["game_players"] = await game.get_players()
 
     if game.autostart_timer:
         game.autostart_timer_started_at = datetime.now(timezone.utc)

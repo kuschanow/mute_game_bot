@@ -7,7 +7,9 @@ from games.models.base_game_models import GameBase
 from shared.enums.CellTypes import CellTypes
 from .hidden_mines_game_cell import HiddenMinesGameCell
 from .hidden_mines_game_field import HiddenMinesGameField
-from .. import HiddenMinesGameResult, HiddenMinesGameWinner, HiddenMinesGameLoser
+from .hidden_mines_game_result import HiddenMinesGameResult
+from .hidden_mines_game_winner import HiddenMinesGameWinner
+from .hidden_mines_game_loser import  HiddenMinesGameLoser
 
 
 class HiddenMinesGame(GameBase):
@@ -38,6 +40,15 @@ class HiddenMinesGame(GameBase):
                 {_("There are 3 'dead' cells and 1 'win' cell in the grid below")}
                 """
 
+    async def finish_game_by_timeout(self) -> HiddenMinesGameResult:
+        result = HiddenMinesGameResult(game=self)
+        await result.asave()
+
+        loser = HiddenMinesGameLoser(game_result=result, player=await sync_to_async(self.players.first)())
+        await loser.asave()
+
+        return result
+
     async def finish_game(self, with_cell: HiddenMinesGameCell) -> HiddenMinesGameResult:
         result = HiddenMinesGameResult(game=self)
         await result.asave()
@@ -46,7 +57,7 @@ class HiddenMinesGame(GameBase):
             winner = HiddenMinesGameWinner(game_result=result, player=await sync_to_async(self.players.first)())
             await winner.asave()
 
-        elif with_cell.type == CellTypes.LOSE:
+        elif with_cell.type == CellTypes.MINE:
             loser = HiddenMinesGameLoser(game_result=result, player=await sync_to_async(self.players.first)())
             await loser.asave()
 

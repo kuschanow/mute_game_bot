@@ -87,7 +87,7 @@ class Migration(migrations.Migration):
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
                 ('x', models.IntegerField()),
                 ('y', models.IntegerField()),
-                ('type', models.TextField(choices=[('mine', 'Mine'), ('empty', 'Empty')], default='empty')),
+                ('type', models.TextField(choices=[('mine', 'Mine'), ('empty', 'Win')], default='empty')),
                 ('is_opened', models.BooleanField(default=False)),
                 ('field', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='cells', to='games.hiddenminesgamefield')),
             ],
@@ -108,6 +108,17 @@ class Migration(migrations.Migration):
             name='HiddenMinesGameLoser',
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ('player', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='games.hiddenminesgameplayer')),
+            ],
+            options={
+                'abstract': False,
+            },
+        ),
+        migrations.CreateModel(
+            name='HiddenMinesGameWinner',
+            fields=[
+                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ('game_result', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='games.hiddenminesgameresult')),
                 ('player', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='games.hiddenminesgameplayer')),
             ],
             options={
